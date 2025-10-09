@@ -25,4 +25,6 @@ data class TableItemHorizontalLargeMlc(
     val value: String? = null,
     @Json(name = "valueImage")
     val valueImage: String? = null,
+    @Json(name = "orientation")
+    val orientation: Boolean? = null,
 ) : Parcelable

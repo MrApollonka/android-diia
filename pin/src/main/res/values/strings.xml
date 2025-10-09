@@ -28,4 +28,6 @@
     <string name="pin_reset_confirm_title_text">Повторіть\nкод з 4 цифр</string>
     <string name="pin_reset_confirm_description_text">Переконайтеся, що не помилилися й пам\'ятаєте код для входу.</string>
 
+    <string name="accessibility_wrong_pin_try_again">Неправильно введений пароль. Спробуйте ще раз</string>
+
 </resources>

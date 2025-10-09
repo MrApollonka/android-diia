@@ -1,5 +1,7 @@
 package ua.gov.diia.ui_base.components.infrastructure.event
 
+import ua.gov.diia.core.util.extensions.emptyDeque
+import ua.gov.diia.core.util.extensions.push
 import ua.gov.diia.ui_base.components.infrastructure.DataActionWrapper
 import ua.gov.diia.ui_base.components.infrastructure.state.UIState
 
@@ -12,9 +14,26 @@ data class UIAction(
     val optionalId: String? = null,
     val optionalType: String? = null,
     val action: DataActionWrapper? = null,
-    val actions: List<DataActionWrapper>? = null
+    val actions: List<DataActionWrapper>? = null,
+    val actionBundles: ArrayDeque<ActionBundle> = emptyDeque()
 )
 
+data class ActionBundle(
+    val componentId: String?,
+    val action: DataActionWrapper? = null
+)
+
+fun UIAction.pushBundle(
+    componentId: String?,
+    action: DataActionWrapper? = null
+) = this.copy(
+    actionBundles = actionBundles.push(
+        element = ActionBundle(
+            componentId = componentId,
+            action = action
+        )
+    )
+)
 
 fun UIAction.getValidationStateOrNull(): UIState.Validation? {
     return if (this.states.isNotEmpty()) {

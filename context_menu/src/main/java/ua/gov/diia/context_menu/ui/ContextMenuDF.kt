@@ -6,10 +6,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.viewModels
-import androidx.navigation.fragment.navArgs
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ua.gov.diia.context_menu.R
 import ua.gov.diia.core.models.ConsumableString
 import ua.gov.diia.core.ui.dynamicdialog.ActionsConst
@@ -17,18 +18,12 @@ import ua.gov.diia.core.util.extensions.fragment.setNavigationResult
 import ua.gov.diia.ui_base.components.infrastructure.collectAsEffect
 import ua.gov.diia.ui_base.components.organism.ContextMenuOrg
 import ua.gov.diia.ui_base.fragments.BaseBottomDialog
+import ua.gov.diia.ui_base.navigation.BaseNavigation
 
 class ContextMenuDF : BaseBottomDialog() {
 
     private val viewModel: ContextMenuDVM by viewModels()
-    private val args: ContextMenuDFArgs by navArgs()
-
     private var composeView: ComposeView? = null
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        viewModel.init(args.items.toList())
-    }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         return super.onCreateDialog(savedInstanceState).apply {
@@ -55,11 +50,10 @@ class ContextMenuDF : BaseBottomDialog() {
         super.onViewCreated(view, savedInstanceState)
 
         composeView?.setContent {
-
             viewModel.apply {
                 navigation.collectAsEffect {
                     when (it) {
-                        ContextMenuDVM.ContextMenuNavigation.CloseMenu -> {
+                        is BaseNavigation.Back -> {
                             dismissAllowingStateLoss()
                         }
 
@@ -73,13 +67,16 @@ class ContextMenuDF : BaseBottomDialog() {
                     }
                 }
             }
-            ContextMenuOrg(
-                modifier = Modifier,
-                contextMenu = args.items.toList(),
-                onUIAction = {
-                    viewModel.onUIAction(it)
-                }
-            )
+
+            val data by viewModel.contextMenuOrgData.collectAsStateWithLifecycle()
+
+            data?.let { lData ->
+                ContextMenuOrg(
+                    modifier = Modifier,
+                    data = lData,
+                    onUIAction = viewModel::onUIAction
+                )
+            }
         }
     }
 
@@ -87,4 +84,5 @@ class ContextMenuDF : BaseBottomDialog() {
         super.onDestroyView()
         composeView = null
     }
+
 }

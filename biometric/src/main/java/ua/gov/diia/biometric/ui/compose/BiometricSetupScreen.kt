@@ -1,5 +1,8 @@
 package ua.gov.diia.biometric.ui.compose
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
@@ -8,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.layout.ContentScale
@@ -35,9 +39,23 @@ import ua.gov.diia.ui_base.components.molecule.text.TextLabelMlcData
 import ua.gov.diia.ui_base.components.organism.header.TopGroupOrg
 import ua.gov.diia.ui_base.components.organism.header.TopGroupOrgData
 import ua.gov.diia.ui_base.components.provideTestTagsAsResourceId
+import ua.gov.diia.ui_base.models.orientation.Orientation
 
 @Composable
 fun BiometricSetupScreen(
+    modifier: Modifier = Modifier,
+    data: SnapshotStateList<UIElementData>,
+    orientation: Orientation,
+    onUIAction: (UIAction) -> Unit
+) {
+    when (orientation) {
+        Orientation.Portrait -> BiometricSetupScreenPortrait(modifier, data, onUIAction)
+        Orientation.Landscape -> BiometricSetupScreenLandscape(modifier, data, onUIAction)
+    }
+}
+
+@Composable
+private fun BiometricSetupScreenPortrait(
     modifier: Modifier = Modifier,
     data: SnapshotStateList<UIElementData>,
     onUIAction: (UIAction) -> Unit
@@ -52,7 +70,7 @@ fun BiometricSetupScreen(
             .safeDrawingPadding()
             .provideTestTagsAsResourceId()
     ) {
-        val (title, descriptionText, iconZone, button, altButton) = createRefs()
+        val (title, descriptionText, button, altButton) = createRefs()
         data.forEach { item ->
             if (item is TopGroupOrgData) {
                 TopGroupOrg(
@@ -132,6 +150,106 @@ fun BiometricSetupScreen(
 }
 
 @Composable
+private fun BiometricSetupScreenLandscape(
+    modifier: Modifier = Modifier,
+    data: SnapshotStateList<UIElementData>,
+    onUIAction: (UIAction) -> Unit
+) {
+
+    Row(
+        modifier = modifier
+            .paint(
+                painterResource(id = R.drawable.bg_blue_yellow_gradient),
+                contentScale = ContentScale.FillBounds
+            )
+            .fillMaxSize()
+            .safeDrawingPadding()
+            .provideTestTagsAsResourceId()
+    ) {
+        ConstraintLayout(Modifier
+            .weight(1f)
+            .fillMaxHeight()) {
+            val (title, descriptionText, iconZone, button, altButton) = createRefs()
+            data.forEach { item ->
+                if (item is TopGroupOrgData) {
+                    TopGroupOrg(
+                        modifier = Modifier.constrainAs(title) {
+                            start.linkTo(parent.start)
+                            end.linkTo(parent.end)
+                            top.linkTo(parent.top)
+                        },
+                        data = item,
+                        onUIAction = onUIAction
+                    )
+                }
+
+                if (item is TextLabelMlcData) {
+                    TextLabelMlc(
+                        modifier = modifier
+                            .constrainAs(descriptionText) {
+                                top.linkTo(title.bottom)
+                            },
+                        data = item.copy(linkTopPadding = 0.dp),
+                        onUIAction = onUIAction
+                    )
+                }
+
+                if (item is BtnPrimaryDefaultAtmData) {
+                    val accessabilityText =
+                        stringResource(id = R.string.accessibility_biometric_methods_button)
+                    BtnPrimaryDefaultAtm(
+                        modifier = modifier
+                            .constrainAs(button) {
+                                start.linkTo(parent.start)
+                                end.linkTo(parent.end)
+                                bottom.linkTo(altButton.top)
+                            }
+                            .semantics(mergeDescendants = true) {
+                                contentDescription = accessabilityText
+                            },
+                        data = item,
+                        onUIAction = onUIAction
+                    )
+                }
+
+                if (item is BtnPlainAtmData) {
+                    val accessabilityText =
+                        stringResource(id = R.string.accessibility_biometric_methods_alt_button)
+                    BtnPlainAtm(
+                        modifier = modifier
+                            .constrainAs(altButton) {
+                                start.linkTo(parent.start)
+                                end.linkTo(parent.end)
+                                bottom.linkTo(parent.bottom, margin = 16.dp)
+                            }
+                            .semantics(mergeDescendants = true) {
+                                contentDescription = accessabilityText
+                            },
+                        data = item,
+                        onUIAction = onUIAction
+                    )
+                }
+
+            }
+        }
+
+        Box(
+            Modifier
+                .weight(1f)
+                .fillMaxHeight(), contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                modifier = modifier
+                    .size(height = 96.dp, width = 224.dp)
+                    .testTag(stringResource(id = ua.gov.diia.biometric.R.string.biometric_screen_icon_test_tag)),
+                painter = painterResource(id = R.drawable.ic_biometric_auth),
+                contentDescription = stringResource(id = R.string.accessibility_biometric_methods_icon),
+            )
+        }
+    }
+}
+
+@Composable
 @Preview
 fun BiometricSetupScreenPreview() {
     val _uiData = remember { mutableStateListOf<UIElementData>() }
@@ -159,5 +277,37 @@ fun BiometricSetupScreenPreview() {
             interactionState = UIState.Interaction.Enabled
         )
     )
-    BiometricSetupScreen(data = uiData, onUIAction = { })
+    BiometricSetupScreen(data = uiData, orientation = Orientation.Portrait, onUIAction = { })
+}
+
+
+@Composable
+@Preview(heightDp = 360, widthDp = 800)
+fun BiometricSetupScreenLandscapePreview() {
+    val _uiData = remember { mutableStateListOf<UIElementData>() }
+    val uiData: SnapshotStateList<UIElementData> = _uiData
+    _uiData.add(
+        TopGroupOrgData(
+            titleGroupMlcData = TitleGroupMlcData(
+                heroText = UiText.DynamicString("Дозвольте вхід за біометричними даними"),
+            )
+        )
+    )
+    _uiData.add(
+        TextLabelMlcData(
+            text = UiText.DynamicString("Дозвольте Дії використовувати сканер відбитку пальця та/або розпізнавання обличчя для входу у застосунок.")
+        )
+    )
+    _uiData.add(
+        BtnPrimaryDefaultAtmData(title = UiText.DynamicString("Дозволити"))
+    )
+    _uiData.add(
+        BtnPlainAtmData(
+            actionKey = UIActionKeysCompose.BUTTON_ALTERNATIVE,
+            id = "",
+            title = UiText.DynamicString("Дозволю пізніше"),
+            interactionState = UIState.Interaction.Enabled
+        )
+    )
+    BiometricSetupScreen(data = uiData, orientation = Orientation.Landscape, onUIAction = { })
 }

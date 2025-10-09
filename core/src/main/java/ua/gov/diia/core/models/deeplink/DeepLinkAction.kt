@@ -46,3 +46,11 @@ class DeepLinkActionViewDocument(
     val documentType: String
 ) : DeepLinkAction()
 
+object DeepLinkActionOpenMenu : DeepLinkAction()
+
+class DeepLinkActionViewDocumentWithRating(
+    val notificationId: String?,
+    val resourceId: String?,
+    val documentType: String
+) : DeepLinkAction()
+

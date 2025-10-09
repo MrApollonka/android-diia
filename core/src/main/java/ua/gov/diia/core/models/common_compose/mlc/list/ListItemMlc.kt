@@ -32,6 +32,8 @@ data class ListItemMlc(
     val id: String?,
     @Json(name = "label")
     val label: String? = null,
+    @Json(name = "accessibilityDescription")
+    val accessibilityDescription: String? = null,
     @Json(name = "logoLeft")
     val logoLeft: String?,
     @Json(name = "state")

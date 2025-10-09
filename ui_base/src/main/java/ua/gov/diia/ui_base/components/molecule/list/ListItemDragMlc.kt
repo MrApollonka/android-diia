@@ -31,7 +31,7 @@ import ua.gov.diia.ui_base.components.noRippleClickable
 import ua.gov.diia.ui_base.components.subatomic.icon.UiIconWrapperSubatomic
 import ua.gov.diia.ui_base.components.theme.Black
 import ua.gov.diia.ui_base.components.theme.BlackAlpha10
-import ua.gov.diia.ui_base.components.theme.BlackAlpha30
+import ua.gov.diia.ui_base.components.theme.BlackAlpha60
 import ua.gov.diia.ui_base.components.theme.DiiaTextStyle
 import ua.gov.diia.ui_base.components.theme.White
 import ua.gov.diia.ui_base.components.theme.WhiteAlpha40
@@ -75,7 +75,7 @@ fun ListItemDragMlc(
                         modifier = Modifier.padding(top = 4.dp),
                         text = data.desc?.asString().orEmpty(),
                         style = DiiaTextStyle.t2TextDescription,
-                        color = BlackAlpha30
+                        color = BlackAlpha60
                     )
                 }
             }

@@ -1,7 +1,5 @@
 package ua.gov.diia.core.models.document
 
-
-import android.content.Context
 import android.os.Parcelable
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
@@ -29,6 +27,6 @@ data class DocAction(
 
     override fun getSubType() = code
 
-    override fun getDisplayName(c: Context) = name
+    override fun getDisplayName() = name
 
 }

@@ -1,20 +1,18 @@
 package ua.gov.diia.ui_base.util
 
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import ua.gov.diia.core.models.common_compose.atm.icon.BadgeCounterAtm
 import ua.gov.diia.core.models.common_compose.atm.icon.DoubleIconAtm
 import ua.gov.diia.core.models.common_compose.atm.icon.IconAtm
 import ua.gov.diia.core.models.common_compose.atm.icon.UserPictureAtm
 import ua.gov.diia.core.models.common_compose.atm.media.ArticlePicAtm
-import ua.gov.diia.core.models.common_compose.atm.text.SectionTitleAtm
 import ua.gov.diia.core.models.common_compose.atm.text.TickerAtm
 import ua.gov.diia.core.models.common_compose.general.Action
 import ua.gov.diia.core.models.common_compose.mlc.button.BtnIconRoundedMlc
 import ua.gov.diia.core.models.common_compose.mlc.card.BlackCardMlc
 import ua.gov.diia.core.models.common_compose.mlc.card.HalvedCardMlc
 import ua.gov.diia.core.models.common_compose.mlc.card.IconCardMlc
-import ua.gov.diia.core.models.common_compose.mlc.card.ImageCardMlc
-import ua.gov.diia.core.models.common_compose.mlc.card.SmallNotificationMlc
 import ua.gov.diia.core.models.common_compose.mlc.card.UserCardMlc
 import ua.gov.diia.core.models.common_compose.mlc.card.VerticalCardMlc
 import ua.gov.diia.core.models.common_compose.mlc.card.WhiteCardMlc
@@ -38,9 +36,6 @@ import ua.gov.diia.ui_base.components.atom.icon.IconAtmData
 import ua.gov.diia.ui_base.components.atom.icon.UserPictureAtmData
 import ua.gov.diia.ui_base.components.atom.icon.toUiModel
 import ua.gov.diia.ui_base.components.atom.media.ArticlePicAtmData
-import ua.gov.diia.ui_base.components.atom.status.ChipStatusAtmData
-import ua.gov.diia.ui_base.components.atom.status.StatusChipType
-import ua.gov.diia.ui_base.components.atom.text.SectionTitleAtmData
 import ua.gov.diia.ui_base.components.atom.text.TickerAtomData
 import ua.gov.diia.ui_base.components.atom.text.TickerType
 import ua.gov.diia.ui_base.components.atom.text.TickerUsage
@@ -52,22 +47,23 @@ import ua.gov.diia.ui_base.components.infrastructure.state.UIState
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiIcon
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.toDrawableResource
-import ua.gov.diia.ui_base.components.infrastructure.utils.resource.toDrawableResourceOrNull
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.toDynamicString
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.toDynamicStringOrNull
+import ua.gov.diia.ui_base.components.infrastructure.utils.toSidePaddingMode
+import ua.gov.diia.ui_base.components.infrastructure.utils.toTopPaddingMode
 import ua.gov.diia.ui_base.components.molecule.button.BtnIconRoundedMlcData
 import ua.gov.diia.ui_base.components.molecule.card.BlackCardMlcData
 import ua.gov.diia.ui_base.components.molecule.card.HalvedCardMlcData
 import ua.gov.diia.ui_base.components.molecule.card.IconCardMlcData
-import ua.gov.diia.ui_base.components.molecule.card.ImageCardMlcData
-import ua.gov.diia.ui_base.components.molecule.card.SmallNotificationMlcData
 import ua.gov.diia.ui_base.components.molecule.card.UserCardMlcData
 import ua.gov.diia.ui_base.components.molecule.card.VerticalCardMlcData
 import ua.gov.diia.ui_base.components.molecule.card.WhiteCardMlcData
+import ua.gov.diia.ui_base.components.molecule.card.toUIModel
 import ua.gov.diia.ui_base.components.molecule.header.NavigationPanelMlcData
 import ua.gov.diia.ui_base.components.molecule.header.TitleGroupMlcData
 import ua.gov.diia.ui_base.components.molecule.header.toUiModel
 import ua.gov.diia.ui_base.components.molecule.list.ListItemMlcData
+import ua.gov.diia.ui_base.components.molecule.list.table.items.tableblock.toUIModel
 import ua.gov.diia.ui_base.components.molecule.list.toUiModel
 import ua.gov.diia.ui_base.components.molecule.media.toUiModel
 import ua.gov.diia.ui_base.components.molecule.text.HeadingWithSubtitlesMlcData
@@ -114,10 +110,14 @@ fun IconAtm.toUiModel(id: String? = null, actionKey: String? = null): IconAtmDat
     )
 }
 
-fun ArticlePicAtm.toUiModel(id: String? = null): ArticlePicAtmData {
+fun ArticlePicAtm.toUiModel(
+    id: String? = null,
+    contentScale: ContentScale = ContentScale.Fit
+): ArticlePicAtmData {
     return ArticlePicAtmData(
         id = id ?: UIActionKeysCompose.ARTICLE_PIC_ATM,
-        url = image
+        url = image,
+        contentScale = contentScale
     )
 }
 
@@ -139,7 +139,6 @@ fun List<Action>.toDataActionsWrapper(): List<DataActionWrapper> {
     return list
 }
 
-
 //TODO clarify type mapping
 fun TickerAtm.toUiModel(): TickerAtomData {
     return TickerAtomData(
@@ -155,25 +154,13 @@ fun TickerAtm.toUiModel(): TickerAtomData {
             TickerAtm.TickerType.rainbow -> TickerType.RAINBOW
             TickerAtm.TickerType.blue -> TickerType.BLUE
         },
-        usage = when(usage){
+        usage = when (usage) {
             TickerAtm.UsageType.grand -> TickerUsage.GRAND
             TickerAtm.UsageType.base -> TickerUsage.BASE
             TickerAtm.UsageType.stackedCard -> TickerUsage.STACKED_CARD
             else -> TickerUsage.DOCUMENT
         },
         action = action?.toDataActionWrapper()
-    )
-}
-
-/**
- *  Molecule
- */
-
-fun HeadingWithSubtitlesMlc.toUiModel(): HeadingWithSubtitlesMlcData {
-    return HeadingWithSubtitlesMlcData(
-        componentId = this.componentId.orEmpty(),
-        value = this.value,
-        subtitles = this.subtitles
     )
 }
 
@@ -213,15 +200,6 @@ fun IconCardMlc.toUiModel(id: String? = null): IconCardMlcData {
         id = id ?: UIActionKeysCompose.ICON_CARD_MLC,
         label = label.toDynamicString(),
         icon = iconLeft.toDrawableResource(),
-        action = action?.toDataActionWrapper()
-    )
-}
-
-fun SmallNotificationMlc.toUiModel(): SmallNotificationMlcData {
-    return SmallNotificationMlcData(
-        id = this.id,
-        text = text.toDynamicString(),
-        label = label.toDynamicString(),
         action = action?.toDataActionWrapper()
     )
 }
@@ -323,7 +301,7 @@ fun ArticlePicCarouselOrg.toUiModel(id: String? = null): ArticlePicCarouselOrgDa
         items = mutableListOf<SimpleCarouselCard>().apply {
             items.forEach {
                 it.articlePicAtm?.let {
-                    add(it.toUiModel())
+                    add(it.toUiModel(contentScale = ContentScale.Crop))
                 }
                 it.articleVideoMlc?.let {
                     add(it.toUiModel())
@@ -355,7 +333,7 @@ fun SmallNotificationCarouselOrg.toUiModel(id: String? = null): SmallNotificatio
         items = mutableListOf<SimpleCarouselCard>().apply {
             items.forEach {
                 it.smallNotificationMlc?.let {
-                    add(it.toUiModel())
+                    add(it.toUIModel())
                 }
                 it.iconCardMlc?.let {
                     add(it.toUiModel())
@@ -405,18 +383,10 @@ fun MediaTitleOrg.toUiModel(): MediaTitleOrgData {
     )
 }
 
-fun NavigationPanelMlc.toUiModel(): NavigationPanelMlcData {
-    return NavigationPanelMlcData(
-        title = label.toDynamicStringOrNull(),
-        isContextMenuExist = ellipseMenu?.isNotEmpty() ?: false,
-        componentId = componentId.toDynamicStringOrNull(),
-        iconAtm = iconAtm?.toUiModel()
-    )
-}
-
 fun TopGroupOrg.toUiModel(): TopGroupOrgData {
     return TopGroupOrgData(
         navigationPanelMlcData = navigationPanelMlc?.toUiModel(),
+        navigationPanelMlcV2Data = navigationPanelMlcV2?.toUiModel(),
         chipTabsOrgData = chipTabsOrg?.toUiModel(),
         titleGroupMlcData = titleGroupMlc?.toUiModel()
     )

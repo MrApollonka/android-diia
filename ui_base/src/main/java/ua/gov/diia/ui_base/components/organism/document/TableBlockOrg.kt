@@ -26,6 +26,8 @@ import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiIcon
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.toDynamicString
+import ua.gov.diia.ui_base.components.infrastructure.utils.toSidePaddingMode
+import ua.gov.diia.ui_base.components.infrastructure.utils.toTopPaddingMode
 import ua.gov.diia.ui_base.components.molecule.card.GalleryImageMolecule
 import ua.gov.diia.ui_base.components.molecule.card.GalleryImageMoleculeData
 import ua.gov.diia.ui_base.components.molecule.list.table.items.tableblock.DocTableItemHorizontalLongerMlc
@@ -44,10 +46,11 @@ import ua.gov.diia.ui_base.components.molecule.list.table.items.tableblock.Table
 import ua.gov.diia.ui_base.components.molecule.list.table.items.tableblock.TableSecondaryHeadingMlc
 import ua.gov.diia.ui_base.components.molecule.list.table.items.tableblock.TableSecondaryHeadingMlcData
 import ua.gov.diia.ui_base.components.molecule.list.table.items.tableblock.toTableMainHeadingMlcData
-import ua.gov.diia.ui_base.components.molecule.list.table.items.tableblock.toTableSecondaryHeadingMlcData
 import ua.gov.diia.ui_base.components.molecule.list.table.items.tableblock.toUIModel
+import ua.gov.diia.ui_base.components.molecule.list.table.items.tableblock.toUiModel
 import ua.gov.diia.ui_base.components.molecule.tile.SmallEmojiPanelMlc
 import ua.gov.diia.ui_base.components.molecule.tile.SmallEmojiPanelMlcData
+import ua.gov.diia.ui_base.util.toUiModel
 
 @Composable
 fun TableBlockOrg(
@@ -163,45 +166,40 @@ fun TableBlockOrg?.toUIModel(): TableBlockOrgData? {
     val entity = this
     if (entity?.items == null) return null
     val tbItems = mutableListOf<TableBlockItem>().apply {
-        (entity.items as List<Item>).forEach { listMlcl ->
-            if (listMlcl.tableItemHorizontalMlc is TableItemHorizontalMlc) {
-                add(
-                    TableItemHorizontalMlcData(
-                        componentId = listMlcl.tableItemHorizontalMlc?.componentId.orEmpty(),
-                        title = listMlcl.tableItemHorizontalMlc?.label?.let {
-                            UiText.DynamicString(it)
-                        },
-                        secondaryTitle = UiText.DynamicString(
-                            listMlcl.tableItemHorizontalMlc?.secondaryLabel.orEmpty()
-                        ),
-                        value = listMlcl.tableItemHorizontalMlc?.value,
-                        secondaryValue = listMlcl.tableItemHorizontalMlc?.secondaryValue,
-                        supportText = listMlcl.tableItemHorizontalMlc?.supportingValue,
-                        valueAsBase64String = listMlcl.tableItemHorizontalMlc?.valueImage
-                    )
-                )
+        (entity.items as List<Item>).forEach { listMlc ->
+            if (listMlc.tableItemHorizontalMlc is TableItemHorizontalMlc) {
+                val item = listMlc.tableItemHorizontalMlc?.toUiModel()
+                item?.let { lItem ->
+                    add(lItem)
+                }
             }
 
-            if (listMlcl.tableItemVerticalMlc is TableItemVerticalMlc) {
-                add(
-                    TableItemVerticalMlcData(
-                        componentId = listMlcl.tableItemVerticalMlc?.componentId.orEmpty(),
-                        title = listMlcl.tableItemVerticalMlc?.label?.let { UiText.DynamicString(it) },
-                        secondaryTitle = listMlcl.tableItemVerticalMlc?.secondaryLabel?.let {
-                            UiText.DynamicString(it)
-                        },
-                        value = listMlcl.tableItemVerticalMlc?.value?.let { UiText.DynamicString(it) },
-                        secondaryValue = listMlcl.tableItemVerticalMlc?.secondaryValue?.let {
-                            UiText.DynamicString(it)
-                        },
-                        supportText = listMlcl.tableItemVerticalMlc?.supportingValue,
-                        valueAsBase64String = listMlcl.tableItemVerticalMlc?.valueImage
+            if (listMlc.tableItemVerticalMlc is TableItemVerticalMlc) {
+                with(listMlc.tableItemVerticalMlc) {
+                    add(
+                        TableItemVerticalMlcData(
+                            componentId = this?.componentId.orEmpty(),
+                            paddingTop = this?.paddingMode?.top.toTopPaddingMode(),
+                            paddingHorizontal = this?.paddingMode?.side.toSidePaddingMode(),
+                            title = this?.label?.let { UiText.DynamicString(it) },
+                            secondaryTitle = this?.secondaryLabel?.let {
+                                UiText.DynamicString(it)
+                            },
+                            value = this?.value?.let { UiText.DynamicString(it) },
+                            secondaryValue = this?.secondaryValue?.let {
+                                UiText.DynamicString(it)
+                            },
+                            supportText = this?.supportingValue,
+                            pointSupportingValue = this?.pointSupportingValue,
+                            valueAsBase64String = this?.valueImage,
+                            icon = this?.icon?.toUiModel()
+                        )
                     )
-                )
+                }
             }
 
-            if (listMlcl.tableItemPrimaryMlc is TableItemPrimaryMlc) {
-                val item = (listMlcl.tableItemPrimaryMlc as TableItemPrimaryMlc).toUIModel()
+            if (listMlc.tableItemPrimaryMlc is TableItemPrimaryMlc) {
+                val item = (listMlc.tableItemPrimaryMlc as TableItemPrimaryMlc).toUIModel()
                 item?.let {
                     add(it)
                 }
@@ -330,7 +328,6 @@ fun TableBlockOrgPreview_WithHeader() {
     val data = TableBlockOrgData(
         items = items,
         headerMain = "Header".toDynamicString().toTableMainHeadingMlcData(),
-        headerSecondary = "Secondary Header".toDynamicString().toTableSecondaryHeadingMlcData()
     )
 
     TableBlockOrg(

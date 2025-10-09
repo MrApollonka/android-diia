@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
@@ -46,6 +47,7 @@ fun ActivityViewOrg(
             .conditional(data.alertCardMlcData == null && data.cardHorizontalScrollOrgData == null) {
                 padding(horizontal = if (data.existForDocs) 16.dp else 24.dp)
             }
+            .systemBarsPadding()
             .padding(bottom = 16.dp),
         verticalArrangement = Arrangement.Bottom
     ) {

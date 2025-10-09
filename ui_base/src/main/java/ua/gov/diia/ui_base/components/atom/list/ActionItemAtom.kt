@@ -8,6 +8,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ua.gov.diia.ui_base.components.infrastructure.UIElementData
@@ -31,7 +34,10 @@ fun ActionItemAtom(
             .noRippleClickable {
                 onUIAction(UIAction(actionKey = data.actionKey, data = data.id))
             }
-            .padding(horizontal = 16.dp, vertical = 20.dp),
+            .padding(horizontal = 16.dp, vertical = 20.dp)
+            .semantics(mergeDescendants = true) {
+                contentDescription = data.title
+            },
         verticalAlignment = Alignment.CenterVertically
     ) {
         data.startIcon?.let {
@@ -39,7 +45,8 @@ fun ActionItemAtom(
                 modifier = Modifier
                     .padding(end = 16.dp)
                     .size(32.dp),
-                image = data.startIcon
+                image = data.startIcon,
+                contentDescription = null
             )
         }
         Column(
@@ -53,7 +60,8 @@ fun ActionItemAtom(
             Text(
                 text = data.title,
                 style = DiiaTextStyle.t3TextBody,
-                color = Black
+                color = Black,
+                modifier = Modifier.clearAndSetSemantics { }
             )
         }
     }

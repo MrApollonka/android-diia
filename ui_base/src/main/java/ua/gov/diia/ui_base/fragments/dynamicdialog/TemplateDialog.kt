@@ -1,7 +1,6 @@
 package ua.gov.diia.ui_base.fragments.dynamicdialog
 
 import android.app.Dialog
-import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.InsetDrawable
 import android.os.Build
 import android.os.Bundle
@@ -12,6 +11,7 @@ import android.view.Window
 import android.view.WindowManager
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toDrawable
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -25,6 +25,7 @@ import ua.gov.diia.ui_base.R
 import ua.gov.diia.ui_base.UiBaseConst
 import ua.gov.diia.ui_base.components.infrastructure.collectAsEffect
 import ua.gov.diia.ui_base.components.infrastructure.screen.TemplateDialogScreen
+import ua.gov.diia.ui_base.components.infrastructure.screen.TemplateMlcV2
 import kotlin.math.roundToInt
 
 @AndroidEntryPoint
@@ -78,10 +79,22 @@ class TemplateDialogF : DialogFragment() {
                 }
             }
 
-            TemplateDialogScreen(
-                dataState = viewModel.uiData,
-                onUIAction = { viewModel.onUIAction(it) }
-            )
+            val templateMlcV1Data = viewModel.templateMlcV1Data.value
+            val templateMlcV2Data = viewModel.templateMlcV2Data.value
+
+            templateMlcV1Data?.let { lTemplateMlcV1Data ->
+                TemplateDialogScreen(
+                    data = lTemplateMlcV1Data,
+                    onUIAction = { viewModel.onUIAction(it) }
+                )
+            }
+
+            templateMlcV2Data?.let { lTemplateMlcV2Data ->
+                TemplateMlcV2(
+                    data = lTemplateMlcV2Data,
+                    onUIAction = { viewModel.onUIAction(it) }
+                )
+            }
         }
     }
 
@@ -100,6 +113,7 @@ class TemplateDialogF : DialogFragment() {
             ActionsConst.KEY_GLOBAL_PROCESSING -> {
                 when (action) {
                     UiBaseConst.DIALOG_ACTION_CODE_PROLONG -> navigateToProlong()
+                    ActionsConst.DIALOG_ACTION_CODE_LOGOUT -> viewModel.doLogout()
                     else -> setResult(action, resultKey)
                 }
             }
@@ -144,21 +158,20 @@ class TemplateDialogF : DialogFragment() {
     }
 
     private fun Window.setTransparentBackground() {
-        val insetHorizontal = resources.getDimension(R.dimen.xlarge).roundToInt()
+        val insets = resources.getDimension(R.dimen.xlarge).roundToInt()
 
         setBackgroundDrawable(
             InsetDrawable(
-                ColorDrawable(
-                    ContextCompat.getColor(
-                        requireContext(),
-                        android.R.color.transparent
-                    )
-                ),
-                insetHorizontal,
+                ContextCompat.getColor(
+                    requireContext(),
+                    android.R.color.transparent
+                ).toDrawable(),
+                insets,
                 0,
-                insetHorizontal,
+                insets,
                 0
             )
         )
     }
+
 }

@@ -64,7 +64,8 @@ class NotificationControllerImplTest {
             notificationsDataSource,
             notificationManager,
             pushTokenProvider,
-            keyValueSource
+            keyValueSource,
+            mockk(relaxed = true)
         )
     }
 

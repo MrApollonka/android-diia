@@ -7,6 +7,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import ua.gov.diia.core.util.state.Loader
+import ua.gov.diia.core.util.state.getLegacyContentLoaded
+import ua.gov.diia.core.util.state.getLegacyProgress
 import ua.gov.diia.ui_base.R
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
@@ -17,10 +20,17 @@ import ua.gov.diia.ui_base.components.infrastructure.screen.ToolbarRootContainer
 import ua.gov.diia.ui_base.components.infrastructure.utils.ContainerType
 import ua.gov.diia.ui_base.components.molecule.header.NavigationPanelMlcData
 import ua.gov.diia.ui_base.components.provideTestTagsAsResourceId
+import ua.gov.diia.ui_base.mappers.loader.mapToLoader
 
+/**
+ * @param loader Used to manage loading state. **Use this instead of `contentLoaded` and `progressIndicator`.**
+ * @param contentLoaded (Deprecated) Use [loader] instead.
+ * @param progressIndicator (Deprecated) Use [loader] instead.
+ */
 @Composable
 fun ServiceScreen(
     modifier: Modifier = Modifier,
+    loader: Loader? = null,
     contentLoaded: Pair<String, Boolean> = Pair("", true),
     progressIndicator: Pair<String, Boolean> = Pair("", true),
     toolbar: SnapshotStateList<UIElementData>,
@@ -43,8 +53,7 @@ fun ServiceScreen(
                 contentScale = ContentScale.FillBounds
             )
             .provideTestTagsAsResourceId(),
-        contentLoaded = contentLoaded,
-        progressIndicator = progressIndicator,
+        loader = loader ?: mapToLoader(progressIndicator, contentLoaded),
         toolbar = {
             ToolbarRootContainer(
                 toolbarViews = toolbar,
@@ -55,8 +64,8 @@ fun ServiceScreen(
             BodyRootLazyContainer(
                 bodyViews = body,
                 displayBlockDivider = !bottom.isNullOrEmpty(),
-                progressIndicator = progressIndicator,
-                contentLoaded = contentLoaded,
+                progressIndicator = loader?.getLegacyProgress() ?: progressIndicator,
+                contentLoaded = loader?.getLegacyContentLoaded() ?: contentLoaded,
                 connectivityState = connectivityState,
                 onUIAction = onEvent,
                 containerType = ContainerType.SERVICE
@@ -66,7 +75,7 @@ fun ServiceScreen(
             if (bottom != null) {
                 BottomBarRootContainer(
                     bottomViews = bottom,
-                    progressIndicator = progressIndicator,
+                    loader = loader ?: mapToLoader(progressIndicator, contentLoaded),
                     onUIAction = onEvent
                 )
             }

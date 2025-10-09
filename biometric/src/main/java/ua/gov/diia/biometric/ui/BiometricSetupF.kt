@@ -1,10 +1,12 @@
 package ua.gov.diia.biometric.ui
 
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -15,6 +17,7 @@ import ua.gov.diia.core.ui.dynamicdialog.ActionsConst
 import ua.gov.diia.core.util.extensions.fragment.registerForTemplateDialogNavResult
 import ua.gov.diia.core.util.extensions.fragment.setNavigationResult
 import ua.gov.diia.ui_base.components.infrastructure.collectAsEffect
+import ua.gov.diia.ui_base.models.orientation.Orientation
 
 @AndroidEntryPoint
 class BiometricSetupF : Fragment() {
@@ -37,6 +40,13 @@ class BiometricSetupF : Fragment() {
         composeView?.setContent {
             val uiDataElements = viewModel.uiData
 
+            val configuration = LocalConfiguration.current
+            val orientation =
+                if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                    Orientation.Landscape
+                } else {
+                    Orientation.Portrait
+                }
             viewModel.apply {
                 navigation.collectAsEffect { navigation ->
                     when (navigation) {
@@ -49,7 +59,8 @@ class BiometricSetupF : Fragment() {
 
             BiometricSetupScreen(
                 data = uiDataElements,
-                onUIAction = { viewModel.onUIAction(it) }
+                onUIAction = { viewModel.onUIAction(it) },
+                orientation = orientation
             )
         }
 

@@ -1,11 +1,11 @@
 package ua.gov.diia.menu
 
 import androidx.compose.runtime.mutableStateListOf
-import ua.gov.diia.core.models.common_compose.atm.SpacerAtmType
 import ua.gov.diia.menu.ui.MenuActionsKey
 import ua.gov.diia.ui_base.components.DiiaResourceIcon
 import ua.gov.diia.ui_base.components.atom.button.BtnPrimaryDefaultAtmData
 import ua.gov.diia.ui_base.components.atom.space.SpacerAtmData
+import ua.gov.diia.ui_base.components.atom.space.SpacerAtmType
 import ua.gov.diia.ui_base.components.atom.text.textwithparameter.TextWithParametersConstants
 import ua.gov.diia.ui_base.components.infrastructure.DataActionWrapper
 import ua.gov.diia.ui_base.components.infrastructure.UIElementData
@@ -137,21 +137,21 @@ class MenuContentController @Inject constructor() {
             ListItemGroupOrgData(itemsList = menuSigning, componentId = UiText.StringResource(R.string.menu_group_signature_test_tag)),
             ListItemGroupOrgData(itemsList = menuSettings, componentId = UiText.StringResource(R.string.menu_group_settings_test_tag)),
             ListItemGroupOrgData(itemsList = menuSupport, componentId = UiText.StringResource(R.string.menu_group_support_test_tag)),
-            SpacerAtmData(SpacerAtmType.SPACER_16),
+            SpacerAtmData(SpacerAtmType.MEDIUM),
             BtnPrimaryDefaultAtmData(
                 id = MenuActionsKey.LOGOUT,
                 actionKey = MenuActionsKey.LOGOUT,
                 componentId = UiText.StringResource(R.string.menu_btn_primary_exit_test_tag),
                 title = UiText.DynamicString("Вийти")
             ),
-            SpacerAtmData(SpacerAtmType.SPACER_8),
+            SpacerAtmData(SpacerAtmType.SMALL),
             TextLabelMlcData(
                 text = linkText.toDynamicString(),
                 parameters = listOf(linkParameter),
                 actionKey = MenuActionsKey.OPEN_POLICY,
                 componentId = UiText.StringResource(R.string.menu_link_atm_personal_data_test_tag)
             ),
-            SpacerAtmData(SpacerAtmType.SPACER_32)
+            SpacerAtmData(SpacerAtmType.EXTRA_LARGE)
         )
         return bodyData
     }

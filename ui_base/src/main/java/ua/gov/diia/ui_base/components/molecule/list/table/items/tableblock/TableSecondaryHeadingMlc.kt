@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -18,8 +17,11 @@ import ua.gov.diia.ui_base.components.atom.icon.IconAtmData
 import ua.gov.diia.ui_base.components.infrastructure.UIElementData
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
+import ua.gov.diia.ui_base.components.infrastructure.utils.SidePaddingMode
+import ua.gov.diia.ui_base.components.infrastructure.utils.TopPaddingMode
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.toDynamicString
+import ua.gov.diia.ui_base.components.infrastructure.utils.toDp
 import ua.gov.diia.ui_base.components.noRippleClickable
 import ua.gov.diia.ui_base.components.theme.Black
 import ua.gov.diia.ui_base.components.theme.BlackAlpha50
@@ -36,6 +38,11 @@ fun TableSecondaryHeadingMlc(
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .padding(
+                start = data.paddingHorizontal.toDp(defaultPadding = 0.dp),
+                top = data.paddingTop.toDp(defaultPadding = 0.dp),
+                end = data.paddingHorizontal.toDp(defaultPadding = 0.dp)
+            )
             .testTag(componentId)
     ) {
         Column(
@@ -59,38 +66,44 @@ fun TableSecondaryHeadingMlc(
                 )
             }
         }
-        data.iconAtmData?.let { lIconAtmData ->
+        data.iconAtmData?.let { it ->
             IconAtm(
                 modifier = Modifier
                     .padding(start = 16.dp)
-                    .size(24.dp)
-                    .noRippleClickable {
-                        onUIAction(
-                            UIAction(
-                                actionKey = UIActionKeysCompose.TABLE_SECONDARY_HEADING_MLC,
-                                data = componentId
-                            )
+                    .size(24.dp),
+                data = it,
+                onUIAction = {
+                    onUIAction(
+                        UIAction(
+                            actionKey = data.actionKey,
+                            data = it.data,
+                            action = it.action
                         )
-                    },
-                data = lIconAtmData
+                    )
+                }
             )
         }
     }
 }
 
 data class TableSecondaryHeadingMlcData(
+    val actionKey: String = UIActionKeysCompose.TABLE_SECONDARY_HEADING_MLC,
     val componentId: UiText? = null,
+    val paddingTop: TopPaddingMode? = null,
+    val paddingHorizontal: SidePaddingMode? = null,
     val title: UiText? = null,
     val description: UiText? = null,
     val iconAtmData: IconAtmData? = null
 ) : UIElementData
 
-fun TableSecondaryHeadingMlc.toUIModel() = TableSecondaryHeadingMlcData(
-    componentId = componentId?.let { UiText.DynamicString(it) },
-    title = UiText.DynamicString(label),
-    description = description?.let { UiText.DynamicString(it) },
-    iconAtmData = icon?.toUiModel()
-)
+fun TableSecondaryHeadingMlc.toUIModel(): TableSecondaryHeadingMlcData {
+    return TableSecondaryHeadingMlcData(
+        componentId = componentId?.let { UiText.DynamicString(it) },
+        title = UiText.DynamicString(label),
+        description = description?.let { UiText.DynamicString(it) },
+        iconAtmData = icon?.toUiModel()
+    )
+}
 
 fun UiText?.toTableSecondaryHeadingMlcData() = TableSecondaryHeadingMlcData(
     componentId = null,

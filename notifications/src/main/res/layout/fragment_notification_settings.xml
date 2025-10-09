@@ -5,6 +5,8 @@
 
     <data>
 
+<import type="android.view.View" />
+
         <variable
             name="viewModel"
             type="ua.gov.diia.notifications.ui.fragments.home.notificationsettings.NotificationSettingsVM" />
@@ -51,7 +53,7 @@
 
             <ua.gov.diia.ui_base.views.DiiaProgressCV
                 android:id="@+id/load_progress"
-                isGone="@{!viewModel.isDataLoading}"
+                android:visibility="@{(!viewModel.isDataLoading) ? View.GONE : View.VISIBLE}"
                 android:layout_width="match_parent"
                 android:layout_height="7dp"
                 app:cornersRadius="0dp"

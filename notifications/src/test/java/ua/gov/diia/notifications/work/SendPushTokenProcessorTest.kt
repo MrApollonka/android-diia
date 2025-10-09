@@ -40,7 +40,7 @@ class SendPushTokenProcessorTest {
         authorizationRepository = mockk(relaxed = true)
         keyValueSource = mockk(relaxed = true)
 
-        sendPushTokenProcessor = SendPushTokenProcessor(apiNotificationsPublic, authorizationRepository, keyValueSource)
+        sendPushTokenProcessor = SendPushTokenProcessor(apiNotificationsPublic, authorizationRepository, keyValueSource, mockk(relaxed = true))
     }
 
     @Test

@@ -45,13 +45,14 @@ abstract class VerificationControllerOnFlowVM(
 
 
     private var flowProcessId: String? = null
+    private var selectedMethod: String? = null
     private var verificationSchema: String? = null
     protected var preferredVerificationMethodCode: String? = null
     private var preferredVerificationMethodUrl: String? = null
     private var preferredVerificationMethodBank: String? = null
     private var preferredVerificationMethodBankRequestId: String? = null
     private var isExternalAppHasBeenRequested = false
-    private var verificationRequestData: VerificationMethodsData? = null
+    protected var verificationRequestData: VerificationMethodsData? = null
 
     private val _verifyingUser = MutableStateFlow(false)
     protected val verifyingUser = _verifyingUser.asStateFlow()
@@ -73,6 +74,8 @@ abstract class VerificationControllerOnFlowVM(
 
     protected abstract fun doOnVerificationCompleted(result: VerificationResult)
 
+    abstract fun returnTemplateAction(action: String)
+
     @VisibleForTesting(VisibleForTesting.PROTECTED)
     fun startVerification(schema: String) {
         cleanUpAllData()
@@ -80,8 +83,9 @@ abstract class VerificationControllerOnFlowVM(
         getVerificationMethods()
     }
 
-    private fun cleanUpAllData() {
+    fun cleanUpAllData() {
         flowProcessId = null
+        selectedMethod = null
         verificationSchema = null
         preferredVerificationMethodBank = null
         cleanUpVerificationMethodCache()
@@ -120,7 +124,7 @@ abstract class VerificationControllerOnFlowVM(
 
     protected suspend fun doVerificationMethodsApiCall(schema: String): VerificationMethodsData {
         return withContext(Dispatchers.Default) {
-            apiVerification.getVerificationMethods(schema, flowProcessId).also {
+            apiVerification.getVerificationMethods(schema, flowProcessId, selectedMethod).also {
                 flowProcessId = it.processId
                 verificationRequestData = it
             }
@@ -140,27 +144,13 @@ abstract class VerificationControllerOnFlowVM(
     protected fun VerificationMethodsData.doOnVerificationMethodsApproved(
         launchVerification: (methods: List<String>, data: VerificationMethodsData) -> Unit
     ) {
-        if (methods != null) {
+        if (!methods.isNullOrEmpty()) {
             viewModelScope.launch {
-                val availableMethods =
-                    methods.filter { x -> verificationMethods[x]?.isAvailable == true }
-
-                //Shows the template dialog if there are no methods after filtering
-                if (availableMethods.isEmpty()) {
-                    val template = methods.singleOrNull()?.let {
-                        verificationMethods[it]?.getUnavailabilityDialog()
-                    } ?: clientAlertDialogsFactory.showCustomAlert(NO_VERIFICATION_METHODS)
-
-                    showTemplateDialog(
-                        template,
-                        VerificationControllerConst.VERIFICATION_ALERT_DIALOG_ACTION
-                    )
-                } else {
-                    launchVerification.invoke(
-                        availableMethods,
-                        this@doOnVerificationMethodsApproved
-                    )
-                }
+                val availableMethods = methods.filter { x -> verificationMethods[x]?.isAvailable == true }
+                launchVerification.invoke(
+                    availableMethods,
+                    this@doOnVerificationMethodsApproved
+                )
             }
         } else {
             if (skipAuthMethods == true) {
@@ -197,6 +187,7 @@ abstract class VerificationControllerOnFlowVM(
     private fun String.toVerificationMethod() = verificationMethods[this]?.let {
         VerificationMethodView(
             code = this,
+            titleRes = it.titleResId,
             iconRes = it.iconResId,
         )
     }
@@ -209,6 +200,7 @@ abstract class VerificationControllerOnFlowVM(
             progressIndicator = _verifyingUser,
             templateKey = VerificationControllerConst.VERIFICATION_ALERT_DIALOG_ACTION
         ) {
+            _verifyingUser.tryEmit(true)
             val result = verificationMethod.getVerificationRequest(
                 verificationSchema = verificationSchema ?: return@executeActionOnFlow,
                 processId = flowProcessId ?: return@executeActionOnFlow
@@ -234,8 +226,9 @@ abstract class VerificationControllerOnFlowVM(
         }
     }
 
-    fun cleanUpAndLaunchVerificationMethod(schema: String, result: VerificationFlowResult) {
+    fun cleanUpAndLaunchVerificationMethod(schema: String, methodToSelect: String?, result: VerificationFlowResult) {
         cleanUpAllData()
+        selectedMethod = methodToSelect
         verificationSchema = schema
         cleanUpVerificationMethodCache()
 
@@ -243,9 +236,14 @@ abstract class VerificationControllerOnFlowVM(
             progressIndicator = _verifyingUser,
             templateKey = VerificationControllerConst.VERIFICATION_ALERT_DIALOG_ACTION
         ) {
-            doVerificationMethodsApiCall(schema)
-            handleVerificationResult(result)
+            doVerificationMethodsApiCall(schema).let {
+                handleVerificationResult(result)
+            }
         }
+    }
+
+    fun cleanUpAndLaunchVerificationMethod(schema: String, result: VerificationFlowResult) {
+        cleanUpAndLaunchVerificationMethod(schema, null, result)
     }
 
     fun handleVerificationResult(result: VerificationFlowResult) {
@@ -311,6 +309,8 @@ abstract class VerificationControllerOnFlowVM(
     fun completedVerifyResidentPermit() {
         doOnVerificationCompleted(VerificationResult.Common(flowProcessId!!))
     }
+
+    open fun loadAuthMethodData() {}
 
     protected fun getRequestIdFromAuthUrl(): String? {
         return preferredVerificationMethodUrl

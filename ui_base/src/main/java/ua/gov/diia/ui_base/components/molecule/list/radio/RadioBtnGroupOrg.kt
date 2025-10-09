@@ -227,7 +227,7 @@ fun RadioBtnGroupOrg.toUIModel(): RadioBtnGroupOrgData {
                                 UIState.Selection.Unselected
                             },
                             logoLeft = rbItem.logoLeft,
-                            logoRight = rbItem.logoRight,
+                            logoRight = rbItem.logoRight?.let { UiIcon.DrawableResource(it) },
                             largeLogoRight = rbItem.largeLogoRight?.let { UiIcon.DrawableResource(it) }
                         )
                     )

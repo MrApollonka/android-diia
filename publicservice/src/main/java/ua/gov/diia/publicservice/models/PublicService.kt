@@ -22,7 +22,9 @@ data class PublicService(
     @Json(name = "status")
     val status: CategoryStatus,
     @Json(name = "contextMenu")
-    val contextMenu: List<ContextMenuItem>?
+    val contextMenu: List<ContextMenuItem>?,
+    @Json(name = "startFromDiiaCard")
+    val startFromDiiaCard: Boolean = false,
 ) : Parcelable {
 
     val menu: Array<ContextMenuField>

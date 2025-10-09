@@ -32,6 +32,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -243,7 +246,8 @@ private fun PlayerControls(
                     onPauseToggle = onPauseToggle,
                     playbackState = playbackState,
                     onReplayClick = onReplayClick,
-                    isBuffering = isBuffering
+                    isBuffering = isBuffering,
+                    currentTime = currentTime,
                 )
 
             }
@@ -281,11 +285,23 @@ private fun CenterControls(
     isBuffering: () -> Boolean,
     onReplayClick: () -> Unit,
     onPauseToggle: () -> Unit,
+    currentTime: () -> Long,
 ) {
     val isVideoPlaying = remember(isPlaying()) { isPlaying() }
     val playerState = remember(playbackState()) { playbackState() }
     val buffering = remember(isBuffering()) { isBuffering() }
     if (buffering) return
+
+    val position = currentTime()
+    val context = LocalContext.current
+
+    val centerControlDescription = when {
+        playerState == Player.STATE_ENDED -> context.getString(R.string.accessibility_restart)
+        position <= 0L -> context.getString(R.string.accessibility_start_playback)
+        isVideoPlaying -> context.getString(R.string.accessibility_pause)
+        else -> context.getString(R.string.accessibility_resume_playback)
+    }
+
     Row(
         horizontalArrangement = Arrangement.SpaceEvenly,
         modifier = Modifier
@@ -301,19 +317,22 @@ private fun CenterControls(
                     } else {
                         onPauseToggle()
                     }
+                }
+                .semantics {
+                    role = Role.Button
                 },
             contentAlignment = Alignment.Center
         ) {
             if (playerState == Player.STATE_ENDED) {
                 Image(
                     painter = painterResource(id = R.drawable.ic_player_btn_atm_replay),
-                    contentDescription = "Replay"
+                    contentDescription = centerControlDescription
                 )
             } else {
                 Image(
                     painter = if (isVideoPlaying) painterResource(id = R.drawable.ic_player_btn_atm_pause)
                     else painterResource(id = R.drawable.ic_player_btn_atm_play),
-                    contentDescription = "Play/Pause"
+                    contentDescription = centerControlDescription
                 )
             }
         }

@@ -9,10 +9,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -27,11 +33,24 @@ import ua.gov.diia.ui_base.components.infrastructure.UIElementData
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
 import ua.gov.diia.ui_base.components.theme.DiiaTextStyle
 import ua.gov.diia.ui_base.components.theme.WhiteAlpha15
+import ua.gov.diia.ui_base.models.orientation.Orientation
 
 @Composable
 fun DocErrorOrg(
     modifier: Modifier = Modifier,
-    data: DocErrorOrgData
+    data: DocErrorOrgData,
+    orientation: Orientation
+) {
+    when (orientation) {
+        Orientation.Portrait -> DocErrorOrgPortrait(modifier, data)
+        Orientation.Landscape -> DocErrorOrgLandscape(modifier, data)
+    }
+}
+
+@Composable
+private fun DocErrorOrgPortrait(
+    modifier: Modifier = Modifier,
+    data: DocErrorOrgData,
 ) {
 
     Column(
@@ -49,7 +68,9 @@ fun DocErrorOrg(
             ) {
                 Spacer(modifier = Modifier.height(122.dp))
                 Text(
-                    modifier = modifier.padding(start = 40.dp, end = 40.dp).fillMaxWidth(),
+                    modifier = modifier
+                        .padding(start = 40.dp, end = 40.dp)
+                        .fillMaxWidth(),
                     text = "\uD83D\uDEAB",
                     textAlign = TextAlign.Center,
                     style = TextStyle(
@@ -58,7 +79,9 @@ fun DocErrorOrg(
                     )
                 )
                 Text(
-                    modifier = Modifier.padding(top = 12.dp, start = 40.dp, end = 40.dp).fillMaxWidth(),
+                    modifier = Modifier
+                        .padding(top = 12.dp, start = 40.dp, end = 40.dp)
+                        .fillMaxWidth(),
                     text = data.title.asString(),
                     color = Color.White,
                     textAlign = TextAlign.Center,
@@ -69,6 +92,59 @@ fun DocErrorOrg(
                 Spacer(modifier = Modifier.height(40.dp))
 
             }
+        }
+    }
+}
+
+
+@Composable
+private fun DocErrorOrgLandscape(
+    modifier: Modifier = Modifier,
+    data: DocErrorOrgData,
+) {
+    Column(modifier = modifier.fillMaxSize()) {
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .background(color = WhiteAlpha15, shape = RoundedCornerShape(24.dp))
+                .clip(RoundedCornerShape(24.dp))
+                .clipToBounds()
+        ) {
+            Column(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(bottom = 40.dp)
+            ) {
+                Text(
+                    modifier = modifier
+                        .padding(start = 40.dp, end = 40.dp)
+                        .fillMaxWidth(),
+                    text = "\uD83D\uDEAB",
+                    textAlign = TextAlign.Center,
+                    style = TextStyle(
+                        fontSize = 36.sp,
+                        lineHeight = 40.sp
+                    )
+                )
+                Text(
+                    modifier = Modifier
+                        .padding(top = 12.dp, start = 40.dp, end = 40.dp)
+                        .fillMaxWidth(),
+                    text = data.title.asString(),
+                    color = Color.White,
+                    textAlign = TextAlign.Center,
+                    style = DiiaTextStyle.h4ExtraSmallHeading
+                )
+            }
+            TickerAtm(
+                data = data.ticker,
+                onUIAction = {},
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .vertical()
+                    .rotate(-90f)
+                    .clipToBounds()
+            )
         }
     }
 }
@@ -92,5 +168,20 @@ fun DocErrorOrgPreview() {
         title = UiText.DynamicString("Документ не знайдено • Документ не знайденокумент дійсний"),
         ticker = tickerAtomData
     )
-    DocErrorOrg(modifier = Modifier, data = data)
+    DocErrorOrg(modifier = Modifier, data = data, orientation = Orientation.Portrait)
+}
+
+@Preview(heightDp = 360, widthDp = 800)
+@Composable
+fun DocErrorOrgPreviewLandscape() {
+    val tickerAtomData = TickerAtomData(
+        title = "Документа з таким\u2028QR-кодом не існує ",
+        type = TickerType.NEGATIVE,
+        usage = TickerUsage.BASE
+    )
+    val data = DocErrorOrgData(
+        title = UiText.DynamicString("Документ не знайдено • Документ не знайденокумент дійсний"),
+        ticker = tickerAtomData
+    )
+    DocErrorOrg(modifier = Modifier, data = data, orientation = Orientation.Landscape)
 }

@@ -142,7 +142,9 @@ fun CalendarOrg(
             }
 
             if (isInProgress) {
-                TridentLoaderAtm(Modifier.align(Alignment.Center))
+                TridentLoaderAtm(Modifier
+                    .align(Alignment.Center)
+                    .padding(top = 24.dp))
             }
         }
 
@@ -251,7 +253,7 @@ private fun CalendarMonthsGrid(
     data: CalendarOrgData,
     onUIAction: (UIAction) -> Unit
 ) {
-    val heightDp = 40.dp * (data.months.size.toDouble() / MONTHS_COLUMN_SIZE).roundToInt().inc()
+    val heightDp = 36.dp * (data.months.size.toDouble() / MONTHS_COLUMN_SIZE).roundToInt().inc()
 
     val isCurrentYear = data.calendarDate.get(Calendar.YEAR) == data.currentDate.get(Calendar.YEAR)
     val currentMonthIndex = data.currentDate.get(Calendar.MONTH)

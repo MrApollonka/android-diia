@@ -1,5 +1,6 @@
 package ua.gov.diia.home.ui
 
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -28,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -64,13 +66,13 @@ import ua.gov.diia.core.util.event.observeUiEvent
 import ua.gov.diia.core.util.extensions.fragment.navigate
 import ua.gov.diia.core.util.extensions.fragment.registerForNavigationResult
 import ua.gov.diia.core.util.extensions.fragment.setNavigationResult
+import ua.gov.diia.core.util.extensions.lifecycle.consumeEvent
 import ua.gov.diia.documents.navigation.DocumentsHomeNavigation
 import ua.gov.diia.documents.ui.gallery.ScreenDocGalleryRoute
 import ua.gov.diia.documents.ui.gallery.docGalleryGraphBuilder
 import ua.gov.diia.feed.ScreenFeedRoute
 import ua.gov.diia.feed.feedNavGraph
 import ua.gov.diia.feed.navigation.FeedHomeNavigation
-import ua.gov.diia.home.NavHomeDirections
 import ua.gov.diia.home.R
 import ua.gov.diia.home.model.HomeMenuItem
 import ua.gov.diia.home.ui.views.HomeBottomBar
@@ -82,6 +84,7 @@ import ua.gov.diia.publicservice.ui.categories.compose.PublicServicesCategoriesR
 import ua.gov.diia.publicservice.ui.categories.compose.publicServicesCategoriesNavGraph
 import ua.gov.diia.ui_base.components.infrastructure.state.UIState
 import ua.gov.diia.ui_base.fragments.dialog.system.DiiaSystemDFVM
+import ua.gov.diia.ui_base.models.orientation.Orientation
 import ua.gov.diia.ui_base.util.navigation.openTemplateDialog
 import javax.inject.Inject
 
@@ -128,15 +131,13 @@ class HomeF @Inject constructor(
                 openTemplateDialog(it)
             }
             processNavigation.observeUiDataEvent(viewLifecycleOwner) { action ->
-                action.apply {
-                    navigate(action)
-                }
+                navigate(action)
             }
             selectedMenuItem.asLiveData().observe(viewLifecycleOwner) { action ->
                 action?.peekContent().let {
                     if (it == HomeMenuItem.DOCUMENTS) {
                         //should be called before DocGallery appearing
-                        viewModel.fetchDocs()
+                        action?.consumeEvent { viewModel.fetchDocs() }
                     }
                 }
             }
@@ -197,20 +198,28 @@ class HomeF @Inject constructor(
                             || navBackStackEntry?.destination?.navigatorName == ScreenDocGalleryRoute.javaClass.name
                 }
             }
-
+            val configuration = LocalConfiguration.current
+            val orientation =
+                if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                    Orientation.Landscape
+                } else {
+                    Orientation.Portrait
+                }
+            val height =
+                bottomSystemNavBarHeight + if (orientation == Orientation.Landscape) 52.dp else 70.dp
 
             Box(modifier = Modifier.fillMaxSize()) {
                 HomeBackground(animated = displayDynamicBackground)
                 bottomBar.value?.let { data ->
-                    Scaffold(modifier = Modifier.background(Color.Transparent),
+                    Scaffold(
+                        modifier = Modifier.background(Color.Transparent),
                         containerColor = Color.Transparent,
                         contentWindowInsets = WindowInsets(0.dp),
                         bottomBar = {
                             HomeBottomBar(
-                                modifier = Modifier.height(
-                                    bottomSystemNavBarHeight + 70.dp
-                                ),
+                                modifier = Modifier.height(height),
                                 data = data,
+                                orientation = orientation,
                                 onTabClick = { action ->
                                     viewModel.onUIAction(action)
                                     val tab = action.data
@@ -392,6 +401,18 @@ class HomeF @Inject constructor(
                     openTemplateDialog(navigation.template)
                 }
             }
+
+            is PublicServiceHomeNavigation.OpenWebView -> {
+                navigation.consumeEvent {
+                    viewModel.navigateToWebView(this@HomeF, navigation.link)
+                }
+            }
+
+            is PublicServiceHomeNavigation.StartNewFlow -> {
+                navigation.consumeEvent {
+                    viewModel.handleStartFlowDeeplink(navigation.deeplink)
+                }
+            }
         }
     }
 
@@ -551,7 +572,7 @@ class HomeF @Inject constructor(
     }
 
     private fun navigateToQrScannerDestination() {
-        navigate(NavHomeDirections.actionGlobalToQrScanF())
+        viewModel.navigateToQrScan(fragment = this)
     }
 
     private fun checkNotificationEnabled() {

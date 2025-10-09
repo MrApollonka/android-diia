@@ -12,8 +12,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
+import coil.compose.AsyncImage
 import ua.gov.diia.ui_base.R
 import ua.gov.diia.ui_base.components.DiiaResourceIcon
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiIcon
@@ -35,7 +34,6 @@ import ua.gov.diia.ui_base.components.subatomic.preview.PreviewBase64Icons
  *
  * Set [useContentDescription] to false to set contentDescription as null
  */
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun UiIconWrapperSubatomic(
     modifier: Modifier = Modifier,
@@ -60,7 +58,7 @@ fun UiIconWrapperSubatomic(
                     id = DiiaResourceIcon.getResourceId(icon.code)
                 ),
                 contentDescription = if (useContentDescription) {
-                    stringResource(
+                    contentDescription?.asString() ?: stringResource(
                         id = DiiaResourceIcon.getContentDescription(
                             icon.code
                         )
@@ -80,18 +78,17 @@ fun UiIconWrapperSubatomic(
         }
 
         is UiIcon.URLIcon -> {
-            GlideImage(
-                model = icon,
-                contentDescription = contentDescription?.asString(),
+            AsyncImage(
                 modifier = modifier,
-                contentScale = ContentScale.Fit
-            ) {
-                it.error(R.drawable.diia_article_placeholder)
-                    .placeholder(R.drawable.diia_article_placeholder)
-                    .load(icon.link)
-            }
+                model = icon.link,
+                contentDescription = contentDescription?.asString(),
+                contentScale = ContentScale.Fit,
+                placeholder = painterResource(R.drawable.diia_article_placeholder),
+                error = painterResource(R.drawable.diia_article_placeholder)
+            )
         }
-        is UiIcon.DrawableResInt ->{
+
+        is UiIcon.DrawableResInt -> {
             Image(
                 modifier = modifier,
                 painter = painterResource(id = icon.res),
@@ -106,8 +103,7 @@ fun UiIconWrapperSubatomic(
 fun UiIconWrapperSubatomic_DynamicIconBase64() {
     UiIconWrapperSubatomic(
         modifier = Modifier.size(24.dp),
-        icon =
-        UiIcon.DynamicIconBase64(PreviewBase64Icons.apple)
+        icon = UiIcon.DynamicIconBase64(PreviewBase64Icons.apple)
     )
 }
 
@@ -116,8 +112,7 @@ fun UiIconWrapperSubatomic_DynamicIconBase64() {
 fun UiIconWrapperSubatomic_DrawableResource() {
     UiIconWrapperSubatomic(
         modifier = Modifier.size(24.dp),
-        icon =
-        UiIcon.DrawableResource(DiiaResourceIcon.MENU.code)
+        icon = UiIcon.DrawableResource(DiiaResourceIcon.MENU.code)
     )
 }
 

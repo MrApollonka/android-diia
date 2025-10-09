@@ -5,6 +5,7 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import kotlinx.parcelize.Parcelize
 import ua.gov.diia.core.models.common_compose.atm.text.TextLabelAtm
+import ua.gov.diia.core.models.common_compose.general.PaddingMode
 
 @Parcelize
 @JsonClass(generateAdapter = true)
@@ -16,9 +17,24 @@ data class TableItemCheckboxMlc(
     @Json(name = "mandatory")
     val mandatory: Boolean?,
     @Json(name = "rows")
-    val items: List<TextLabelAtm>,
+    val items: List<Item>,
     @Json(name = "isSelected")
     val isSelected: Boolean?,
     @Json(name = "isEnabled")
     val isEnabled: Boolean?,
-): Parcelable
+    @Json(name = "isNotFullSelected")
+    val isNotFullSelected: Boolean?,
+    @Json(name = "dataJson")
+    val dataJson: String?,
+    @Json(name = "paddingMode")
+    val paddingMode: PaddingMode?
+) : Parcelable {
+
+    @Parcelize
+    @JsonClass(generateAdapter = true)
+    data class Item(
+        @Json(name = "textLabelAtm")
+        val textLabelAtm: TextLabelAtm?
+    ) : Parcelable
+
+}

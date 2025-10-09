@@ -17,4 +17,6 @@ data class HalvedCardMlc(
     val label: String,
     @Json(name = "action")
     val action: Action?,
+    @Json(name = "accessibilityDescription")
+    val accessibilityDescription: String?,
 )

@@ -164,6 +164,7 @@ class NotificationFullComposeVM @Inject constructor(
                     _navigation.tryEmit(BaseNavigation.Back)
                 }
 
+                UIActionKeysCompose.LIST_ITEM_MLC,
                 UIActionKeysCompose.LIST_ITEM_GROUP_ORG -> {
                     event.action?.let {
                         when (it.type) {

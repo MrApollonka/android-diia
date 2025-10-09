@@ -18,6 +18,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ua.gov.diia.ui_base.R
@@ -51,7 +55,11 @@ fun CheckboxRoundMolecule(
         modifier = modifier
             .fillMaxWidth()
             .padding(16.dp)
-            .clickable { onClick.invoke() },
+            .clickable { onClick.invoke() }
+            .semantics {
+                selected = data.selectionState == UIState.Selection.Selected
+                liveRegion = LiveRegionMode.Polite
+            },
         verticalAlignment = Alignment.Top
     ) {
         val bgModifier = when (data.interactionState) {

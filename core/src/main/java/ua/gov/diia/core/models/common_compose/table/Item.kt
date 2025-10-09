@@ -1,10 +1,11 @@
 package ua.gov.diia.core.models.common_compose.table
 
-
 import android.os.Parcelable
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
+import ua.gov.diia.core.models.common.message.AttentionIconMessageMlc
+import ua.gov.diia.core.models.common_compose.atm.button.BtnLinkAtm
 import ua.gov.diia.core.models.common_compose.mlc.text.SmallEmojiPanelMlc
 
 @Parcelize
@@ -24,4 +25,8 @@ data class Item(
     val smallEmojiPanelMlc: SmallEmojiPanelMlc? = null,
     @Json(name = "tableItemHorizontalLargeMlc")
     val tableItemHorizontalLargeMlc: TableItemHorizontalLargeMlc? = null,
+    @Json(name = "attentionIconMessageMlc")
+    val attentionIconMessageMlc: AttentionIconMessageMlc? = null,
+    @Json(name = "btnLinkAtm")
+    val btnLinkAtm: BtnLinkAtm? = null
 ) : Parcelable

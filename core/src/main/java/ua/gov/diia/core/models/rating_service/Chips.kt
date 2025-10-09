@@ -7,6 +7,7 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import kotlinx.parcelize.Parcelize
 import ua.gov.diia.core.R
+import java.util.UUID
 
 @Parcelize
 @JsonClass(generateAdapter = true)
@@ -15,7 +16,8 @@ data class Chips(
     val code: String?,
     @Json(name = "name")
     val name: String?,
-    val isSelected: Boolean = false
+    val isSelected: Boolean = false,
+    val id: String = UUID.randomUUID().toString()
 ) : Parcelable {
 
     val chipsNameColor: Int

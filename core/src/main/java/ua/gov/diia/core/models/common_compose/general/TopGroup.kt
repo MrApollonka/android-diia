@@ -3,6 +3,7 @@ package ua.gov.diia.core.models.common_compose.general
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import ua.gov.diia.core.models.common_compose.mlc.header.NavigationPanelMlc
+import ua.gov.diia.core.models.common_compose.mlc.header.NavigationPanelMlcV2
 import ua.gov.diia.core.models.common_compose.mlc.input.SearchInputMlc
 import ua.gov.diia.core.models.common_compose.mlc.text.ScalingTitleMlc
 import ua.gov.diia.core.models.common_compose.org.chip.ChipTabsOrg
@@ -25,5 +26,7 @@ data class TopGroup(
     @Json(name = "mapChipTabsOrg")
     val mapChipTabsOrg: MapChipTabsOrg? = null,
     @Json(name = "scalingTitleMlc")
-    val scalingTitleMlc: ScalingTitleMlc? = null
+    val scalingTitleMlc: ScalingTitleMlc? = null,
+    @Json(name = "navigationPanelMlcV2")
+    val navigationPanelMlcV2: NavigationPanelMlcV2? = null
 )

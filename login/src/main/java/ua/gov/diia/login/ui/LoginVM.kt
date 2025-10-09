@@ -5,6 +5,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.BufferOverflow
@@ -14,20 +15,20 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import ua.gov.diia.core.di.actions.GlobalActionAppStartEvent
 import ua.gov.diia.core.di.actions.GlobalActionLazy
 import ua.gov.diia.core.di.data_source.http.UnauthorizedClient
 import ua.gov.diia.core.models.ActionDataLazy
-import ua.gov.diia.core.models.common_compose.atm.SpacerAtmType
 import ua.gov.diia.core.network.apis.ApiAuth
-import ua.gov.diia.core.util.CommonConst.BUILD_TYPE_DEBUG
-import ua.gov.diia.core.util.CommonConst.BUILD_TYPE_STAGE
 import ua.gov.diia.core.util.delegation.WithBuildConfig
 import ua.gov.diia.core.util.delegation.WithCrashlytics
 import ua.gov.diia.core.util.delegation.WithErrorHandlingOnFlow
 import ua.gov.diia.core.util.delegation.WithRetryLastAction
 import ua.gov.diia.core.util.event.UiDataEvent
+import ua.gov.diia.core.util.event.UiEvent
 import ua.gov.diia.core.util.extensions.lifecycle.consumeEvent
 import ua.gov.diia.core.util.extensions.vm.executeActionOnFlow
+import ua.gov.diia.core.util.isDevMode
 import ua.gov.diia.core.util.system.application.ApplicationLauncher
 import ua.gov.diia.core.util.system.application.InstalledApplicationInfoProvider
 import ua.gov.diia.core.util.system.service.SystemServiceProvider
@@ -36,6 +37,7 @@ import ua.gov.diia.login.R
 import ua.gov.diia.login.network.ApiLogin
 import ua.gov.diia.pin.repository.LoginPinRepository
 import ua.gov.diia.ui_base.components.atom.space.SpacerAtmData
+import ua.gov.diia.ui_base.components.atom.space.SpacerAtmType
 import ua.gov.diia.ui_base.components.atom.text.textwithparameter.TextParameter
 import ua.gov.diia.ui_base.components.infrastructure.UIElementData
 import ua.gov.diia.ui_base.components.infrastructure.addAllIfNotNull
@@ -67,6 +69,7 @@ import javax.inject.Inject
 @HiltViewModel
 class LoginVM @Inject constructor(
     @GlobalActionLazy private val actionLazy: MutableSharedFlow<UiDataEvent<ActionDataLazy>>,
+    @GlobalActionAppStartEvent private val actionAppStart: MutableSharedFlow<UiEvent>,
     @UnauthorizedClient private val apiAuth: ApiAuth,
     @UnauthorizedClient apiVerification: ApiVerification,
     @UnauthorizedClient private val apiLogin: ApiLogin,
@@ -124,8 +127,7 @@ class LoginVM @Inject constructor(
     val bottomData: SnapshotStateList<UIElementData> = _bottomData
 
     init {
-        if (getBuildType() == BUILD_TYPE_STAGE || getBuildType() == BUILD_TYPE_DEBUG) {
-
+        if (isDevMode()) {
             fun loadToken(data: ActionDataLazy) {
                 viewModelScope.launch {
                     try {
@@ -144,7 +146,17 @@ class LoginVM @Inject constructor(
             }
         }
 
+        viewModelScope.launch {
+            actionAppStart.collect {
+                it.consumeEvent { refreshAuthMethodData() }
+            }
+        }
+
         loadAuthMethodData()
+    }
+
+    override fun returnTemplateAction(action: String) {
+        /* no-op */
     }
 
     private fun displayStaticUI() {
@@ -174,7 +186,8 @@ class LoginVM @Inject constructor(
                             resource = UiText.StringResource(R.string.login_screen_description_param_link),
                         )
                     )
-                )
+                ),
+                linkTopPadding = 0.dp
             ),
             CheckboxBorderedMlcData(
                 actionKey = LoginConst.ACTION_CHECKBOX_CHECKED,
@@ -191,7 +204,14 @@ class LoginVM @Inject constructor(
         )
     }
 
-    private fun loadAuthMethodData() {
+    private fun refreshAuthMethodData() {
+        // In case we have disabled method and app was relaunched, we should refresh auth methods
+        if (verificationRequestData?.disabledMethods?.isNotEmpty() == true) {
+            loadAuthMethodData()
+        }
+    }
+
+    override fun loadAuthMethodData() {
         executeActionOnFlow(
             progressIndicator = _dataLoading.also {
                 _loadingIndicatorKey.tryEmit(UIActionKeysCompose.PAGE_LOADING_TRIDENT)
@@ -204,12 +224,21 @@ class LoginVM @Inject constructor(
     }
 
     private fun processVerificationRequestData(verificationRequestData: VerificationMethodsData) {
-        verificationRequestData.doOnVerificationMethodsApproved { methods, _ ->
+        verificationRequestData.doOnVerificationMethodsApproved { methods, data ->
+            clearStaticUI()
             displayStaticUI()
-            val state =
-                if (isCheckBoxSelected()) UIState.Interaction.Enabled else UIState.Interaction.Disabled
-            val verificationMethods = methods.mapNotNull { m ->
-                verificationMethods[m]?.toListItemAtomData(state)
+            val state = if (isCheckBoxSelected())
+                UIState.Interaction.Enabled
+            else
+                UIState.Interaction.Disabled
+            val disabledMethodCodes =
+                verificationRequestData.disabledMethods?.map { it.code }.orEmpty()
+            val verificationMethods = (disabledMethodCodes + methods).toSet().mapNotNull { m ->
+                val disabledDescription = data.disabledMethods?.find { it.code == m }?.description
+                verificationMethods[m]?.toListItemAtomData(
+                    state = if (disabledDescription != null) UIState.Interaction.Disabled else state,
+                    description = disabledDescription
+                )
             }
             val list = SnapshotStateList<ListItemMlcData>()
             list.addAll(verificationMethods)
@@ -217,20 +246,22 @@ class LoginVM @Inject constructor(
                 ListItemGroupOrgData(
                     title = UiText.StringResource(R.string.login_screen_bank_list_title),
                     itemsList = list,
-                    componentId = UiText.StringResource(R.string.login_screen_list_items_test_tag),
+                    componentId = UiText.StringResource(R.string.login_screen_list_items_test_tag)
                 )
             )
-            _bodyData.add(SpacerAtmData(SpacerAtmType.SPACER_32))
+            _bodyData.add(SpacerAtmData(SpacerAtmType.EXTRA_LARGE))
         }
     }
 
     private fun VerificationMethod.toListItemAtomData(
-        state: UIState.Interaction
+        state: UIState.Interaction,
+        description: String?,
     ): ListItemMlcData? = if (isAvailableForAuth) {
         ListItemMlcData(
             id = name,
             label = UiText.StringResource(titleResId),
             logoLeft = UiIcon.DrawableResInt(iconResId),
+            description = description?.let { UiText.DynamicString(it) },
             interactionState = state,
             logoLeftContentDescription = UiText.StringResource(descriptionResId)
         )
@@ -272,6 +303,7 @@ class LoginVM @Inject constructor(
                 _navigation.tryEmit(Navigation.ToPolicy)
             }
 
+            UIActionKeysCompose.LIST_ITEM_MLC,
             UIActionKeysCompose.LIST_ITEM_GROUP_ORG -> {
                 val code = uiAction.data ?: return
                 cleanUpAndLaunchVerificationMethod(
@@ -281,14 +313,15 @@ class LoginVM @Inject constructor(
             }
 
             LoginConst.ACTION_CHECKBOX_CHECKED -> {
-
                 _bodyData.findAndChangeFirstByInstance<CheckboxBorderedMlcData> {
                     val result = it.onOptionsCheckChanged()
                     val isSelected = result.data.selectionState == UIState.Selection.Selected
                     _bodyData.findAndChangeFirstByInstance<ListItemGroupOrgData> { listV2 ->
                         val updatedList = SnapshotStateList<ListItemMlcData>()
                         listV2.itemsList.forEach { e ->
-                            updatedList.add(e.copy(interactionState = if (isSelected) UIState.Interaction.Enabled else UIState.Interaction.Disabled))
+                            val disabledDescription =
+                                verificationRequestData?.disabledMethods?.find { p -> p.code == e.id }?.description
+                            updatedList.add(e.copy(interactionState = if (isSelected && disabledDescription == null) UIState.Interaction.Enabled else UIState.Interaction.Disabled))
                         }
                         listV2.copy(itemsList = updatedList)
                     }
@@ -302,6 +335,20 @@ class LoginVM @Inject constructor(
     fun isCheckBoxSelected() = bodyData.findLast { it is CheckboxBorderedMlcData }
         ?.let { (it as? CheckboxBorderedMlcData)?.data?.selectionState == UIState.Selection.Selected }
         ?: false
+
+    fun navigateToNfc() {
+        cleanUpAndLaunchVerificationMethod(
+            VerificationSchema.AUTHORIZATION,
+            LoginConst.METHOD_NFC,
+            VerificationFlowResult.VerificationMethod(LoginConst.METHOD_NFC)
+        )
+    }
+
+    private fun clearStaticUI() {
+        _toolbarData.clear()
+        _bodyData.clear()
+        _bottomData.clear()
+    }
 
     sealed class Navigation : NavigationPath {
         object ToPolicy : Navigation()

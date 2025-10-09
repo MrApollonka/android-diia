@@ -1,3 +1,3 @@
 -keep enum * { *; }
 
--keep public class ua.gov.diia.publicservice.models.PublicServiceCategory
+-keep class * implements android.os.Parcelable { *; }

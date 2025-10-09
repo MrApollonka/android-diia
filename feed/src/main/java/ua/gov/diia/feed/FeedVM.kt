@@ -12,23 +12,22 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import ua.gov.diia.core.di.actions.GlobalActionNetworkState
 import ua.gov.diia.core.di.data_source.http.AuthorizedClient
-import ua.gov.diia.core.models.common_compose.atm.SpacerAtmType
 import ua.gov.diia.core.models.common_compose.general.DiiaResponse
 import ua.gov.diia.core.models.notification.pull.PullNotificationItemSelection
 import ua.gov.diia.core.network.connectivity.ConnectivityObserver
-import ua.gov.diia.core.util.CommonConst.BUILD_TYPE_DEBUG
-import ua.gov.diia.core.util.CommonConst.BUILD_TYPE_STAGE
 import ua.gov.diia.core.util.delegation.WithBuildConfig
 import ua.gov.diia.core.util.delegation.WithCrashlytics
 import ua.gov.diia.core.util.delegation.WithErrorHandlingOnFlow
 import ua.gov.diia.core.util.delegation.WithRetryLastAction
 import ua.gov.diia.core.util.extensions.mutableSharedFlowOf
 import ua.gov.diia.core.util.extensions.vm.executeActionOnFlow
+import ua.gov.diia.core.util.isDevMode
 import ua.gov.diia.diia_storage.store.datasource.itn.ItnDataRepository
 import ua.gov.diia.feed.FeedConst.ACTION_TYPE_DEBUG_SCREEN
 import ua.gov.diia.feed.helper.FeedOfflineScreenContentProvider
 import ua.gov.diia.feed.network.ApiFeed
 import ua.gov.diia.ui_base.components.atom.space.SpacerAtmData
+import ua.gov.diia.ui_base.components.atom.space.SpacerAtmType
 import ua.gov.diia.ui_base.components.atom.text.toUiModel
 import ua.gov.diia.ui_base.components.infrastructure.DataActionWrapper
 import ua.gov.diia.ui_base.components.infrastructure.UIElementData
@@ -111,7 +110,7 @@ class FeedVM @Inject constructor(
             UIActionKeysCompose.IMAGE_CARD_MLC,
             UIActionKeysCompose.VERTICAL_CARD_CAROUSEL_ORG,
             UIActionKeysCompose.LIST_ITEM_GROUP_ORG,
-            UIActionKeysCompose.LOOPING_VIDEO_PLAYER_CARD_MLC-> {
+            UIActionKeysCompose.LOOPING_VIDEO_PLAYER_CARD_MLC -> {
                 handleAction(event)
             }
 
@@ -124,7 +123,7 @@ class FeedVM @Inject constructor(
             }
 
             UIActionKeysCompose.TITLE_GROUP_MLC -> {
-                if (withBuildConfig.getBuildType() == BUILD_TYPE_DEBUG || withBuildConfig.getBuildType() == BUILD_TYPE_STAGE) {
+                if (isDevMode()) {
                     startNewFlowByUIAction(event.copy(action = DataActionWrapper(type = ACTION_TYPE_DEBUG_SCREEN)))
                 }
             }
@@ -179,7 +178,7 @@ class FeedVM @Inject constructor(
                                 it.loopingVideoPlayerCardMlc?.toUiModel()
                             )
                         }
-                        _bodyData.add(SpacerAtmData(SpacerAtmType.SPACER_24))
+                        _bodyData.add(SpacerAtmData(SpacerAtmType.LARGE))
                         lastFeedData = this
                     }
                     template?.let {

@@ -12,6 +12,10 @@ android {
     buildFeatures {
         buildConfig = true
     }
+
+    defaultConfig {
+        consumerProguardFiles("consumer-rules.pro")
+    }
 }
 
 dependencies {
@@ -26,9 +30,7 @@ dependencies {
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.light.compressor)
     implementation(libs.retrofit.core)
-    implementation(libs.glide)
     implementation(libs.mlkit.vision)
-    ksp(libs.glide.ksp)
     implementation(libs.bundles.moshi)
     ksp(libs.moshi.codegen)
     implementation(libs.zxing)
@@ -46,6 +48,7 @@ dependencies {
     testImplementation(libs.turbine)
     testImplementation(libs.mockwebserver)
     testImplementation(libs.hamcrest)
+    testImplementation(libs.mockk.android)
     testImplementation(libs.androidx.lifecycle.livedata.ktx)
     androidTestImplementation(libs.androidx.test.ext)
     androidTestImplementation(libs.androidx.test.espresso.core)

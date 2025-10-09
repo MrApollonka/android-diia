@@ -5,6 +5,7 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import ua.gov.diia.core.models.common.message.TextParameter
 import ua.gov.diia.core.models.common_compose.atm.button.BtnLinkAtm
+import ua.gov.diia.core.models.common_compose.subatomic.ExpireLabel
 
 @JsonClass(generateAdapter = true)
 data class TimerMlc(
@@ -14,18 +15,6 @@ data class TimerMlc(
     val expireLabel: ExpireLabel?,
     @Json(name = "stateAfterExpiration")
     val stateAfterExpiration: StateAfterExpiration
-)
-
-@JsonClass(generateAdapter = true)
-data class ExpireLabel(
-    @Json(name = "expireLabelFirst")
-    val expireLabelFirst: String,
-    @Json(name = "expireLabelLast")
-    val expireLabelLast: String?,
-    @Json(name = "timer")
-    val timer: Int,
-    @Json(name = "parameters")
-    val parameters: List<TextParameter>?
 )
 
 @JsonClass(generateAdapter = true)

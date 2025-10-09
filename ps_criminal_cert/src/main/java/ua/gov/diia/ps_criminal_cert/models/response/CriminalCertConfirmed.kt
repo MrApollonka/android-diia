@@ -15,4 +15,6 @@ data class CriminalCertConfirmed(
     val template: TemplateDialogModel?,
     @Json(name = "navigationPanel")
     val navigationPanel: NavigationPanel?,
+    @Json(name = "nextStep")
+    val nextStep: String?,
 )

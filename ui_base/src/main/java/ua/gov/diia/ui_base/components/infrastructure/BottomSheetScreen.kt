@@ -26,10 +26,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
 import androidx.compose.ui.unit.dp
 import ua.gov.diia.ui_base.R
+import ua.gov.diia.ui_base.components.DiiaResourceIcon
 import ua.gov.diia.ui_base.components.atom.button.BtnPrimaryDefaultAtmData
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
@@ -45,6 +50,7 @@ import ua.gov.diia.ui_base.components.organism.bottom.BottomGroupOrgData
 import ua.gov.diia.ui_base.components.theme.Black
 import ua.gov.diia.ui_base.components.theme.BlueHighlight
 import ua.gov.diia.ui_base.components.theme.PeriwinkleGray
+import ua.gov.diia.ui_base.mappers.loader.mapToLoader
 
 @Composable
 fun BottomSheetScreen(
@@ -83,7 +89,7 @@ fun BottomSheetScreen(
                     topEnd = 16.dp
                 )
             ),
-        contentLoaded = contentLoaded,
+        loader = mapToLoader(progressIndicator, contentLoaded),
         toolbar = {
             BottomSheetToolbarContainer(
                 toolbar = toolbar,
@@ -104,7 +110,7 @@ fun BottomSheetScreen(
             if (bottom.isNotEmpty()) {
                 BottomBarRootContainer(
                     bottomViews = bottom,
-                    progressIndicator = progressIndicator,
+                    loader = mapToLoader(progressIndicator, contentLoaded),
                     onUIAction = onEvent
                 )
             }
@@ -123,31 +129,28 @@ private fun BottomSheetToolbarContainer(
 
     val scalingTitleMlcData = toolbar.firstOrNull<ScalingTitleMlcData>()
 
-    Box(
-        modifier = Modifier
-            .padding(top = 16.dp)
-    ) {
+    Box {
         Row(
             modifier = Modifier
-                .padding(end = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(end = 16.dp),
+            verticalAlignment = Alignment.Top
         ) {
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(
-                        top = 16.dp,
-                        end = 4.dp,
-                        bottom = 16.dp
-                    )
+                    .padding(end = 8.dp)
             ) {
-                // Currently BottomSheetScreen supports only ScalingTitleMlc
+                /**
+                 * - Currently BottomSheetScreen supports only ScalingTitleMlc.
+                 * - Removing inner end padding (0.dp), to match BottomSheet design
+                 */
                 scalingTitleMlcData?.let { data ->
                     ScalingTitleMlc(
                         modifier = Modifier
                             .fillMaxWidth(),
                         data = data,
                         lazyListState = lazyListState,
+                        paddingEnd = 0.dp,
                         alphaCallback = { newAlpha ->
                             alpha = newAlpha
                         }
@@ -156,6 +159,10 @@ private fun BottomSheetToolbarContainer(
             }
             Box(
                 modifier = Modifier
+                    .padding(
+                        top = 24.dp,
+                        bottom = 8.dp
+                    )
                     .size(48.dp)
                     .noRippleClickable {
                         onEvent(
@@ -168,9 +175,14 @@ private fun BottomSheetToolbarContainer(
             ) {
                 Image(
                     modifier = Modifier
-                        .size(24.dp),
-                    painter = painterResource(R.drawable.ic_close),
-                    contentDescription = null,
+                        .size(32.dp)
+                        .semantics {
+                            role = Role.Button
+                        },
+                    painter = painterResource(
+                        DiiaResourceIcon.getResourceId(DiiaResourceIcon.CLOSE_LARGE.code)
+                    ),
+                    contentDescription = stringResource(R.string.accessibility_back),
                     colorFilter = ColorFilter.tint(Black)
                 )
             }

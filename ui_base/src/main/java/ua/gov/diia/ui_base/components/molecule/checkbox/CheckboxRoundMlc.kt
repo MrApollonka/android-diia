@@ -2,9 +2,11 @@ package ua.gov.diia.ui_base.components.molecule.checkbox
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -17,6 +19,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ua.gov.diia.core.models.common_compose.mlc.checkbox.CheckboxRoundMlc
@@ -53,6 +60,10 @@ fun CheckboxRoundMlc(
                         )
                     )
                 }
+            }
+            .semantics {
+                role = Role.RadioButton
+                selected = data.selectionState == UIState.Selection.Selected
             },
         verticalAlignment = Alignment.Top
     ) {
@@ -96,19 +107,38 @@ fun CheckboxRoundMlc(
 
         Column(
             modifier = Modifier
-                .padding(start = 16.dp, end = 16.dp)
+                .padding(start = 16.dp)
                 .weight(1f)
                 .align(Alignment.CenterVertically)
         ) {
-            Text(
-                modifier = Modifier,
-                text = data.label,
-                color = when (data.interactionState) {
-                    UIState.Interaction.Disabled -> BlackAlpha30
-                    UIState.Interaction.Enabled -> Black
-                },
-                style = DiiaTextStyle.t3TextBody
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    modifier = Modifier,
+                    text = data.label,
+                    color = when (data.interactionState) {
+                        UIState.Interaction.Disabled -> BlackAlpha30
+                        UIState.Interaction.Enabled -> Black
+                    },
+                    style = DiiaTextStyle.t3TextBody.copy(
+                        lineHeightStyle = LineHeightStyle(
+                            LineHeightStyle.Alignment.Center,
+                            trim = LineHeightStyle.Trim.None
+                        )
+                    )
+                )
+                data.status?.let {
+                    Text(
+                        modifier = Modifier.padding(start = 16.dp),
+                        text = data.status,
+                        color = BlackAlpha30,
+                        style = DiiaTextStyle.t3TextBody
+                    )
+                }
+            }
             data.description?.let {
                 Text(
                     modifier = Modifier.padding(top = 4.dp),
@@ -147,6 +177,7 @@ fun CheckboxRoundMlc.toUIModel(): CheckboxRoundMlcData {
             componentId = this.componentId?.let { UiText.DynamicString(it) },
             label = this.label,
             description = this.description,
+            status = this.status,
             interactionState = when (this.state) {
                 CbState.REST.type -> UIState.Interaction.Enabled
                 CbState.SELECTED.type -> UIState.Interaction.Enabled

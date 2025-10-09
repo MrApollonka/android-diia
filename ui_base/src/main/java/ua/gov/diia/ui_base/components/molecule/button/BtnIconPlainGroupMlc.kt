@@ -12,11 +12,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ua.gov.diia.core.models.common_compose.mlc.button.BtnIconPlainGroupMlc
+import ua.gov.diia.core.util.state.Loader
+import ua.gov.diia.core.util.state.getLegacyProgress
 import ua.gov.diia.ui_base.components.DiiaResourceIcon
 import ua.gov.diia.ui_base.components.atom.button.BtnPlainIconAtm
 import ua.gov.diia.ui_base.components.atom.button.BtnPlainIconAtmData
@@ -24,15 +27,20 @@ import ua.gov.diia.ui_base.components.atom.button.toUiModel
 import ua.gov.diia.ui_base.components.infrastructure.UIElementData
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
 import ua.gov.diia.ui_base.components.infrastructure.state.UIState
+import ua.gov.diia.ui_base.components.infrastructure.utils.SidePaddingMode
+import ua.gov.diia.ui_base.components.infrastructure.utils.TopPaddingMode
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiIcon
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
+import ua.gov.diia.ui_base.components.infrastructure.utils.toDp
+import ua.gov.diia.ui_base.components.infrastructure.utils.toSidePaddingMode
+import ua.gov.diia.ui_base.components.infrastructure.utils.toTopPaddingMode
 import ua.gov.diia.ui_base.components.theme.PeriwinkleGray
 
 @Composable
 fun BtnIconPlainGroupMlc(
     modifier: Modifier = Modifier,
     data: BtnIconPlainGroupMlcData,
-    progressIndicator: Pair<String, Boolean> = Pair("", false),
+    loader: Loader = Loader.create(),
     onUIAction: (UIAction) -> Unit
 ) {
     val localData = remember {
@@ -43,13 +51,13 @@ fun BtnIconPlainGroupMlc(
         localData.value = data
     }
 
-    LaunchedEffect(key1 = progressIndicator) {
+    LaunchedEffect(key1 = loader) {
         localData.value =
             localData.value.copy(listBtn = SnapshotStateList<BtnPlainIconAtmData>().apply {
                 for (item in localData.value.listBtn) {
                     add(
                         item.copy(
-                            interactionState = if (progressIndicator.first != "" && progressIndicator.second) {
+                            interactionState = if (loader.isLoadingByComponent()) {
                                 UIState.Interaction.Disabled
                             } else {
                                 UIState.Interaction.Enabled
@@ -62,24 +70,36 @@ fun BtnIconPlainGroupMlc(
 
     Column(
         modifier = modifier
-            .padding(top = 24.dp, start = 24.dp, end = 24.dp)
             .fillMaxWidth()
-            .border(
-                color = PeriwinkleGray, width = 1.dp, shape = RoundedCornerShape(7.dp)
+            .padding(
+                start = data.paddingHorizontal.toDp(defaultPadding = 24.dp),
+                top = data.paddingTop.toDp(defaultPadding = 24.dp),
+                end = data.paddingHorizontal.toDp(defaultPadding = 24.dp)
             )
-            .testTag(data.componentId?.asString() ?: "")
+            .border(
+                color = PeriwinkleGray, width = 1.dp, shape = RoundedCornerShape(12.dp)
+            )
+            .testTag(data.componentId?.asString() ?: ""),
+        horizontalAlignment = Alignment.CenterHorizontally,
+
     ) {
         Spacer(modifier = Modifier.size(16.dp))
-        localData.value.listBtn.forEach {
-            BtnPlainIconAtm(modifier, it, progressIndicator, onUIAction = onUIAction)
-            Spacer(modifier = Modifier.size(16.dp))
+        Column(
+            horizontalAlignment = Alignment.Start
+        ) {
+            localData.value.listBtn.forEach {
+                BtnPlainIconAtm(modifier, it, loader.getLegacyProgress(), onUIAction = onUIAction)
+                Spacer(modifier = Modifier.size(16.dp))
+            }
         }
     }
 }
 
 data class BtnIconPlainGroupMlcData(
-    val listBtn: List<BtnPlainIconAtmData>,
     val componentId: UiText? = null,
+    val listBtn: List<BtnPlainIconAtmData>,
+    val paddingTop: TopPaddingMode? = null,
+    val paddingHorizontal: SidePaddingMode? = null,
 ) : UIElementData
 
 fun BtnIconPlainGroupMlc?.toUIModel(): BtnIconPlainGroupMlcData? {
@@ -88,44 +108,65 @@ fun BtnIconPlainGroupMlc?.toUIModel(): BtnIconPlainGroupMlcData? {
         componentId = UiText.DynamicString(this.componentId.orEmpty()),
         listBtn = this.items?.map {
             it.btnPlainIconAtm.toUiModel()
-        }.orEmpty()
+        }.orEmpty(),
+        paddingTop = paddingMode?.top.toTopPaddingMode(),
+        paddingHorizontal = paddingMode?.side.toSidePaddingMode()
     )
 }
 
+enum class BtnIconPlaiGroupMockTypes {
+    ONE, MANY
+}
+
+fun generateBtnIconPlanMlcMockData(type: BtnIconPlaiGroupMockTypes): BtnIconPlainGroupMlcData {
+    return when (type) {
+        BtnIconPlaiGroupMockTypes.MANY -> {
+            val btn1 = BtnPlainIconAtmData(
+                id = "123",
+                label = UiText.DynamicString("label1 click here"),
+                icon = UiIcon.DrawableResource(DiiaResourceIcon.MENU.code),
+                interactionState = UIState.Interaction.Enabled
+            )
+            val btn2 = BtnPlainIconAtmData(
+                id = "124",
+                label = UiText.DynamicString("label2 very long name for button 2"),
+                icon = UiIcon.DrawableResource(DiiaResourceIcon.MENU.code),
+                interactionState = UIState.Interaction.Disabled
+            )
+            val btn3 = BtnPlainIconAtmData(
+                id = "125",
+                label = UiText.DynamicString("label3"),
+                icon = null,
+                interactionState = UIState.Interaction.Enabled
+            )
+            BtnIconPlainGroupMlcData(listBtn = listOf(btn1, btn2, btn3), paddingHorizontal = SidePaddingMode.MEDIUM)
+        }
+
+        BtnIconPlaiGroupMockTypes.ONE -> {
+            val btn1 = BtnPlainIconAtmData(
+                id = "123",
+                label = UiText.DynamicString("label1"),
+                icon = UiIcon.DrawableResource(DiiaResourceIcon.SHARE.code),
+                interactionState = UIState.Interaction.Enabled
+            )
+            BtnIconPlainGroupMlcData(listBtn = listOf(btn1), paddingTop = TopPaddingMode.LARGE, paddingHorizontal = SidePaddingMode.MEDIUM)
+        }
+    }
+
+}
+
 @Composable
-@Preview
+@Preview(showBackground = true)
 fun BtnIconPlainGroupMlcPreview() {
-    val btn1 = BtnPlainIconAtmData(
-        id = "123",
-        label = UiText.DynamicString("label1 click here"),
-        icon = UiIcon.DrawableResource(DiiaResourceIcon.MENU.code),
-        interactionState = UIState.Interaction.Enabled
-    )
-    val btn2 = BtnPlainIconAtmData(
-        id = "124",
-        label = UiText.DynamicString("label2 very long name for button 2"),
-        icon = UiIcon.DrawableResource(DiiaResourceIcon.TARGET_WHITE.code),
-        interactionState = UIState.Interaction.Disabled
-    )
-    val btn3 = BtnPlainIconAtmData(
-        id = "125",
-        label = UiText.DynamicString("label3"),
-        icon = UiIcon.DrawableResource(DiiaResourceIcon.TARGET_WHITE.code),
-        interactionState = UIState.Interaction.Enabled
-    )
-    val data = BtnIconPlainGroupMlcData(listBtn = listOf(btn1, btn2, btn3))
-    BtnIconPlainGroupMlc(Modifier, data) {}
+    BtnIconPlainGroupMlc(
+        Modifier,
+        generateBtnIconPlanMlcMockData(BtnIconPlaiGroupMockTypes.MANY)
+    ) {}
 }
 
 @Composable
-@Preview
+@Preview(showBackground = true)
 fun BtnIconPlainGroupMlcPreview_one() {
-    val btn1 = BtnPlainIconAtmData(
-        id = "123",
-        label = UiText.DynamicString("label1"),
-        icon = UiIcon.DrawableResource(DiiaResourceIcon.MENU.code),
-        interactionState = UIState.Interaction.Enabled
-    )
-    val data = BtnIconPlainGroupMlcData(listBtn = listOf(btn1))
-    BtnIconPlainGroupMlc(Modifier, data) {}
+
+    BtnIconPlainGroupMlc(Modifier, generateBtnIconPlanMlcMockData(BtnIconPlaiGroupMockTypes.ONE)) {}
 }

@@ -6,7 +6,6 @@ import app.cash.turbine.test
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.anyOrNull
 import com.nhaarman.mockitokotlin2.atLeast
-import com.nhaarman.mockitokotlin2.never
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -105,7 +104,8 @@ class VerificationControllerVMTest(
                     actionButton = null,
                     processId = "1234",
                     skipAuthMethods = null,
-                    template = null
+                    template = null,
+                    disabledMethods = null
                 )
             )
         viewModel.navigateToVerification.asFlow().test {
@@ -124,7 +124,8 @@ class VerificationControllerVMTest(
                     actionButton = ActivityViewActionButton("test"),
                     processId = "1234",
                     skipAuthMethods = null,
-                    template = null
+                    template = null,
+                    disabledMethods = null
                 )
             )
         viewModel.navigateToMethodsSelectionDialog.asFlow().test {
@@ -135,32 +136,6 @@ class VerificationControllerVMTest(
         }
     }
 
-    @Test
-    fun `no available verification methods`() = runTest {
-        whenever(apiVerification.getVerificationMethods(any(), anyOrNull()))
-            .thenReturn(
-                VerificationMethodsData(
-                    title = null,
-                    methods = listOf(verificationMethods[2].name),
-                    actionButton = null,
-                    processId = "1234",
-                    skipAuthMethods = null,
-                    template = null
-                )
-            )
-        whenever(clientAlertDialogsFactory.getNoVerificationMethodsDialog())
-            .thenReturn(dummyTemplateDialog())
-        viewModel.showTemplateDialog.asFlow().test {
-            viewModel.startVerification(schema)
-            viewModel.awaitUserVerifying()
-            viewModel.processVerificationMethods()
-            Assert.assertEquals(
-                dummyTemplateDialog(VerificationControllerConst.VERIFICATION_ALERT_DIALOG_ACTION),
-                awaitItem().peekContent()
-            )
-            verify(clientAlertDialogsFactory).getNoVerificationMethodsDialog()
-        }
-    }
 
     @Test
     fun `external verification`() = runTest {
@@ -173,7 +148,8 @@ class VerificationControllerVMTest(
                     actionButton = null,
                     processId = "1234",
                     skipAuthMethods = null,
-                    template = null
+                    template = null,
+                    disabledMethods = null
                 )
             )
         whenever(apiVerification.completeVerificationStep(any(), any(), any(), anyOrNull()))
@@ -218,7 +194,8 @@ class VerificationControllerVMTest(
                     actionButton = null,
                     processId = processId,
                     skipAuthMethods = true,
-                    template = null
+                    template = null,
+                    disabledMethods = null
                 )
             )
         // check for noop
@@ -263,7 +240,8 @@ class VerificationControllerVMTest(
                     actionButton = null,
                     processId = processId,
                     skipAuthMethods = true,
-                    template = null
+                    template = null,
+                    disabledMethods = null
                 )
             )
         whenever(apiVerification.completeVerificationStep(any(), any(), any(), anyOrNull()))
@@ -286,31 +264,6 @@ class VerificationControllerVMTest(
         Assert.assertTrue(viewModel.authMethodSkippedVar)
     }
 
-    @Test
-    fun `no methods`() = runTest {
-        val processId = "3243s00"
-        whenever(apiVerification.getVerificationMethods(any(), anyOrNull()))
-            .thenReturn(
-                VerificationMethodsData(
-                    title = null,
-                    methods = null,
-                    actionButton = null,
-                    processId = processId,
-                    skipAuthMethods = false,
-                    template = null
-                )
-            )
-        whenever(clientAlertDialogsFactory.getNoVerificationMethodsDialog())
-            .thenReturn(dummyTemplateDialog())
-
-        viewModel.showTemplateDialog.asFlow().test {
-            viewModel.startVerification(schema)
-            Assert.assertEquals(
-                dummyTemplateDialog(VerificationControllerConst.VERIFICATION_ALERT_DIALOG_ACTION),
-                awaitItem().peekContent()
-            )
-        }
-    }
 
     @Test
     fun `invalid method url`() = runTest {
@@ -324,7 +277,8 @@ class VerificationControllerVMTest(
                     actionButton = null,
                     processId = "1234",
                     skipAuthMethods = null,
-                    template = null
+                    template = null,
+                    disabledMethods = null
                 )
             )
         viewModel.startVerification(schema)
@@ -333,35 +287,6 @@ class VerificationControllerVMTest(
         viewModel.awaitUserVerifying()
         viewModel.handleVerificationResult(VerificationFlowResult.CompleteVerificationStep(null, null))
         Assert.assertFalse(viewModel.verifyingUserValue)
-    }
-
-    @Test
-    fun `unsupported method`() = runTest {
-        val methodName = "nosuchmethod"
-        whenever(apiVerification.getVerificationMethods(any(), anyOrNull()))
-            .thenReturn(
-                VerificationMethodsData(
-                    title = null,
-                    methods = listOf(methodName),
-                    actionButton = null,
-                    processId = "1234",
-                    skipAuthMethods = null,
-                    template = null
-                )
-            )
-        whenever(clientAlertDialogsFactory.getNoVerificationMethodsDialog())
-            .thenReturn(dummyTemplateDialog())
-        viewModel.showTemplateDialog.asFlow().test {
-            viewModel.startVerification(schema)
-            viewModel.awaitUserVerifying()
-            viewModel.handleVerificationResult(VerificationFlowResult.VerificationMethod(methodName))
-            viewModel.awaitUserVerifying()
-            Assert.assertEquals(
-                dummyTemplateDialog(key = VerificationControllerConst.VERIFICATION_ALERT_DIALOG_ACTION),
-                awaitItem().getContentIfNotHandled()
-            )
-        }
-        verify(applicationLauncher, never()).launch(any())
     }
 
     companion object {

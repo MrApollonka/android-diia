@@ -99,7 +99,6 @@ private val coverageExclusions = listOf(
     //UI
     //views
     "**/ui/views/**/*.*",
-    "**/com/bumptech/glide/*",
     // moshi
     "**/*JsonAdapter.*",
     "ua/gov/diia/**/*FDirections.*",

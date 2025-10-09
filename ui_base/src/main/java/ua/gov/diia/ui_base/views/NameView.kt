@@ -3,16 +3,21 @@ package ua.gov.diia.ui_base.views
 import android.content.Context
 import android.text.InputType
 import android.util.AttributeSet
+import android.view.View
+import android.view.accessibility.AccessibilityEvent
 import android.view.inputmethod.EditorInfo
 import android.widget.LinearLayout
+import androidx.core.content.ContextCompat.getString
 import androidx.core.content.withStyledAttributes
 import androidx.core.view.isVisible
 import androidx.databinding.BindingAdapter
 import ua.gov.diia.core.util.inputs.isPersonNameValid
 import java.lang.Integer.max
 import ua.gov.diia.ui_base.R
+import ua.gov.diia.ui_base.components.infrastructure.utils.isTalkBackEnabled
 import ua.gov.diia.ui_base.databinding.ItemViewNameBinding
 import ua.gov.diia.ui_base.databinding.ViewNameBinding
+import ua.gov.diia.ui_base.util.extensions.accessibility.setAccessibilityRole
 import ua.gov.diia.ui_base.util.view.inflater
 import ua.gov.diia.ui_base.util.view.setEnabledRecursive
 
@@ -43,6 +48,7 @@ class NameView @JvmOverloads constructor(
 
     fun setActionName(text: String?) {
         binding.addTv.text = text
+        binding.addTv.setAccessibilityRole(getString(binding.root.context, R.string.accessibility_role_button))
     }
 
     fun onAddItem(onAddItem: () -> Unit) {
@@ -88,14 +94,11 @@ class NameView @JvmOverloads constructor(
         viewHolderList.addAll(viewHoldersToAdd)
 
         binding.content.isVisible = !list.isNullOrEmpty()
+        viewHoldersToAdd.lastOrNull()?.binding?.nameInput?.focusTitleForAccessibility()
     }
 
     fun setAddButtonEnabled(isEnabled: Boolean?) {
         binding.addBtn.setEnabledRecursive(isEnabled == true)
-    }
-
-    fun setAddButtonVisibility(isVisible: Boolean?) {
-        binding.addBtn.isVisible = isVisible == true
     }
 
     fun isNameSymbolsValid(name: String): Boolean {
@@ -124,6 +127,17 @@ class NameView @JvmOverloads constructor(
             binding.deleteBtn.setOnClickListener {
                 val name = model ?: return@setOnClickListener
                 onRemove?.invoke(name)
+
+                if (binding.root.context.isTalkBackEnabled()) {
+                    binding.root.post {
+                        this@NameView.binding.addBtn.apply {
+                            isFocusable = true
+                            isFocusableInTouchMode = true
+                            requestFocus()
+                            sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED)
+                        }
+                    }
+                }
             }
         }
 
@@ -133,24 +147,11 @@ class NameView @JvmOverloads constructor(
             if (binding.nameInput.getFieldText() != model.name) {
                 binding.nameInput.setFieldText(model.name)
             }
+            binding.deleteBtn.contentDescription =
+                binding.root.context.getString(R.string.accessibility_delete_item, model.title)
             binding.nameInput.setFieldTitle(model.title)
             binding.nameInput.setFieldHint(model.hint)
             binding.nameInput.setFieldMode(model.fieldMode.v)
         }
     }
-}
-
-@BindingAdapter("setData")
-fun NameView.data(list: List<NameModel>?) {
-    setData(list)
-}
-
-@BindingAdapter("setAddButtonEnabled")
-fun NameView.addButtonEnabled(isEnabled: Boolean?) {
-    this.setAddButtonEnabled(isEnabled)
-}
-
-@BindingAdapter("withAddButton")
-fun NameView.withAddButton(withAddButton: Boolean?) {
-    this.setAddButtonVisibility(withAddButton)
 }

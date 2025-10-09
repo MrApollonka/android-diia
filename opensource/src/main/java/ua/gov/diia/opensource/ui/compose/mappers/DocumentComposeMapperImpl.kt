@@ -4,6 +4,7 @@ import androidx.compose.runtime.toMutableStateList
 import ua.gov.diia.core.models.common_compose.atm.chip.ChipStatusAtm
 import ua.gov.diia.core.models.common_compose.atm.text.TickerAtm
 import ua.gov.diia.core.models.common_compose.mlc.text.SmallEmojiPanelMlc
+import ua.gov.diia.core.models.common_compose.mlc.text.SubtitleLabelMlc
 import ua.gov.diia.core.models.common_compose.org.doc.DocButtonHeadingOrg
 import ua.gov.diia.core.models.common_compose.org.doc.DocHeadingOrg
 import ua.gov.diia.core.models.common_compose.table.tableBlockAccordionOrg.TableBlockAccordionOrg
@@ -18,7 +19,6 @@ import ua.gov.diia.core.models.document.barcode.DocumentBarcodeResult
 import ua.gov.diia.core.models.document.barcode.DocumentBarcodeSuccessfulLoadResult
 import ua.gov.diia.core.models.document.docgroups.v2.DocCover
 import ua.gov.diia.core.models.document.docgroups.v2.QrCheckStatus
-import ua.gov.diia.core.models.document.docgroups.v2.SubtitleLabelMlc
 import ua.gov.diia.core.network.Http
 import ua.gov.diia.core.util.CommonConst
 import ua.gov.diia.doc_driver_license.models.v2.DriverLicenseV2
@@ -187,7 +187,7 @@ class DocumentComposeMapperImpl @Inject constructor() : DocumentComposeMapper {
 
     override fun toComposeNavigationPanel(): NavigationPanelMlcData? {
         return NavigationPanelMlcData(
-            title = UiText.StringResource(R.string.title_scan_qr),
+            title = UiText.DynamicString("Сканування QR-коду"),
             tintColor = White,
             isContextMenuExist = false,
         )
@@ -506,6 +506,7 @@ class DocumentComposeMapperImpl @Inject constructor() : DocumentComposeMapper {
                         LocalizationType.eng -> Localization.eng
                     },
                     timerText = this.timerText,
+                    timerTime = this.timerTime,
                     showToggle = showToggle,
                     isStack = isStack
                 )

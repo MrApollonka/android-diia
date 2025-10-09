@@ -1,7 +1,5 @@
 package ua.gov.diia.ui_base.components.molecule.code
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -22,8 +20,8 @@ fun QrCodeMlc(
         modifier = modifier,
         value = data.qrLink.asString(),
         type = BarcodeType.QR_CODE,
-        width = 250.dp,
-        height = 250.dp,
+        width = 230.dp,
+        height = 230.dp,
         blur = data.blured
     )
 }

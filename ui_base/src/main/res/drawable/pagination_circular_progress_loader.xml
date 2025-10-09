@@ -4,7 +4,7 @@
     <path android:fillColor="#00000000"
         android:pathData="M17,9C17,13.418 13.418,17 9,17C4.582,17 1,13.418 1,9C1,4.582 4.582,1 9,1" android:strokeWidth="2">
         <aapt:attr name="android:strokeColor">
-            <gradient android:endX="19" android:endY="17"
+            <gradient android:endX="24.2" android:endY="10"
                 android:startX="9" android:startY="1" android:type="linear">
                 <item android:color="#000000" android:offset="0"/>
                 <item android:color="#03FFFFFF" android:offset="0.6"/>

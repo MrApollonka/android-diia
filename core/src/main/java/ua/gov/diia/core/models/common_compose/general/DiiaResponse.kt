@@ -11,6 +11,8 @@ data class DiiaResponse(
     val topGroup: List<TopGroup>?,
     @Json(name = "body")
     val body: List<Body>?,
+    @Json(name = "centeredBody")
+    val centeredBody: List<CenteredBody>?,
     @Json(name = "bottomGroup")
     val bottomGroup: List<BottomGroup>?,
     @Json(name = "processCode")
@@ -21,4 +23,6 @@ data class DiiaResponse(
     val ratingForm: RatingFormModel?,
     @Json(name = "nextStep")
     val nextStep: String?,
+    @Json(name = "code")
+    val code: String?
 )

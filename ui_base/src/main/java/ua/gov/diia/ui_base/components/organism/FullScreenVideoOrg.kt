@@ -19,9 +19,13 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import ua.gov.diia.core.models.common_compose.org.media.FullScreenVideoOrg
+import ua.gov.diia.core.util.state.Loader
+import ua.gov.diia.core.util.state.getLegacyProgress
 import ua.gov.diia.ui_base.R
 import ua.gov.diia.ui_base.components.atom.button.BtnPlainAtm
 import ua.gov.diia.ui_base.components.atom.button.BtnPlainAtmData
@@ -42,7 +46,7 @@ import ua.gov.diia.ui_base.components.noRippleClickable
 fun FullScreenVideoOrg(
     modifier: Modifier = Modifier,
     data: FullScreenVideoOrgData,
-    progressIndicator: Pair<String, Boolean> = Pair("", false),
+    loader: Loader = Loader.create(),
     connectivityState: Boolean,
     onUIAction: (UIAction) -> Unit
 ) {
@@ -53,7 +57,7 @@ fun FullScreenVideoOrg(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .height(screenHeightDp),
+            .height(screenHeightDp + (data.navBarSize ?: 0.dp)),
         color = Color.Black,
     ) {
 
@@ -88,7 +92,7 @@ fun FullScreenVideoOrg(
                         )
                     },
                 painter = painterResource(R.drawable.ic_close_white),
-                contentDescription = null,
+                contentDescription = stringResource(R.string.close),
                 colorFilter = ColorFilter.tint(Color.White)
             )
             data.btnPrimaryDefaultAtm?.let {
@@ -97,7 +101,7 @@ fun FullScreenVideoOrg(
                         .padding(bottom = 40.dp)
                         .align(Alignment.BottomCenter),
                     data = it,
-                    progressIndicator = progressIndicator,
+                    loader = loader,
                     onUIAction = onUIAction
                 )
             }
@@ -107,7 +111,7 @@ fun FullScreenVideoOrg(
                         .padding(bottom = 16.dp)
                         .align(Alignment.BottomCenter),
                     data = it,
-                    progressIndicator = progressIndicator,
+                    progressIndicator = loader.getLegacyProgress(),
                     onUIAction = onUIAction
                 )
             }
@@ -116,8 +120,9 @@ fun FullScreenVideoOrg(
 }
 
 data class FullScreenVideoOrgData(
-    val source: String? = null,
     val componentId: UiText? = null,
+    val source: String? = null,
+    val navBarSize: Dp? = null,
     val playerBtnAtm: BtnPrimaryDefaultAtmData? = null,
     val btnPrimaryDefaultAtm: BtnPrimaryDefaultAtmData? = null,
     val btnPlainAtm: BtnPlainAtmData? = null,

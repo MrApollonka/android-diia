@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.grid.LazyGridState
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -69,8 +67,6 @@ import ua.gov.diia.ui_base.components.molecule.text.TextLabelMlc
 import ua.gov.diia.ui_base.components.molecule.text.TextLabelMlcData
 import ua.gov.diia.ui_base.components.molecule.text.TitleLabelMlc
 import ua.gov.diia.ui_base.components.molecule.text.TitleLabelMlcData
-import ua.gov.diia.ui_base.components.molecule.tile.ServiceCardTileOrg
-import ua.gov.diia.ui_base.components.molecule.tile.ServiceCardTileOrgData
 import ua.gov.diia.ui_base.components.organism.bottom.BtnIconRoundedGroupOrg
 import ua.gov.diia.ui_base.components.organism.bottom.BtnIconRoundedGroupOrgData
 import ua.gov.diia.ui_base.components.organism.carousel.HalvedCardCarouselOrg
@@ -88,7 +84,7 @@ import ua.gov.diia.ui_base.components.organism.list.MessageListOrganismData
 import ua.gov.diia.ui_base.components.organism.pager.DocCarouselOrg
 import ua.gov.diia.ui_base.components.organism.pager.DocCarouselOrgData
 import ua.gov.diia.ui_base.components.subatomic.ticker.NoInternetTicker
-
+import ua.gov.diia.ui_base.mappers.loader.mapToLoader
 
 @Composable
 fun ColumnScope.TabBodyRootContainer(
@@ -102,7 +98,6 @@ fun ColumnScope.TabBodyRootContainer(
     onUIAction: (UIAction) -> Unit
 ) {
     val lazyListScrollState = rememberLazyListState()
-    val lazyGridState: LazyGridState = rememberLazyGridState()
 
     val scrollState = rememberScrollState()
     var displayBottomGradient by remember { mutableStateOf(false) }
@@ -119,24 +114,10 @@ fun ColumnScope.TabBodyRootContainer(
     }
 
     LaunchedEffect(
-        key1 = lazyGridState.canScrollBackward,
-        key2 = lazyGridState.canScrollForward
-    ) {
-        if (bodyViews.any { it is ServiceCardTileOrgData }) {
-            displayBottomGradient = displayBlockDivider && lazyGridState.canScrollForward
-            displayView = !lazyGridState.canScrollBackward
-        }
-    }
-
-    LaunchedEffect(
         key1 = scrollState.canScrollBackward,
         key2 = scrollState.canScrollForward,
     ) {
         if (bodyViews.none { it is MessageListOrganismData }) {
-            displayBottomGradient = displayBlockDivider && scrollState.canScrollForward
-            displayView = true
-        }
-        if (bodyViews.none { it is ServiceCardTileOrgData }) {
             displayBottomGradient = displayBlockDivider && scrollState.canScrollForward
             displayView = true
         }
@@ -149,7 +130,7 @@ fun ColumnScope.TabBodyRootContainer(
         Column(
             modifier = modifier
                 .fillMaxSize()
-                .conditional(!bodyViews.any { it is ServiceCardTileOrgData || it is MessageListOrganismData || it is DocCarouselOrgData }) {
+                .conditional(!bodyViews.any { it is MessageListOrganismData || it is DocCarouselOrgData }) {
                     verticalScroll(scrollState)
                 },
             horizontalAlignment = Alignment.Start
@@ -314,7 +295,7 @@ fun ColumnScope.TabBodyRootContainer(
                         BtnPrimaryDefaultAtm(
                             modifier = modifier.align(Alignment.CenterHorizontally),
                             data = element,
-                            progressIndicator = progressIndicator,
+                            loader = mapToLoader(progress = progressIndicator),
                             onUIAction = onUIAction
                         )
                     }
@@ -379,14 +360,6 @@ fun ColumnScope.TabBodyRootContainer(
                     },
                     data = it as MessageListOrganismData,
                     onUIAction = onUIAction
-                )
-            }
-            bodyViews.firstOrNull { it is ServiceCardTileOrgData }?.let {
-                ServiceCardTileOrg(
-                    lazyGridState = lazyGridState,
-                    data = it as ServiceCardTileOrgData,
-                    onUIAction = onUIAction,
-                    modifier = Modifier
                 )
             }
         }

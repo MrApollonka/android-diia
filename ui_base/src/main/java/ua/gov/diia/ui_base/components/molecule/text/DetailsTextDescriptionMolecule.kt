@@ -83,7 +83,7 @@ fun DetailsTextDescriptionMolecule(
                                 modifier = Modifier
                                     .padding(horizontal = 8.dp)
                                     .size(24.dp),
-                                painter = painterResource(id = R.drawable.diia_icon_copy_to_clipboard),
+                                painter = painterResource(id = R.drawable.ic_copy),
                                 contentDescription = stringResource(id = R.string.copy_to_clipboard),
                                 colorFilter = ColorFilter.tint(Black)
                             )

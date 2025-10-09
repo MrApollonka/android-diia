@@ -5,6 +5,7 @@ import ua.gov.diia.core.models.dialogs.TemplateDialogData
 import ua.gov.diia.core.models.dialogs.TemplateDialogModel
 import ua.gov.diia.core.ui.dynamicdialog.ActionsConst
 import ua.gov.diia.core.util.alert.ClientAlertDialogsFactory
+import ua.gov.diia.core.util.throwExceptionInDebugOrShowAlert
 import javax.inject.Inject
 
 class AndroidClientAlertDialogsFactory @Inject constructor(
@@ -43,19 +44,7 @@ class AndroidClientAlertDialogsFactory @Inject constructor(
                 )
             )
 
-            else -> TemplateDialogModel(
-                type = "smallAlert",
-                key = ActionsConst.FRAGMENT_USER_ACTION_RESULT_KEY,
-                isClosable = isClosable,
-                data = TemplateDialogData(
-                    icon = "\uD83D\uDE1E",
-                    title = "На жаль, сталася помилка",
-                    mainButton = TemplateDialogButton(
-                        name = if (isClosable) "Спробувати ще" else "Зрозуміло",
-                        action = if (isClosable) ActionsConst.GENERAL_RETRY else ActionsConst.ERROR_DIALOG_DEAL_WITH_IT,
-                    ),
-                ),
-            )
+            else -> "Unhandled keyAlert".throwExceptionInDebugOrShowAlert(isClosable)
         }
     }
 

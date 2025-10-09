@@ -49,4 +49,9 @@ class PinHelperImpl @Inject constructor(
             )
         )
     }
+
+    override fun navigateToQrScan(fragment: Fragment) {
+        /* no-op */
+    }
+
 }

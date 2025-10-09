@@ -1,29 +1,47 @@
 package ua.gov.diia.ui_base.components.organism.document
 
 import android.graphics.Bitmap
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil.compose.SubcomposeAsyncImage
+import ua.gov.diia.ui_base.R
+import ua.gov.diia.ui_base.components.DiiaResourceIcon
 import ua.gov.diia.ui_base.components.conditional
 import ua.gov.diia.ui_base.components.infrastructure.UIElementData
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
+import ua.gov.diia.ui_base.components.infrastructure.utils.SidePaddingMode
+import ua.gov.diia.ui_base.components.infrastructure.utils.TopPaddingMode
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
+import ua.gov.diia.ui_base.components.infrastructure.utils.toDp
 import ua.gov.diia.ui_base.components.molecule.list.table.items.tableblock.TableBlockItem
 import ua.gov.diia.ui_base.components.molecule.list.table.items.tableblock.TableItemVerticalMlc
 import ua.gov.diia.ui_base.components.molecule.list.table.items.tableblock.TableItemVerticalMlcData
 import ua.gov.diia.ui_base.components.molecule.text.HeadingWithSubtitlesMlc
 import ua.gov.diia.ui_base.components.molecule.text.HeadingWithSubtitlesMlcData
 import ua.gov.diia.ui_base.components.subatomic.icon.PhotoDocBase64Subatomic
+import ua.gov.diia.ui_base.components.subatomic.loader.LoaderSpinnerLoaderAtm
 import ua.gov.diia.ui_base.components.subatomic.preview.PreviewBase64Images
+import ua.gov.diia.ui_base.components.theme.AzureMist
+import ua.gov.diia.ui_base.components.theme.BlackAlpha10
 import ua.gov.diia.ui_base.components.theme.ColumbiaBlue
 import ua.gov.diia.ui_base.components.theme.White
 
@@ -33,9 +51,14 @@ fun TableBlockTwoColumnsOrg(
     data: TableBlockTwoColumnsOrgData,
     onUIAction: (UIAction) -> Unit = {}
 ) {
+    val context = LocalContext.current
     Column(
         modifier
-            .padding(top = 24.dp, start = 24.dp, end = 24.dp)
+            .padding(
+                start = data.paddingHorizontal.toDp(defaultPadding = 24.dp),
+                top = data.paddingTop.toDp(defaultPadding = 24.dp),
+                end = data.paddingHorizontal.toDp(defaultPadding = 24.dp)
+            )
             .background(color = White, shape = RoundedCornerShape(16.dp))
             .fillMaxWidth()
             .testTag(data.componentId?.asString() ?: "")
@@ -55,14 +78,62 @@ fun TableBlockTwoColumnsOrg(
             if (!data.photo.isNullOrEmpty()) {
                 PhotoDocBase64Subatomic(
                     modifier = Modifier
-                        .size(height = 178.dp, width = 133.5.dp),
+                        .size(
+                            height = 178.dp,
+                            width = 133.5.dp
+                        ),
                     base64Image = data.photo,
-                    photoAsBitmap = data.photoAsBitmap
+                    photoAsBitmap = data.photoAsBitmap,
+                    contentDescription = context.getString(R.string.accessibility_photo_of_the_document_holder)
+                )
+            }
+            if (!data.photoUrl.isNullOrEmpty()) {
+                SubcomposeAsyncImage(
+                    modifier = modifier
+                        .size(
+                            height = 178.dp,
+                            width = 133.5.dp
+                        )
+                        .clip(RoundedCornerShape(16.dp))
+                        .border(
+                            width = 1.dp,
+                            color = BlackAlpha10,
+                            shape = RoundedCornerShape(16.dp)
+                        ),
+                    model = data.photoUrl,
+                    contentDescription = context.getString(R.string.accessibility_photo_of_the_document_holder),
+                    contentScale = ContentScale.Crop,
+                    loading = {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            LoaderSpinnerLoaderAtm()
+                        }
+                    },
+                    error = {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(AzureMist),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                modifier = Modifier
+                                    .size(56.dp),
+                                painter = painterResource(
+                                    DiiaResourceIcon.getResourceId(DiiaResourceIcon.PLACEHOLDER.code)
+                                ),
+                                contentDescription = null
+                            )
+                        }
+                    }
                 )
             }
             Column(
                 modifier = Modifier
-                    .conditional(!data.photo.isNullOrEmpty()) {
+                    .conditional(!data.photo.isNullOrEmpty() || !data.photoUrl.isNullOrEmpty()) {
                         padding(start = 24.dp)
                     }
                     .fillMaxWidth()
@@ -91,7 +162,10 @@ data class TableBlockTwoColumnsOrgData(
     val heading: HeadingWithSubtitlesMlcData? = null,
     val photo: String? = null,
     val photoAsBitmap: Bitmap? = null,
-    val items: List<TableBlockItem>? = null
+    val photoUrl: String? = null,
+    val items: List<TableBlockItem>? = null,
+    val paddingTop: TopPaddingMode? = null,
+    val paddingHorizontal: SidePaddingMode? = null
 ) : UIElementData
 
 @Composable

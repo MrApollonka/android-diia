@@ -1,12 +1,11 @@
 package ua.gov.diia.ui_base.components.atom.button
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
@@ -70,17 +69,22 @@ fun BtnPrimaryAdditionalAtm(
             }
         }
     ) {
-        AnimatedVisibility(visible = isLoading.value) {
-            LoaderCircularEclipse23Subatomic(modifier = Modifier.size(18.dp))
-
-        }
-
-        if(!isLoading.value){
-            Text(
-                text = data.title.asString(),
-                color = White,
-                style = DiiaTextStyle.t2TextDescription
-            )
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 8.dp)
+                .defaultMinSize(minWidth = 32.dp),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            AnimatedVisibility(visible = isLoading.value) {
+                LoaderCircularEclipse23Subatomic(modifier = Modifier.size(18.dp))
+            }
+            if (!isLoading.value) {
+                Text(
+                    text = data.title.asString(),
+                    color = White,
+                    style = DiiaTextStyle.t2TextDescription,
+                )
+            }
         }
     }
 }

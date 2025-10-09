@@ -62,4 +62,9 @@ class FeedHelperImpl : FeedHelper {
             )
         }
     }
+
+    override fun navigateToQrScan(fragment: Fragment) {
+        /* no-op */
+    }
+
 }

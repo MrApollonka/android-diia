@@ -211,13 +211,6 @@
         <attr name="hasBiometric" format="boolean" />
     </declare-styleable>
 
-
-    <declare-styleable name="FragmentNavigator">
-        <attr name="android:name" />
-        <attr name="pushTop" format="boolean" />
-    </declare-styleable>
-
-
     <declare-styleable name="DiiaFaqItem">
         <attr name="faqTitle" format="string" />
         <attr name="faqExpandImg" format="reference" />
@@ -255,7 +248,7 @@
         <attr name="tabNameText" format="string" />
         <attr name="tabCounterText" format="string" />
         <attr name="tabBackgroundColor" format="reference" />
-        <attr name="tabCounterVisibility" format="boolean"/>
+        <attr name="tabCounterVisibility" format="boolean" />
     </declare-styleable>
 
     <!-- ///////////////////////////////////////////////////////////////////////////////////
@@ -304,12 +297,6 @@
     <declare-styleable name="DiiaSwitch">
         <attr name="checked" />
         <attr name="isActive" />
-    </declare-styleable>
-
-    <declare-styleable name="DiiaChoiceChips">
-        <attr name="chipsText" format="string" />
-        <attr name="chipsBackground" format="reference" />
-        <attr name="chipsTextColor" format="reference" />
     </declare-styleable>
 
     <!-- /////////////////////////////////////////////////////////////////////////////////////
@@ -480,7 +467,7 @@
         <attr name="titleTextSize" />
         <attr name="title" />
         <attr name="isLoading" />
-        <attr name="iconStartBase64" format="string"/>
+        <attr name="iconStartBase64" format="string" />
         <attr name="iconStart" format="reference" />
         <attr name="iconStartSize" format="dimension" />
         <attr name="innerPaddingVertical" format="reference" />

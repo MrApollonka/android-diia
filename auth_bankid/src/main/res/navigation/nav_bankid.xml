@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_bankid"
+    app:startDestination="@id/bankSelectionF">
+
+    <action
+        android:id="@+id/actionGlobalToNavBankid"
+        app:destination="@id/nav_bankid"
+        app:enterAnim="@anim/slide_in_right"
+        app:exitAnim="@anim/slide_out_left"
+        app:popEnterAnim="@anim/slide_in_left"
+        app:popExitAnim="@anim/slide_out_right">
+
+        <argument
+            android:name="resultKey"
+            app:argType="string" />
+
+        <argument
+            android:name="resultDestination"
+            app:argType="integer" />
+
+        <argument
+            android:name="request"
+            app:argType="ua.gov.diia.auth_bankid.model.BankSelectionRequest" />
+
+    </action>
+
+    <fragment
+        android:id="@+id/bankSelectionF"
+        android:name="ua.gov.diia.auth_bankid.ui.selection.BankSelectionF">
+
+        <argument
+            android:name="resultKey"
+            app:argType="string" />
+
+        <argument
+            android:name="resultDestination"
+            app:argType="integer" />
+
+        <argument
+            android:name="request"
+            app:argType="ua.gov.diia.auth_bankid.model.BankSelectionRequest" />
+
+        <action
+            android:id="@+id/toBankAuthF"
+            app:destination="@id/bankAuthF"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/bankAuthF"
+        android:name="ua.gov.diia.auth_bankid.ui.auth.BankAuthF">
+
+        <argument
+            android:name="resultKey"
+            app:argType="string" />
+
+        <argument
+            android:name="resultDestination"
+            app:argType="integer" />
+
+        <argument
+            android:name="requestData"
+            app:argType="ua.gov.diia.auth_bankid.model.BankAuthRequest" />
+
+    </fragment>
+
+</navigation>

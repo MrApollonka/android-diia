@@ -5,6 +5,10 @@ plugins {
 }
 android {
     namespace = "ua.gov.diia.documents"
+
+    defaultConfig {
+        consumerProguardFiles("consumer-rules.pro")
+    }
 }
 
 dependencies {
@@ -37,6 +41,7 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.bundles.mockito)
     testImplementation(libs.turbine)
+    testImplementation(libs.mockk.android)
     androidTestImplementation(libs.androidx.test.ext)
     androidTestImplementation(libs.androidx.test.espresso.core)
 }

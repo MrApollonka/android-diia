@@ -12,6 +12,11 @@ enum class ServiceCardIconResource(
         "certificates",
         R.drawable.ic_ps_certificates,
         R.string.ps_icon_description_certificates
+    ),
+    PS_LIFECELL_MNP(
+        code = "lifecellMnp",
+        drawableResourceId = R.drawable.ic_ps_esim,
+        contentDescriptionResourceId = R.string.ps_icon_esim
     );
 
 

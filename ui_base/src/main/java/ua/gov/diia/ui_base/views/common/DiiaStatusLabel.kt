@@ -54,15 +54,15 @@ class DiiaStatusLabel @JvmOverloads constructor(
     }
 
     fun setLabelText(string: String?) {
-       string.validateString { s -> text.text = s }
+        string.validateString { s -> text.text = s }
     }
 
     fun setLabelText(@StringRes string: Int?) {
-       string.validateResource { stringRes -> text.setText(stringRes) }
+        string.validateResource { stringRes -> text.setText(stringRes) }
     }
 
     fun setLabelBackgroundColor(@ColorRes color: Int?) {
-       color.validateResource { colorRes ->  setCardBackgroundColor(context.getColorCompat(colorRes)) }
+        color.validateResource { colorRes -> setCardBackgroundColor(context.getColorCompat(colorRes)) }
     }
 
     fun setLabelTextColor(@ColorRes color: Int?) {
@@ -70,15 +70,13 @@ class DiiaStatusLabel @JvmOverloads constructor(
     }
 }
 
-@BindingAdapter("labelTextData", "labelTextRes", requireAll = true)
-fun labelTextOrDefault(
-    view: DiiaStatusLabel,
+fun DiiaStatusLabel.labelTextOrDefault(
     text: String?,
     @StringRes res: Int?
 ) {
     if (text != null) {
-        view.setLabelText(text)
+        setLabelText(text)
     } else {
-        view.setLabelText(res)
+        setLabelText(res)
     }
 }

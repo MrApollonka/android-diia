@@ -12,7 +12,10 @@ import ua.gov.diia.address_search.models.AddressIdentifier
 import ua.gov.diia.address_search.models.AddressItem
 import ua.gov.diia.address_search.models.AddressParameter
 import ua.gov.diia.address_search.models.AddressSearchRequest
+import ua.gov.diia.address_search.models.SearchData
 import ua.gov.diia.address_search.network.ApiAddressSearch
+import ua.gov.diia.address_search.ui.AddressSearchFieldType.FieldType.DEFAULT_MASK
+import ua.gov.diia.address_search.ui.AddressSearchFieldType.FieldType.INTERNATIONAL_DELIVERY
 import ua.gov.diia.core.models.dialogs.TemplateDialogModel
 import ua.gov.diia.core.util.CombinedLiveData
 import ua.gov.diia.core.util.delegation.WithErrorHandling
@@ -48,6 +51,25 @@ open class AddressSearchVM(
     private var _featureCode: String? = null
     private var _addressSchema: String? = null
 
+    // ---------- Data for SearchScreen ----------
+    private var realEstate: SearchData? = null
+    private var precision: SearchData? = null
+    private var description: SearchData? = null
+    private var country: SearchData? = null
+    private var regionSearchData: SearchData? = null
+    private var district: SearchData? = null
+    private var cityType: SearchData? = null
+    private var city: SearchData? = null
+    private var postOffice: SearchData? = null
+    private var streetType: SearchData? = null
+    private var street: SearchData? = null
+    private var searchScreenHouse: SearchData? = null
+    private var searchScreenApartment: SearchData? = null
+    private var searchScreenCorp: SearchData? = null
+    private var searchScreenZip: SearchData? = null
+
+    private var currentSelectedPositionType: String? = null
+
     private val _navigateToAddressSelection = MutableLiveData<UiDataEvent<AddressSearchRequest>>()
     val navigateToAddressSelection = _navigateToAddressSelection
 
@@ -64,8 +86,18 @@ open class AddressSearchVM(
         _addressDescription.value = data.description
         _showAddressSearchTitle.value =
             if (goneDescription) false else !data.description.isNullOrEmpty()
+
         _featureCode = code
         _addressSchema = schema
+
+        if (!data.parameters.isNullOrEmpty()) {
+            saveSearchData(
+                addressType = data.parameters[0].type,
+                screenTitle = data.parameters[0].label,
+                screenSearchPlaceholder =data.parameters[0].searchPlaceholder
+            )
+        }
+
         setFieldParams(data)
     }
 
@@ -105,6 +137,7 @@ open class AddressSearchVM(
     val descriptionInput = MutableLiveData<String?>()
 
     fun selectDescription() {
+        currentSelectedPositionType = ADDRESS_TYPE_DESCRIPTION
         _descriptionFieldParams.value?.let { params ->
             startSelectionProcess(CompoundAddressResultKey.RESULT_KEY_DESC, params)
         }
@@ -145,6 +178,7 @@ open class AddressSearchVM(
     val realEstateInput = MutableLiveData<String?>()
 
     fun selectRealEstate() {
+        currentSelectedPositionType = ADDRESS_TYPE_REAL_ESTATE
         _realEstateTypeFieldParams.value?.let { params ->
             startSelectionProcess(CompoundAddressResultKey.RESULT_KEY_REAL_ESTATE, params)
         }
@@ -183,6 +217,7 @@ open class AddressSearchVM(
     val precisionInput = MutableLiveData<String?>()
 
     fun selectPrecision() {
+        currentSelectedPositionType = ADDRESS_TYPE_PRECISION
         _precisionTypeFieldParams.value?.let { params ->
             startSelectionProcess(CompoundAddressResultKey.RESULT_KEY_PRECISION, params)
         }
@@ -221,6 +256,7 @@ open class AddressSearchVM(
     val countryInput = MutableLiveData<String?>()
 
     fun selectCountry() {
+        currentSelectedPositionType = ADDRESS_TYPE_COUNTRY
         _countryFieldParams.value?.let { params ->
             startSelectionProcess(CompoundAddressResultKey.RESULT_KEY_COUNTRY, params)
         }
@@ -290,6 +326,7 @@ open class AddressSearchVM(
     }
 
     fun selectRegion() {
+        currentSelectedPositionType = ADDRESS_TYPE_REGION
         _regionFieldParams.value?.let { params ->
             startSelectionProcess(CompoundAddressResultKey.RESULT_KEY_REGION, params)
         }
@@ -332,6 +369,7 @@ open class AddressSearchVM(
     val districtInput = MutableLiveData<String?>()
 
     fun selectDistrict() {
+        currentSelectedPositionType = ADDRESS_TYPE_DISTRICT
         _districtFieldParams.value?.let { params ->
             startSelectionProcess(CompoundAddressResultKey.RESULT_KEY_DISTRICT, params)
         }
@@ -370,6 +408,7 @@ open class AddressSearchVM(
     val cityTypeInput = MutableLiveData<String?>()
 
     fun selectCityType() {
+        currentSelectedPositionType = ADDRESS_TYPE_CITY_TYPE
         _cityTypeFieldParams.value?.let { params ->
             startSelectionProcess(CompoundAddressResultKey.RESULT_KEY_CITY_TYPE, params)
         }
@@ -438,6 +477,7 @@ open class AddressSearchVM(
     }
 
     fun selectCity() {
+        currentSelectedPositionType = ADDRESS_TYPE_CITY
         _cityFieldParams.value?.let { params ->
             startSelectionProcess(CompoundAddressResultKey.RESULT_KEY_CITY, params)
         }
@@ -476,6 +516,7 @@ open class AddressSearchVM(
     val postOfficeInput = MutableLiveData<String?>()
 
     fun selectPostOffice() {
+        currentSelectedPositionType = ADDRESS_TYPE_POST_OFFICE
         _postOfficeFieldParams.value?.let { params ->
             startSelectionProcess(CompoundAddressResultKey.RESULT_KEY_POST_OFFICE, params)
         }
@@ -514,6 +555,7 @@ open class AddressSearchVM(
     val streetTypeInput = MutableLiveData<String?>()
 
     fun selectStreetType() {
+        currentSelectedPositionType = ADDRESS_TYPE_STREET_TYPE
         _streetTypeFieldParams.value?.let { params ->
             startSelectionProcess(CompoundAddressResultKey.RESULT_KEY_STREET_TYPE, params)
         }
@@ -581,6 +623,7 @@ open class AddressSearchVM(
     }
 
     fun selectStreet() {
+        currentSelectedPositionType = ADDRESS_TYPE_STREET
         _streetFieldParams.value?.let { params ->
             startSelectionProcess(CompoundAddressResultKey.RESULT_KEY_STREET, params)
         }
@@ -798,12 +841,17 @@ open class AddressSearchVM(
 
     private val zipValidationRegex = MutableLiveData<String?>()
 
-    private val zipValidationPattern: Pattern? by lazy {
-        zipValidationRegex.value.let {
-            Pattern.compile(
-                it
-            )
+
+    private var zipValidationPattern: Pattern? = null
+        get() {
+            if (field == null) {
+                field = Pattern.compile(zipValidationRegex.value)
+            }
+            return field
         }
+
+    private fun resetZipValidationPattern() {
+        zipValidationPattern = null
     }
 
     private fun approveZipField(value: String): Boolean =
@@ -936,8 +984,13 @@ open class AddressSearchVM(
             }
 
             AddressSearchFieldType.FieldType.ZIP -> { p, d ->
-                _zipFieldParams.value = p
-                zipValidationRegex.value = p.validation?.regexp
+                if (_addressSchema == INTERNATIONAL_DELIVERY) {
+                    _zipFieldParams.value = if (p.mask != null) p else p.copy(mask = DEFAULT_MASK)
+                } else {
+                    _zipFieldParams.value = p
+                }
+                resetZipValidationPattern()
+                zipValidationRegex.value = p.validation?.regexp ?: ".*"
                 d?.name?.let(zip::setValue)
             }
 
@@ -1146,6 +1199,15 @@ open class AddressSearchVM(
         executeAction(progressIndicator = _loadingFieldData) {
             val request = AddressFieldRequest(listOf(requestData))
             val result = apiAddressSearch.getFieldContext(code, schema, request)
+
+            if (!result.parameters.isNullOrEmpty()) {
+                saveSearchData(
+                    addressType = result.parameters[0].type,
+                    screenTitle = result.parameters[0].label,
+                    screenSearchPlaceholder =result.parameters[0].searchPlaceholder
+                )
+            }
+
             result.template?.let {
                 _template.value = UiDataEvent(it)
             }
@@ -1310,4 +1372,107 @@ open class AddressSearchVM(
         )
     }
 
+    private fun saveSearchData(addressType: String?, screenTitle: String?, screenSearchPlaceholder: String?) {
+        when(addressType) {
+            ADDRESS_TYPE_REAL_ESTATE -> realEstate = SearchData(
+                title = screenTitle,
+                searchPlaceholder = screenSearchPlaceholder
+            )
+            ADDRESS_TYPE_PRECISION -> precision = SearchData(
+                title = screenTitle,
+                searchPlaceholder = screenSearchPlaceholder
+            )
+            ADDRESS_TYPE_DESCRIPTION -> description = SearchData(
+                title = screenTitle,
+                searchPlaceholder = screenSearchPlaceholder
+            )
+            ADDRESS_TYPE_COUNTRY -> country = SearchData(
+                title = screenTitle,
+                searchPlaceholder = screenSearchPlaceholder
+            )
+            ADDRESS_TYPE_REGION -> regionSearchData = SearchData(
+                title = screenTitle,
+                searchPlaceholder = screenSearchPlaceholder
+            )
+            ADDRESS_TYPE_DISTRICT -> district = SearchData(
+                title = screenTitle,
+                searchPlaceholder = screenSearchPlaceholder
+            )
+            ADDRESS_TYPE_CITY_TYPE -> cityType = SearchData(
+                title = screenTitle,
+                searchPlaceholder = screenSearchPlaceholder
+            )
+            ADDRESS_TYPE_CITY -> city = SearchData(
+                title = screenTitle,
+                searchPlaceholder = screenSearchPlaceholder
+            )
+            ADDRESS_TYPE_POST_OFFICE -> postOffice = SearchData(
+                title = screenTitle,
+                searchPlaceholder = screenSearchPlaceholder
+            )
+            ADDRESS_TYPE_STREET_TYPE -> streetType = SearchData(
+                title = screenTitle,
+                searchPlaceholder = screenSearchPlaceholder
+            )
+            ADDRESS_TYPE_STREET -> street = SearchData(
+                title = screenTitle,
+                searchPlaceholder = screenSearchPlaceholder
+            )
+            ADDRESS_TYPE_HOUSE -> searchScreenHouse = SearchData(
+                title = screenTitle,
+                searchPlaceholder = screenSearchPlaceholder
+            )
+            ADDRESS_TYPE_APARTMENT -> searchScreenApartment = SearchData(
+                title = screenTitle,
+                searchPlaceholder = screenSearchPlaceholder
+            )
+            ADDRESS_TYPE_CORP -> searchScreenCorp = SearchData(
+                title = screenTitle,
+                searchPlaceholder = screenSearchPlaceholder
+            )
+            ADDRESS_TYPE_ZIP -> searchScreenZip = SearchData(
+                title = screenTitle,
+                searchPlaceholder = screenSearchPlaceholder
+            )
+        }
+    }
+
+    fun getCurrentSearchData(): SearchData? {
+        return when(currentSelectedPositionType) {
+            ADDRESS_TYPE_REAL_ESTATE -> realEstate
+            ADDRESS_TYPE_PRECISION -> precision
+            ADDRESS_TYPE_DESCRIPTION -> description
+            ADDRESS_TYPE_COUNTRY -> country
+            ADDRESS_TYPE_REGION -> regionSearchData
+            ADDRESS_TYPE_DISTRICT -> district
+            ADDRESS_TYPE_CITY_TYPE -> cityType
+            ADDRESS_TYPE_CITY -> city
+            ADDRESS_TYPE_POST_OFFICE -> postOffice
+            ADDRESS_TYPE_STREET_TYPE -> streetType
+            ADDRESS_TYPE_STREET -> street
+            ADDRESS_TYPE_HOUSE -> searchScreenHouse
+            ADDRESS_TYPE_APARTMENT -> searchScreenApartment
+            ADDRESS_TYPE_CORP -> searchScreenCorp
+            ADDRESS_TYPE_ZIP -> searchScreenZip
+            else -> SearchData()
+        }
+    }
+
+    private companion object {
+        const val ADDRESS_TYPE_REAL_ESTATE = "realEstate"
+        const val ADDRESS_TYPE_PRECISION = "precision"
+        const val ADDRESS_TYPE_DESCRIPTION = "description"
+        const val ADDRESS_TYPE_COUNTRY = "country"
+        const val ADDRESS_TYPE_REGION = "region"
+        const val ADDRESS_TYPE_DISTRICT = "district"
+        const val ADDRESS_TYPE_CITY_TYPE = "cityType"
+        const val ADDRESS_TYPE_CITY = "city"
+        const val ADDRESS_TYPE_POST_OFFICE = "postOffice"
+        const val ADDRESS_TYPE_STREET_TYPE = "streetType"
+        const val ADDRESS_TYPE_STREET = "street"
+        const val ADDRESS_TYPE_HOUSE = "house"
+        const val ADDRESS_TYPE_APARTMENT = "apartment"
+        const val ADDRESS_TYPE_CORP = "corp"
+        const val ADDRESS_TYPE_ZIP = "zip"
+    }
 }

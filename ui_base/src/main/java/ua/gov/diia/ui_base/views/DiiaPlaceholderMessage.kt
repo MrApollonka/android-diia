@@ -6,7 +6,7 @@ import android.view.View
 import android.widget.TextView
 import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.databinding.BindingAdapter
+import androidx.core.view.isVisible
 import ua.gov.diia.core.models.common.message.TextParameter
 import ua.gov.diia.core.util.extensions.isStringValid
 import ua.gov.diia.ui_base.R
@@ -43,7 +43,6 @@ class DiiaPlaceholderMessage @JvmOverloads constructor(
                 getString(R.styleable.DiiaPlaceholderMessage_msgEmoji).run(::setMsgEmoji)
                 getString(R.styleable.DiiaPlaceholderMessage_msgTitle).run(::setMsgTitle)
                 getString(R.styleable.DiiaPlaceholderMessage_msgDescription).run(::setMsgDescription)
-
             } finally {
                 recycle()
             }
@@ -87,19 +86,21 @@ class DiiaPlaceholderMessage @JvmOverloads constructor(
     }
 
     fun setMsgDescription(@StringRes description: Int?) {
+        infoDescription.isVisible = description != null && description != 0
         if (description != null && description != 0) {
             infoDescription.text = context.getString(description)
         }
     }
 
     fun setMsgDescription(description: String?) {
+        infoDescription.isVisible = description != null
         if (description != null) {
             infoDescription.text = description
         }
     }
+
 }
 
-@BindingAdapter("text", "htmlMetadata", "linkActionListener", requireAll = true)
 fun DiiaPlaceholderMessage.setupHtmlParameters(
     displayText: String?,
     metadata: List<TextParameter>?,

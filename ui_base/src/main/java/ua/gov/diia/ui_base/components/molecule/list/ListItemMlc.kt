@@ -19,14 +19,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideSubcomposition
-import com.bumptech.glide.integration.compose.RequestState
+import coil.compose.SubcomposeAsyncImage
 import ua.gov.diia.core.models.common_compose.general.ButtonStates
 import ua.gov.diia.core.models.common_compose.mlc.list.ListItemMlc
+import ua.gov.diia.ui_base.R
 import ua.gov.diia.ui_base.components.DiiaResourceIcon
 import ua.gov.diia.ui_base.components.atom.status.ChipStatusAtm
 import ua.gov.diia.ui_base.components.atom.status.ChipStatusAtmData
@@ -54,11 +56,10 @@ import ua.gov.diia.ui_base.components.subatomic.loader.LoaderCircularEclipse23Su
 import ua.gov.diia.ui_base.components.subatomic.loader.LoaderCircularEclipseBlackIcon
 import ua.gov.diia.ui_base.components.subatomic.preview.PreviewBase64Icons
 import ua.gov.diia.ui_base.components.theme.Black
-import ua.gov.diia.ui_base.components.theme.BlackAlpha30
+import ua.gov.diia.ui_base.components.theme.BlackAlpha54
 import ua.gov.diia.ui_base.components.theme.DiiaTextStyle
 import ua.gov.diia.ui_base.util.toDataActionWrapper
 
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun ListItemMlc(
     modifier: Modifier = Modifier,
@@ -66,12 +67,12 @@ fun ListItemMlc(
     progressIndicator: Pair<String, Boolean> = Pair("", false),
     onUIAction: (UIAction) -> Unit
 ) {
-
     var isLoading by remember {
         mutableStateOf(
             progressIndicator.first == data.id && progressIndicator.second
         )
     }
+
     var isClickable by remember {
         mutableStateOf(
             data.interactionState != UIState.Interaction.Disabled || !isLoading
@@ -156,46 +157,43 @@ fun ListItemMlc(
             )
         }
         data.leftLogoLink?.let { link ->
-            GlideSubcomposition(
+            SubcomposeAsyncImage(
                 modifier = Modifier
                     .padding(end = 16.dp)
                     .size(32.dp),
-                model = link
-            ) {
-                when (state) {
-                    is RequestState.Failure -> {
-                        Image(
+                model = link,
+                contentDescription = null,
+                loading = {
+                    Box(
+                        modifier = Modifier
+                            .size(32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        LoaderCircularEclipseBlackIcon(
                             modifier = Modifier
-                                .size(32.dp),
-                            painter = painterResource(
-                                id = DiiaResourceIcon.getResourceId(DiiaResourceIcon.DEFAULT_GLOBAL.code)
-                            ),
-                            contentDescription = data.iconLeftContentDescription?.asString(),
-                            contentScale = ContentScale.Fit
+                                .size(18.dp),
                         )
                     }
-
-                    is RequestState.Loading -> {
-                        Box(
-                            modifier = Modifier.size(32.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            LoaderCircularEclipseBlackIcon(
-                                modifier = Modifier
-                                    .size(18.dp),
-                            )
-                        }
-                    }
-
-                    is RequestState.Success -> {
-                        Image(
-                            painter,
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop
-                        )
-                    }
+                },
+                success = {
+                    Image(
+                        painter = painter,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop
+                    )
+                },
+                error = {
+                    Image(
+                        modifier = Modifier
+                            .size(32.dp),
+                        painter = painterResource(
+                            id = DiiaResourceIcon.getResourceId(DiiaResourceIcon.DEFAULT_GLOBAL.code)
+                        ),
+                        contentDescription = data.iconLeftContentDescription?.asString(),
+                        contentScale = ContentScale.Fit
+                    )
                 }
-            }
+            )
         }
         AnimatedVisibility(visible = isLoading) {
             LoaderCircularEclipse23Subatomic(
@@ -221,7 +219,12 @@ fun ListItemMlc(
             modifier = Modifier
                 .weight(1f)
         ) {
+            val label = data.label.asString()
             Text(
+                modifier = Modifier
+                    .semantics {
+                        contentDescription = data.accessibilityDescription ?: label
+                    },
                 text = data.label.asString(),
                 style = DiiaTextStyle.t1BigText,
                 color = Black,
@@ -229,20 +232,26 @@ fun ListItemMlc(
                 overflow = TextOverflow.Ellipsis
             )
             data.description?.let {
+                val description = data.description.asString().replace(".", ",")
                 Text(
-                    modifier = Modifier.padding(top = 4.dp),
+                    modifier = Modifier
+                        .padding(top = 4.dp)
+                        .semantics {
+                            if (data.accessibilityDescription != null) {
+                                contentDescription = ""
+                            } else {
+                                contentDescription = description
+                            }
+                        },
                     text = data.description.asString(),
                     style = DiiaTextStyle.t2TextDescription,
-                    color = BlackAlpha30,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
+                    color = if (data.interactionState == UIState.Interaction.Disabled) Black else BlackAlpha54,
                 )
             }
             data.chipStatusAtm?.let {
                 ChipStatusAtm(
-                    modifier = Modifier.padding(top = 4.dp),
+                    modifier = Modifier.padding(top = 8.dp),
                     data = data.chipStatusAtm,
-
                 )
             }
         }
@@ -255,6 +264,9 @@ fun ListItemMlc(
                     id = DiiaResourceIcon.getResourceId(it.code)
                 ),
                 contentDescription = data.iconRightContentDescription?.asString()
+                    ?: data.takeIf { data.action?.type == "link" }?.let {
+                        stringResource(R.string.accessibility_open_in_browser)
+                    }
             )
         }
         data.amountAtm?.let {
@@ -270,6 +282,7 @@ data class ListItemMlcData(
     val actionKey: String = UIActionKeysCompose.LIST_ITEM_MLC,
     override val id: String = "",
     val label: UiText,
+    val accessibilityDescription: String? = null,
     val description: UiText? = null,
     val iconLeft: UiIcon.DrawableResource? = null,
     val iconLeftContentDescription: UiText? = null,
@@ -286,14 +299,19 @@ data class ListItemMlcData(
     val dataJson: String? = null,
     val chipStatusAtm: ChipStatusAtmData? = null,
     val amountAtm: AmountAtmData? = null
-) : UIElementData, SimplePagination
+) : UIElementData, SimplePagination {
+
+    fun getLabel() = (label as? UiText.DynamicString)?.value
+
+}
 
 fun ListItemMlc.toUiModel(id: String? = null): ListItemMlcData {
     return ListItemMlcData(
         componentId = this.componentId?.let { UiText.DynamicString(it) },
-        id = this.id ?: id ?: componentId?: UIActionKeysCompose.LIST_ITEM_MLC,
+        id = this.id ?: id ?: componentId ?: UIActionKeysCompose.LIST_ITEM_MLC,
         label = label.toDynamicString(),
-        description = description?.toDynamicStringOrNull(),
+        accessibilityDescription = accessibilityDescription,
+        description = if (description.isNullOrEmpty()) null else description?.toDynamicStringOrNull(),
         iconLeft = iconLeft?.code?.let {
             UiIcon.DrawableResource(it)
         },
@@ -323,7 +341,7 @@ fun ListItemMlc.toUiModel(id: String? = null): ListItemMlcData {
 }
 
 @Composable
-@Preview
+@Preview(showBackground = true)
 fun ListItemMlcPreview_Full() {
     val state = ListItemMlcData(
         id = "123",
@@ -345,7 +363,7 @@ fun ListItemMlcPreview_Full() {
 }
 
 @Composable
-@Preview
+@Preview(showBackground = true)
 fun ListItemMlcPreview_Without_BigIconLeft() {
     val state = ListItemMlcData(
         id = "123",
@@ -366,7 +384,7 @@ fun ListItemMlcPreview_Without_BigIconLeft() {
 }
 
 @Composable
-@Preview
+@Preview(showBackground = true)
 fun ListItemMlcPreview_Loading() {
     val state = ListItemMlcData(
         id = "123",
@@ -390,7 +408,7 @@ fun ListItemMlcPreview_Loading() {
 }
 
 @Composable
-@Preview
+@Preview(showBackground = true)
 fun ListItemMlcPreview_Disabled() {
     val state = ListItemMlcData(
         id = "123",
@@ -411,7 +429,7 @@ fun ListItemMlcPreview_Disabled() {
 }
 
 @Composable
-@Preview
+@Preview(showBackground = true)
 fun ListItemMlcPreview_OnlyMandatoryFields() {
     val state = ListItemMlcData(
         id = "123",
@@ -428,7 +446,7 @@ fun ListItemMlcPreview_OnlyMandatoryFields() {
 }
 
 @Composable
-@Preview
+@Preview(showBackground = true)
 fun ListItemMlcPreview_VeryLongTitle() {
     val state = ListItemMlcData(
         id = "123",
@@ -449,7 +467,7 @@ fun ListItemMlcPreview_VeryLongTitle() {
 }
 
 @Composable
-@Preview
+@Preview(showBackground = true)
 fun ListItemMlcPreview_Chip() {
     val state = ListItemMlcData(
         id = "123",
@@ -469,6 +487,19 @@ fun ListItemMlcPreview_Chip() {
             resource = "resource"
         ),
         interactionState = UIState.Interaction.Enabled
+    )
+    ListItemMlc(modifier = Modifier, data = state) {
+    }
+}
+
+
+@Composable
+@Preview(showBackground = true)
+fun ListItemMlcPreview_IconRight() {
+    val state = ListItemMlcData(
+        id = "123",
+        label = UiText.DynamicString("Label"),
+        iconRight = UiIcon.DrawableResource(DiiaResourceIcon.ARROW_MIN_RIGHT.code)
     )
     ListItemMlc(modifier = Modifier, data = state) {
     }

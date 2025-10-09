@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
+import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ua.gov.diia.ui_base.components.atom.text.textMarquee.MarqueeWithInitialOffset
@@ -28,6 +29,7 @@ import ua.gov.diia.ui_base.components.theme.GrannySmithApple
 import ua.gov.diia.ui_base.components.theme.MiddleBlueGreen
 import ua.gov.diia.ui_base.components.theme.Neutral
 import ua.gov.diia.ui_base.components.theme.RedNegative
+import ua.gov.diia.ui_base.components.theme.Solitude
 import ua.gov.diia.ui_base.components.theme.Transparent
 import ua.gov.diia.ui_base.components.theme.WarningYellow
 import ua.gov.diia.ui_base.components.theme.gradientBluePosition01
@@ -104,8 +106,12 @@ fun TickerAtm(
                 drawBehind {
                     drawRect(
                         when (data.type) {
-                            TickerType.NEUTRAL, TickerType.INFORMATIVE -> {
+                            TickerType.NEUTRAL -> {
                                 Neutral
+                            }
+
+                            TickerType.INFORMATIVE -> {
+                                Solitude
                             }
 
                             TickerType.WARNING -> {
@@ -187,9 +193,12 @@ fun TickerAtm(
                 drawBehind {
                     drawRect(
                         when (data.oldType) {
-
-                            TickerType.INFORMATIVE, TickerType.NEUTRAL -> {
+                            TickerType.NEUTRAL -> {
                                 Neutral
+                            }
+
+                            TickerType.INFORMATIVE -> {
+                                Solitude
                             }
 
                             TickerType.WARNING -> {
@@ -210,6 +219,7 @@ fun TickerAtm(
             }
             .semantics {
                 testTag = data.componentId
+                traversalIndex = data.traversalIndex
             },
         contentAlignment = Alignment.Center
     ) {
@@ -230,7 +240,8 @@ data class TickerAtomData(
     val state: String? = null,
     val clickable: Boolean = false,
     val action: DataActionWrapper? = null,
-    val oldType: TickerType? = null
+    val oldType: TickerType? = null,
+    val traversalIndex: Float = 0f
 ) : UIElementData {
 
     fun animateToNewColorByCopy(type: TickerType): TickerAtomData {

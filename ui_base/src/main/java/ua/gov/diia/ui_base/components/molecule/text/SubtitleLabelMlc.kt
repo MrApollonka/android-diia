@@ -1,5 +1,6 @@
 package ua.gov.diia.ui_base.components.molecule.text
 
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,6 +13,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.hideFromAccessibility
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
 import androidx.compose.ui.unit.dp
@@ -30,19 +33,27 @@ import ua.gov.diia.ui_base.components.theme.DiiaTextStyle
 fun SubtitleLabelMlc(
     modifier: Modifier = Modifier,
     data: SubtitleLabelMlcData,
+    existForBody: Boolean = false,
     color: Color = Color.Black
 ) {
     Row(
         modifier = modifier
-            .padding(horizontal = 24.dp)
-            .padding(top = 16.dp)
+            .padding(
+                start = if (existForBody) 24.dp else 16.dp,
+                top = 16.dp,
+                end = if (existForBody) 24.dp else 24.dp,
+            )
             .fillMaxWidth()
             .testTag(data.componentId?.asString() ?: ""),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (data.icon != null) {
             UiIconWrapperSubatomic(
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier
+                    .size(24.dp)
+                    .semantics {
+                        hideFromAccessibility()
+                    },
                 icon = data.icon
             )
 
@@ -50,7 +61,9 @@ fun SubtitleLabelMlc(
         }
 
         Text(
-            modifier = modifier,
+            modifier = modifier
+                .fillMaxWidth()
+                .focusable(),
             color = color,
             text = data.label.asString(),
             style = DiiaTextStyle.h4ExtraSmallHeading,
@@ -90,14 +103,26 @@ fun generateSubtitleLabelMlcMockData(mockType: SubtitleLabelMlcMockType): Subtit
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun SubtitleLabelMlcData() {
-    SubtitleLabelMlc(data = generateSubtitleLabelMlcMockData(SubtitleLabelMlcMockType.icon))
+    SubtitleLabelMlc(
+        data = generateSubtitleLabelMlcMockData(SubtitleLabelMlcMockType.icon),
+        existForBody = false
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SubtitleLabelMlcData_ExistForBody_true() {
+    SubtitleLabelMlc(
+        data = generateSubtitleLabelMlcMockData(SubtitleLabelMlcMockType.icon),
+        existForBody = true
+    )
 }
 
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun SubtitleLabelMlcData_no_icon() {
     SubtitleLabelMlc(data = generateSubtitleLabelMlcMockData(SubtitleLabelMlcMockType.noicon))

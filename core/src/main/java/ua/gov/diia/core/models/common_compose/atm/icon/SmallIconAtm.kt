@@ -1,6 +1,5 @@
 package ua.gov.diia.core.models.common_compose.atm.icon
 
-
 import android.os.Parcelable
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
@@ -13,11 +12,9 @@ data class SmallIconAtm(
     @Json(name = "componentId")
     val componentId: String? = null,
     @Json(name = "accessibilityDescription")
-    val accessibilityDescription: String?,
+    val accessibilityDescription: String? = null,
     @Json(name = "action")
-    val action: Action?,
+    val action: Action? = null,
     @Json(name = "code")
     val code: String
-): Parcelable{
-
-}
+) : Parcelable

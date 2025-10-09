@@ -52,6 +52,7 @@ import ua.gov.diia.ui_base.components.noRippleClickable
 import ua.gov.diia.ui_base.components.theme.AzureishWhite
 import ua.gov.diia.ui_base.components.theme.Black
 import ua.gov.diia.ui_base.components.theme.BlackAlpha30
+import ua.gov.diia.ui_base.components.theme.BlackAlpha54
 import ua.gov.diia.ui_base.components.theme.DiiaTextStyle
 import ua.gov.diia.ui_base.components.theme.White
 
@@ -153,7 +154,7 @@ fun SearchInputV2(
                                     Text(
                                         text = data.placeholder.asString(),
                                         style = DiiaTextStyle.t3TextBody,
-                                        color = BlackAlpha30
+                                        color = BlackAlpha54
                                     )
                                 }
                             }

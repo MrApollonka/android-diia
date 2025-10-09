@@ -7,17 +7,19 @@ import android.view.ViewGroup
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import ua.gov.diia.core.ui.dynamicdialog.ActionsConst
-import ua.gov.diia.ui_base.navigation.BaseNavigation
-import ua.gov.diia.ui_base.util.navigation.openTemplateDialog
 import ua.gov.diia.core.util.extensions.fragment.registerForTemplateDialogNavResult
 import ua.gov.diia.core.util.extensions.fragment.setNavigationResult
 import ua.gov.diia.pin.helper.PinHelper
-import ua.gov.diia.ui_base.components.infrastructure.collectAsEffect
 import ua.gov.diia.pin.ui.create.compose.CreatePinScreen
+import ua.gov.diia.ui_base.components.infrastructure.collectAsEffect
+import ua.gov.diia.ui_base.navigation.BaseNavigation
+import ua.gov.diia.ui_base.util.navigation.openTemplateDialog
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -68,6 +70,16 @@ class ConfirmPinF : Fragment() {
                 }
                 showTemplateDialog.collectAsEffect {
                     openTemplateDialog(it.peekContent())
+                }
+                lifecycleScope.launch {
+                    accessibilityMessage.collect { messageRes ->
+                        messageRes?.let {
+                            requireView().post {
+                                requireView().announceForAccessibility(getString(it))
+                                viewModel.clearAccessibilityMessage()
+                            }
+                        }
+                    }
                 }
             }
             CreatePinScreen(

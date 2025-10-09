@@ -4,6 +4,7 @@ import androidx.annotation.IdRes
 import androidx.fragment.app.Fragment
 import ua.gov.diia.core.models.ContextMenuField
 import ua.gov.diia.core.models.rating_service.RatingFormModel
+import ua.gov.diia.core.util.delegation.WithCrashlytics
 
 interface PSNavigationHelper {
 
@@ -38,15 +39,20 @@ interface PSNavigationHelper {
     /**
      * Runs send pdf file flow
      */
-    fun sendPdf(fragment: Fragment, file: String, name: String)
+    fun sendPdf(fragment: Fragment, file: String, name: String, withCrashlytics: WithCrashlytics)
 
     /**
      * Runs send zip file flow
      */
-    fun sendZip(fragment: Fragment, file: String, name: String)
+    fun sendZip(fragment: Fragment, file: String, name: String, withCrashlytics: WithCrashlytics)
 
     /**
      * performs navigation to ps by key
      */
-    fun navigateToGlobalDestinationPS(fragment: Fragment, currentDestinationId: Int, resultKey: String, psKey: String)
+    fun navigateToGlobalDestinationPS(
+        fragment: Fragment,
+        currentDestinationId: Int,
+        resultKey: String,
+        psKey: String
+    )
 }

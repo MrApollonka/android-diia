@@ -8,7 +8,6 @@ plugins {
     alias(libs.plugins.diia.android.application.compose)
     alias(libs.plugins.diia.android.application.flavors)
     alias(libs.plugins.diia.hilt)
-    alias(libs.plugins.kotlin.kapt)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.navigation.safeargs)
     alias(libs.plugins.kotlin.parcelize)
@@ -45,10 +44,28 @@ android {
             }
         }
     }
+
+    sourceSets {
+        getByName("main") {
+            jniLibs.srcDirs("libs/native")
+        }
+    }
+
     packaging {
         resources {
-            excludes.addAll(listOf("META-INF/ASL-2.0.txt", "META-INF/LGPL-3.0.txt"))
-            pickFirsts.addAll(listOf("draftv4/schema", "draftv3/schema"))
+            excludes.addAll(
+                listOf(
+                    "META-INF/ASL-2.0.txt",
+                    "META-INF/LGPL-3.0.txt",
+                    "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
+                )
+            )
+            pickFirsts.addAll(
+                listOf(
+                    "draftv4/schema",
+                    "draftv3/schema"
+                )
+            )
         }
     }
 
@@ -66,15 +83,11 @@ android {
         buildConfigField("long", "TOKEN_LEEWAY", "1")
     }
 
-    sourceSets {
-        getByName("main") {
-            jniLibs.srcDirs("libs/native")
-        }
-    }
     buildFeatures {
         buildConfig = true
         dataBinding = true
     }
+
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -101,10 +114,6 @@ android {
         }
     }
 
-    kapt {
-        correctErrorTypes = true
-    }
-
     ksp {
         arg("room.schemaLocation", "$projectDir/schemas")
     }
@@ -120,7 +129,7 @@ dependencies {
     implementation(projects.features.feed)
     implementation(projects.libs.web)
     implementation(projects.features.verification)
-    implementation(projects.features.bankid)
+    implementation(projects.features.authBankid)
     implementation(projects.features.login)
     implementation(projects.ps.publicservice)
     implementation(projects.ps.psCriminalCert)
@@ -135,6 +144,8 @@ dependencies {
     implementation(projects.doc.docManualOptions)
     implementation(projects.doc.docDriverLicense)
     implementation(projects.features.contextMenu)
+    implementation(projects.features.faq)
+    implementation(projects.libs.payment)
 
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar", "*.aar"))))
 
@@ -166,10 +177,6 @@ dependencies {
     implementation(libs.androidx.recyclerview)
     //viewpager
     implementation(libs.androidx.viewpager2)
-    //glide
-    ksp(libs.glide.ksp)
-    implementation(libs.glide)
-    implementation(libs.glide.okhttp)
     //material
     implementation(libs.material)
     //coroutine

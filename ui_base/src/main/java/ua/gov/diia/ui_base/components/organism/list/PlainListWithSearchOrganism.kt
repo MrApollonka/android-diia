@@ -69,7 +69,11 @@ data class PlainListWithSearchOrganismData(
         }
         return this.copy(
             searchData = this.searchData.copy(searchFieldValue = UiText.DynamicString(request)),
-            displayedList = ListItemGroupOrgData(itemsList = list)
+            displayedList = ListItemGroupOrgData(
+                itemsList = list,
+                paddingTop = this.fullList.paddingTop,
+                paddingHorizontal = this.fullList.paddingHorizontal
+            )
         )
     }
 }
@@ -106,7 +110,7 @@ fun PlainListWithSearchOrganismPreview() {
                     iconLeft = UiIcon.DrawableResource(DiiaResourceIcon.OUT_LINK.code),
                 )
             )
-        })
+        }, paddingTop = null, paddingHorizontal = null)
     val data = PlainListWithSearchOrganismData(
         searchData = SearchInputV2Data(placeholder = UiText.DynamicString("Пошук")),
         fullList = list,

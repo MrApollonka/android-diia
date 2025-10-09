@@ -11,31 +11,29 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import dagger.hilt.android.AndroidEntryPoint
-import ua.gov.diia.ui_base.NavSystemDialogDirections
 import ua.gov.diia.core.models.SystemDialog
 import ua.gov.diia.core.ui.dynamicdialog.ActionsConst
-import ua.gov.diia.ui_base.navigation.BaseNavigation
 import ua.gov.diia.core.util.delegation.WithCrashlytics
 import ua.gov.diia.core.util.extensions.fragment.collapseApp
 import ua.gov.diia.core.util.extensions.fragment.findNavControllerById
 import ua.gov.diia.core.util.extensions.fragment.navigate
-import ua.gov.diia.core.util.extensions.fragment.openPlayMarket
 import ua.gov.diia.core.util.extensions.fragment.registerForTemplateDialogNavResult
-import ua.gov.diia.ui_base.util.view.showCopyDeviceUuidClipedSnackBar
 import ua.gov.diia.menu.NavMenuActionsDirections
 import ua.gov.diia.menu.NavMenuActionsDirections.Companion.actionGlobalNotificationFCompose
-import ua.gov.diia.menu.NavMenuActionsDirections.Companion.actionGlobalToNavFaq
 import ua.gov.diia.menu.NavMenuActionsDirections.Companion.actionHomeFToDiiaId
 import ua.gov.diia.menu.NavMenuActionsDirections.Companion.actionHomeFToHelpF
 import ua.gov.diia.menu.NavMenuActionsDirections.Companion.actionHomeFToNavAppSessions
 import ua.gov.diia.menu.NavMenuActionsDirections.Companion.actionHomeFToSettingsF
-import ua.gov.diia.menu.NavMenuActionsDirections.Companion.actionHomeFToSignHistory
 import ua.gov.diia.menu.R
+import ua.gov.diia.menu.helper.MenuHelper
 import ua.gov.diia.menu.models.EventType
+import ua.gov.diia.ui_base.NavSystemDialogDirections
 import ua.gov.diia.ui_base.components.infrastructure.HomeScreenTab
 import ua.gov.diia.ui_base.components.infrastructure.collectAsEffect
 import ua.gov.diia.ui_base.fragments.dialog.system.DiiaSystemDFVM
-import ua.gov.diia.web.util.extensions.fragment.navigateToWebView
+import ua.gov.diia.ui_base.navigation.BaseNavigation
+import ua.gov.diia.ui_base.util.view.showCopyClippedSnackBar
+import ua.gov.diia.web.util.navigateToWebView
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -47,6 +45,9 @@ class MenuFCompose : Fragment() {
     private val viewModel: MenuComposeVM by viewModels()
     private lateinit var event: EventType
     private val dialogVM: DiiaSystemDFVM by activityViewModels()
+
+    @Inject
+    lateinit var menuHelper: MenuHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -114,10 +115,7 @@ class MenuFCompose : Fragment() {
                     }
 
                     MenuAction.OpenFAQAction -> {
-                        navigate(
-                            actionGlobalToNavFaq(),
-                            findNavControllerById(R.id.nav_host)
-                        )
+                        menuHelper.navigateToFAQ(this)
                     }
 
                     MenuAction.OpenPolicyLink -> {
@@ -150,11 +148,8 @@ class MenuFCompose : Fragment() {
                         )
                     }
 
-                    MenuAction.OpenSignHistory ->{
-                        navigate(
-                            actionHomeFToSignHistory(),
-                            findNavControllerById(R.id.nav_host),
-                        )
+                    MenuAction.OpenSignHistory -> {
+                        menuHelper.navigateToSignHistory(this)
                     }
 
                     MenuAction.CopyDeviceUid -> {
@@ -168,7 +163,7 @@ class MenuFCompose : Fragment() {
                     else -> {
                         action?.let {
                             action as MenuAction.DoCopyDeviceUid
-                            composeView?.showCopyDeviceUuidClipedSnackBar(
+                            composeView?.showCopyClippedSnackBar(
                                 action.deviceUid,
                                 topPadding = 40f,
                                 bottomPadding = 0f
@@ -186,6 +181,7 @@ class MenuFCompose : Fragment() {
                             viewModel.logoutApprove()
                         }
                     }
+
                     DiiaSystemDFVM.Action.POSITIVE -> {
                         when (event) {
                             EventType.OPEN_ABOUT ->
@@ -226,8 +222,8 @@ class MenuFCompose : Fragment() {
             action = Intent.ACTION_SEND
             putExtra(
                 Intent.EXTRA_TEXT, getString(R.string.share_text_title) +
-                        "\n${getString(R.string.share_text_description)}" +
-                        "\n${getString(R.string.share_text_link)}"
+                    "\n${getString(R.string.share_text_description)}" +
+                    "\n${getString(R.string.share_text_link)}"
             )
             type = TEXT_PLAIN
         }
@@ -268,4 +264,3 @@ class MenuFCompose : Fragment() {
         private const val TEXT_PLAIN = "text/plain"
     }
 }
-

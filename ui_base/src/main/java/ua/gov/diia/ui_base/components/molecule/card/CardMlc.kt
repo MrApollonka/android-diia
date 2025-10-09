@@ -20,13 +20,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -67,6 +71,7 @@ import ua.gov.diia.ui_base.components.theme.BlackAlpha30
 import ua.gov.diia.ui_base.components.theme.BlackSqueeze
 import ua.gov.diia.ui_base.components.theme.DiiaTextStyle
 import ua.gov.diia.ui_base.components.theme.White
+import ua.gov.diia.ui_base.util.extensions.flags.toFlagDescription
 
 @Composable
 fun CardMlc(
@@ -75,6 +80,7 @@ fun CardMlc(
     progressIndicator: Pair<String, Boolean> = Pair("", false),
     onUIAction: (UIAction) -> Unit
 ) {
+    val context = LocalContext.current
     Column(
         modifier = modifier
             .padding(horizontal = 24.dp)
@@ -198,8 +204,12 @@ fun CardMlc(
                         text = data.subtitle.asString(),
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
-                        style = DiiaTextStyle.t2TextDescription
-                    )
+                        style = DiiaTextStyle.t2TextDescription.copy(
+                            lineHeightStyle = LineHeightStyle(
+                                alignment = LineHeightStyle.Alignment.Center,
+                                trim = LineHeightStyle.Trim.None
+                            )
+                        ))
                 }
             }
 
@@ -219,7 +229,10 @@ fun CardMlc(
                                     Text(
                                         modifier = Modifier
                                             .padding(end = 8.dp)
-                                            .size(16.dp),
+                                            .size(16.dp)
+                                            .semantics {
+                                                contentDescription = uIcon.value.toFlagDescription(context)
+                                            },
                                         text = uIcon.value,
                                     )
                                 }
@@ -234,7 +247,12 @@ fun CardMlc(
                                 text = it,
                                 maxLines = 2,
                                 overflow = TextOverflow.Ellipsis,
-                                style = DiiaTextStyle.t2TextDescription
+                                style = DiiaTextStyle.t2TextDescription.copy(
+                                    lineHeightStyle = LineHeightStyle(
+                                        LineHeightStyle.Alignment.Center,
+                                        trim = LineHeightStyle.Trim.None
+                                    )
+                                )
                             )
                         }
                     }
@@ -248,7 +266,12 @@ fun CardMlc(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     text = data.description.asString(),
-                    style = DiiaTextStyle.t2TextDescription,
+                    style = DiiaTextStyle.t2TextDescription.copy(
+                        lineHeightStyle = LineHeightStyle(
+                            LineHeightStyle.Alignment.Center,
+                            trim = LineHeightStyle.Trim.None
+                        )
+                    ),
                     color = BlackAlpha30
                 )
             }
@@ -440,9 +463,13 @@ fun CardMlcPreview_FullState() {
         label = UiText.DynamicString("Label"),
         title = UiText.DynamicString("Card title"),
         icon = UiIcon.DynamicIconBase64(PreviewBase64Icons.apple),
-        subtitle = UiText.DynamicString("Subtitle"),
+        subtitle = UiText.DynamicString("Subtitle\nsubtitle second line"),
         description = UiText.DynamicString("Description"),
-        ticker = TickerAtomData(title = "Ticker text!", type = TickerType.NEUTRAL, usage = TickerUsage.BASE),
+        ticker = TickerAtomData(
+            title = "Ticker text!",
+            type = TickerType.NEUTRAL,
+            usage = TickerUsage.BASE
+        ),
         botLabel = UiText.DynamicString("5 000 грн"),
         btnPrimary = BtnPrimaryAdditionalAtmData(
             actionKey = "primaryButton",
@@ -570,7 +597,11 @@ fun CardMlcPreview_Poor_Gradient() {
         icon = null,
         subtitle = UiText.DynamicString("м. Київ, Солом'янський район, пр-т Незалежності 12, кв.4"),
         description = null,
-        ticker = TickerAtomData(title = "Ticker text!", type = TickerType.NEUTRAL, usage = TickerUsage.BASE),
+        ticker = TickerAtomData(
+            title = "Ticker text!",
+            type = TickerType.NEUTRAL,
+            usage = TickerUsage.BASE
+        ),
         botLabel = null,
         btnPrimary = BtnPrimaryAdditionalAtmData(
             actionKey = "primaryButton",
@@ -640,11 +671,11 @@ fun CardMlcPreview_Subtitles() {
         subtitles = listOf(
             CardMlcData.CMSubtitle(
                 icon = UiIcon.PlainString("\uD83C\uDF53"),
-                value = "Subtitle 1"
+                value = "Номерний знак: DC0200OK -> BC21111OK"
             ),
             CardMlcData.CMSubtitle(
                 icon = UiIcon.PlainString("\uD83C\uDF53"),
-                value = "Subtitle 2"
+                value = "Номерний знак: DC0200OK -> BC21111OK"
             )
         ),
         description = UiText.DynamicString("Description"),
@@ -681,7 +712,11 @@ fun CardMlcPreview_small_screen() {
         icon = null,
         subtitle = UiText.DynamicString("м. Київ, Солом'янський район, пр-т Незалежності 12, кв.4"),
         description = null,
-        ticker = TickerAtomData(title = "Ticker text!", type = TickerType.NEUTRAL, usage = TickerUsage.BASE),
+        ticker = TickerAtomData(
+            title = "Ticker text!",
+            type = TickerType.NEUTRAL,
+            usage = TickerUsage.BASE
+        ),
         botLabel = null,
         btnPrimary = BtnPrimaryAdditionalAtmData(
             actionKey = "primaryButton",

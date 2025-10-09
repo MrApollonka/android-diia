@@ -127,7 +127,9 @@ fun TableItemHorizontalLargeMlc.toUiModel(): TableItemHorizontalLargeMlcData {
         value = this.value,
         secondaryValue = this.secondaryValue?.let { UiText.DynamicString(it) },
         valueAsBase64String = this.valueImage,
-        iconRight = this.icon?.toUiModel()
+        iconRight = this.icon?.toUiModel(),
+        orientation = this.orientation,
+        valueAlignment = if (this.orientation == true) TableItemLabelAlignment.End else TableItemLabelAlignment.Start
     )
 }
 
@@ -142,7 +144,8 @@ data class TableItemHorizontalLargeMlcData(
     val valueAlignment: TableItemLabelAlignment = TableItemLabelAlignment.Start,
     val secondaryValue: UiText? = null,
     val valueAsBase64String: String? = null,
-    val iconRight: IconAtmData? = null
+    val iconRight: IconAtmData? = null,
+    val orientation: Boolean? = false,
 ) : TableBlockItem
 
 @Composable
@@ -155,6 +158,32 @@ fun TableItemHorizontalLargeMlcPreview_Minimum() {
     )
     TableItemHorizontalLargeMlc(
         data = state
+    )
+}
+
+@Composable
+@Preview
+fun TableItemHorizontalLargeMlcPreview_OrientationTrue() {
+    val data = TableItemHorizontalLargeMlc(
+        label = "Title",
+        value = "Label Value",
+        orientation = true
+    )
+    TableItemHorizontalLargeMlc(
+        data = data.toUiModel()
+    )
+}
+
+@Composable
+@Preview
+fun TableItemHorizontalLargeMlcPreview_OrientationFalse() {
+    val data = TableItemHorizontalLargeMlc(
+        label = "Title",
+        value = "Label Value",
+        orientation = false
+    )
+    TableItemHorizontalLargeMlc(
+        data = data.toUiModel()
     )
 }
 

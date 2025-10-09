@@ -24,12 +24,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
 import androidx.compose.ui.unit.dp
+import coil.compose.SubcomposeAsyncImage
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import ua.gov.diia.ui_base.R
 import ua.gov.diia.ui_base.components.atom.icon.BadgeCounterAtm
 import ua.gov.diia.ui_base.components.atom.icon.BadgeCounterAtmData
@@ -40,52 +40,48 @@ import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
 import ua.gov.diia.ui_base.components.theme.Black
 import ua.gov.diia.ui_base.components.theme.DiiaTextStyle
 import ua.gov.diia.ui_base.components.theme.WhiteAlpha40
-import com.bumptech.glide.integration.compose.GlideSubcomposition
-import com.bumptech.glide.integration.compose.RequestState
 
-
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun VerticalCardMlc(
     modifier: Modifier = Modifier,
     data: VerticalCardMlcData,
     onUIAction: (UIAction) -> Unit
 ) {
-    Box(modifier = modifier
-        .size(height = 290.dp, width = 223.dp)
-        .clickable {
-            onUIAction(
-                UIAction(
-                    actionKey = data.actionKey,
-                    data = data.id,
-                    action = data.action
+    Box(
+        modifier = modifier
+            .size(height = 290.dp, width = 223.dp)
+            .clickable {
+                onUIAction(
+                    UIAction(
+                        actionKey = data.actionKey,
+                        data = data.id,
+                        action = data.action
+                    )
                 )
-            )
-        }) {
-        GlideSubcomposition(
+            }
+    ) {
+        SubcomposeAsyncImage(
             modifier = Modifier
                 .fillMaxHeight()
                 .fillMaxWidth()
                 .clip(shape = RoundedCornerShape(16.dp))
                 .background(WhiteAlpha40),
-            model = data.url
-        ) {
-            when (state) {
-                RequestState.Failure -> {
-                    VerticalCardPlaceholder()
-                }
-
-                RequestState.Loading -> {
-                    VerticalCardPlaceholder()
-                }
-
-                is RequestState.Success -> Image(
-                    painter,
+            model = data.url,
+            contentDescription = null,
+            loading = {
+                VerticalCardPlaceholder()
+            },
+            success = {
+                Image(
+                    painter = painter,
                     contentDescription = null,
                     contentScale = ContentScale.Crop
                 )
+            },
+            error = {
+                VerticalCardPlaceholder()
             }
-        }
+        )
         Row {
             Text(
                 modifier = Modifier

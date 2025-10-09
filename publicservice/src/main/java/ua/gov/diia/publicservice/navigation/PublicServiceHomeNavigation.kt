@@ -1,5 +1,6 @@
 package ua.gov.diia.publicservice.navigation
 
+import ua.gov.diia.core.models.deeplink.DeepLinkActionStartFlow
 import ua.gov.diia.core.models.dialogs.TemplateDialogModel
 import ua.gov.diia.core.util.navigation.HomeNavigation
 import ua.gov.diia.publicservice.models.PublicService
@@ -26,4 +27,15 @@ sealed class PublicServiceHomeNavigation : HomeNavigation {
         val category: PublicServiceCategory,
         override var isConsumed: Boolean = false
     ) : PublicServiceHomeNavigation()
+
+    data class OpenWebView(
+        val link: String,
+        override var isConsumed: Boolean = false
+    ) : PublicServiceHomeNavigation()
+
+    data class StartNewFlow(
+        val deeplink: DeepLinkActionStartFlow,
+        override var isConsumed: Boolean = false
+    ) : PublicServiceHomeNavigation()
+
 }

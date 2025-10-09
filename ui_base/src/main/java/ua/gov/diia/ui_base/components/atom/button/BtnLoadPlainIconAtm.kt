@@ -17,6 +17,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.hideFromAccessibility
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
 import androidx.compose.ui.unit.dp
@@ -65,6 +69,9 @@ fun BtnLoadPlainIconAtm(
             .fillMaxWidth()
             .conditional(data.interactionState == UIState.Interaction.Disabled) {
                 alpha(0.3f)
+            }
+            .semantics {
+                role = Role.Button
             },
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -76,7 +83,11 @@ fun BtnLoadPlainIconAtm(
         } else if (progressIndicator.first != data.id || !progressIndicator.second || data.id.isEmpty()) {
             AnimatedVisibility(visible = true, enter = fadeIn(), exit = fadeOut()) {
                 UiIconWrapperSubatomic(
-                    modifier = Modifier.size(24.dp),
+                    modifier = Modifier
+                        .size(24.dp)
+                        .semantics {
+                            hideFromAccessibility()
+                        },
                     icon = data.icon
                 )
             }
@@ -103,7 +114,7 @@ data class BtnLoadPlainIconAtmData(
 fun BtnLoadPlainIconAtm.toUIModel(id: String? = null): BtnLoadPlainIconAtmData {
     return BtnLoadPlainIconAtmData(
         componentId = UiText.DynamicString(this.componentId.orEmpty()),
-        id = this.id ?: id ?: "",
+        id = this.componentId ?: id ?: "",
         label = label.toDynamicString(),
         icon = UiIcon.DrawableResource(icon),
         interactionState = when (this.state) {

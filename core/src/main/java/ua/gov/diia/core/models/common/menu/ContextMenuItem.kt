@@ -1,6 +1,5 @@
 package ua.gov.diia.core.models.common.menu
 
-import android.content.Context
 import android.os.Parcelable
 import androidx.annotation.Keep
 import com.squareup.moshi.Json
@@ -24,6 +23,6 @@ data class ContextMenuItem(
 
     override fun getSubType(): String? = code
 
-    override fun getDisplayName(c: Context) = name
+    override fun getDisplayName() = name
 
 }

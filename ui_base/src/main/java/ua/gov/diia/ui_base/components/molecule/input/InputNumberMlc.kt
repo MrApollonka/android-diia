@@ -1,25 +1,27 @@
 package ua.gov.diia.ui_base.components.molecule.input
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -28,60 +30,53 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusManager
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
-import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import ua.gov.diia.core.models.common_compose.mlc.input.InputNumberMlc
-import ua.gov.diia.core.models.common_compose.mlc.input.Validation
-import ua.gov.diia.ui_base.R
-import ua.gov.diia.ui_base.components.infrastructure.ComposeConst.INPUT_NUMBER_LARGE_MLC_MASK
+import ua.gov.diia.ui_base.components.DiiaResourceIcon
+import ua.gov.diia.ui_base.components.atom.icon.SmallIconAtm
+import ua.gov.diia.ui_base.components.atom.icon.SmallIconAtmData
+import ua.gov.diia.ui_base.components.atom.icon.toUiModel
 import ua.gov.diia.ui_base.components.infrastructure.DataActionWrapper
 import ua.gov.diia.ui_base.components.infrastructure.UIElementData
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
 import ua.gov.diia.ui_base.components.infrastructure.state.UIState
-import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
-import ua.gov.diia.ui_base.components.infrastructure.utils.resource.toDynamicString
-import ua.gov.diia.ui_base.components.molecule.divider.DividerLineMlc
-import ua.gov.diia.ui_base.components.molecule.divider.DividerLineMlcData
+import ua.gov.diia.ui_base.components.infrastructure.utils.SidePaddingMode
+import ua.gov.diia.ui_base.components.infrastructure.utils.TopPaddingMode
+import ua.gov.diia.ui_base.components.infrastructure.utils.toDp
+import ua.gov.diia.ui_base.components.infrastructure.utils.toSidePaddingMode
+import ua.gov.diia.ui_base.components.infrastructure.utils.toTopPaddingMode
+import ua.gov.diia.ui_base.components.noRippleClickable
+import ua.gov.diia.ui_base.components.theme.AzureMist
 import ua.gov.diia.ui_base.components.theme.Black
 import ua.gov.diia.ui_base.components.theme.BlackAlpha30
+import ua.gov.diia.ui_base.components.theme.BlackAlpha54
 import ua.gov.diia.ui_base.components.theme.DiiaTextStyle
+import ua.gov.diia.ui_base.components.theme.Grey
+import ua.gov.diia.ui_base.components.theme.PeriwinkleGray
 import ua.gov.diia.ui_base.components.theme.Red
 import ua.gov.diia.ui_base.components.theme.White
-import java.math.BigDecimal
-import java.text.DecimalFormat
-import java.text.DecimalFormatSymbols
-import java.util.Locale
 
-@OptIn(
-    ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class,
-    ExperimentalLayoutApi::class
-)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun InputNumberMlc(
     modifier: Modifier = Modifier,
@@ -92,17 +87,18 @@ fun InputNumberMlc(
     onUIAction: (UIAction) -> Unit
 ) {
     var focusState by remember { mutableStateOf<UIState.Focus>(UIState.Focus.NeverBeenFocused) }
-    val bringIntoErrorViewRequester = BringIntoViewRequester()
-    val bringIntoHintViewRequester = BringIntoViewRequester()
+
     val bringIntoInputViewRequester = BringIntoViewRequester()
-    val inputCode: String? = data.inputCode?.asString()
-    var justFocused by remember { mutableStateOf(false) }
+    val bringIntoHintViewRequester = BringIntoViewRequester()
+    val bringIntoErrorViewRequester = BringIntoViewRequester()
+
+    val maskSymbolsCount: Int = data.mask?.count { c -> c == '#' } ?: (Int.MAX_VALUE - 1)
 
     if (WindowInsets.isImeVisible) {
         LaunchedEffect(Unit) {
-            if (data.validation == UIState.Validation.Failed) {
+            if (data.validationState == UIState.Validation.Failed) {
                 bringIntoErrorViewRequester.bringIntoView()
-            } else if (data.validation != UIState.Validation.Failed && data.hint != null) {
+            } else if (data.validationState != UIState.Validation.Failed && data.hint != null) {
                 bringIntoHintViewRequester.bringIntoView()
             } else {
                 bringIntoInputViewRequester.bringIntoView()
@@ -110,33 +106,18 @@ fun InputNumberMlc(
         }
     }
 
-    LaunchedEffect(key1 = data) {
-        if (data.value != null) {
-            onUIAction(
-                UIAction(
-                    actionKey = data.actionKey,
-                    action = DataActionWrapper(
-                        type = data.actionKey,
-                        subtype = inputCode,
-                        resource = data.value.toString()
-                    ),
-                    states = listOf(focusState, data.validation),
-                )
-            )
-        }
-    }
-
-    BasicTextField(value = data.value?.toString() ?: "",
-        enabled = data.isEnabled,
+    BasicTextField(
         modifier = modifier
-            .padding(horizontal = 24.dp)
-            .padding(top = 24.dp)
-            .onFocusChanged {
+            .padding(
+                start = data.sidePaddingMode.toDp(defaultPadding = 16.dp),
+                top = data.topPaddingMode.toDp(defaultPadding = 8.dp),
+                end = data.sidePaddingMode.toDp(defaultPadding = 16.dp)
+            )
+            .onFocusChanged { newFocusState ->
                 focusState = when (focusState) {
                     UIState.Focus.NeverBeenFocused -> {
                         if (data.value == null) {
-                            if (it.isFocused || it.hasFocus) {
-                                justFocused = true
+                            if (newFocusState.isFocused || newFocusState.hasFocus) {
                                 UIState.Focus.FirstTimeInFocus
                             } else {
                                 UIState.Focus.NeverBeenFocused
@@ -146,127 +127,196 @@ fun InputNumberMlc(
                         }
                     }
 
-                    UIState.Focus.FirstTimeInFocus -> {
-                        UIState.Focus.OutOfFocus
-                    }
+                    UIState.Focus.FirstTimeInFocus -> UIState.Focus.OutOfFocus
 
                     UIState.Focus.InFocus -> UIState.Focus.OutOfFocus
-                    UIState.Focus.OutOfFocus -> {
-                        justFocused = true
-                        UIState.Focus.InFocus
-                    }
+
+                    UIState.Focus.OutOfFocus -> UIState.Focus.InFocus
                 }
             }
             .bringIntoViewRequester(bringIntoInputViewRequester),
+        value = data.value?.toString().orEmpty(),
+        enabled = data.interactionState == UIState.Interaction.Enabled,
         onValueChange = { newValue ->
-            justFocused = false
-            if (data.isEnabled) {
+            if (
+                data.interactionState == UIState.Interaction.Enabled &&
+                newValue.length < maskSymbolsCount + 1
+            ) {
                 onUIAction(
                     UIAction(
                         actionKey = data.actionKey,
                         action = DataActionWrapper(
                             type = data.actionKey,
-                            subtype = inputCode,
-                            resource = newValue
-                        ),
-                        states = listOf(focusState, data.validation),
+                            resource = data.componentId,
+                            subresource = newValue
+                        )
                     )
                 )
             }
         },
-        textStyle = TextStyle(
-            fontFamily = FontFamily(Font(R.font.e_ukraine_regular)),
-            fontWeight = FontWeight.Normal,
-            fontSize = 14.sp,
-            lineHeight = 17.sp,
-            color = getColorForInput(data.isEnabled)
+        textStyle = DiiaTextStyle.t1BigText.copy(
+            color = getInputColor(
+                interactionState = data.interactionState
+            )
         ),
         keyboardOptions = KeyboardOptions(
             imeAction = imeAction,
-            keyboardType = KeyboardType.NumberPassword
+            keyboardType = KeyboardType.Number
         ),
         keyboardActions = KeyboardActions(
             onNext = {
                 localFocusManager.moveFocus(FocusDirection.Next)
-            }, onDone = {
+            },
+            onDone = {
                 keyboardController?.let {
-                    it.hide()
                     localFocusManager.clearFocus()
+                    it.hide()
                 }
-            }),
+            }
+        ),
         singleLine = true,
-        cursorBrush = SolidColor(getColorForInput(data.isEnabled)),
-        visualTransformation = DecimalAmountTransformation(),
-        decorationBox = @Composable { innerTextField ->
+        cursorBrush = SolidColor(Black),
+        visualTransformation = data.mask?.let { mask ->
+            MaskVisualTransformation(
+                mask = mask,
+                maskSymbol = '#'
+            )
+        } ?: VisualTransformation.None,
+        decorationBox = { innerTextField ->
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .testTag(data.componentId?.asString() ?: ""),
             ) {
-                data.label.let {
-                    Text(
-                        text = data.label.asString(),
-                        style = DiiaTextStyle.t4TextSmallDescription,
-                        color = getColorForLabel(
-                            focusState = focusState,
-                            validationState = data.validation,
-                            justFocused = justFocused
-                        )
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                }
-
-                Box(modifier = Modifier.fillMaxWidth()) {
-                    if (data.value == null) {
-                        Text(
-                            text = data.placeholder?.asString() ?: "",
-                            style = DiiaTextStyle.t1BigText,
-                            color = BlackAlpha30
-                        )
-                    }
-                    innerTextField()
-                }
-
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 6.dp)
-                        .height(2.dp)
                         .background(
-                            getColorForBottomLine(
-                                focusState = focusState,
-                                validationState = data.validation,
-                                justFocused = justFocused
-                            )
+                            color = getBackgroundColor(
+                                interactionState = data.interactionState
+                            ),
+                            shape = RoundedCornerShape(12.dp)
                         )
-                )
-
-                AnimatedVisibility(
-                    data.validation == UIState.Validation.Failed && (focusState == UIState.Focus.OutOfFocus || justFocused)
+                        .border(
+                            width = 1.dp,
+                            color = getBorderColor(
+                                focusState = focusState,
+                                validationState = data.validationState,
+                                interactionState = data.interactionState
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        .padding(
+                            horizontal = 16.dp,
+                            vertical = 12.dp
+                        )
                 ) {
-                    data.errorMessage?.let { errorMsg ->
+                    Row {
+                        Column(
+                            modifier = Modifier
+                                .weight(1F),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                modifier = Modifier
+                                    .fillMaxWidth(),
+                                style = DiiaTextStyle.t4TextSmallDescription,
+                                text = data.label,
+                                color = getLabelColor(
+                                    focusState = focusState,
+                                    validationState = data.validationState,
+                                    interactionState = data.interactionState
+                                ),
+                                maxLines = 1
+                            )
+                            val inputFieldHeight = with(LocalDensity.current) {
+                                DiiaTextStyle.t1BigText.lineHeight.toDp()
+                            }
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(inputFieldHeight),
+                                contentAlignment = Alignment.CenterStart
+                            ) {
+                                if (data.value == null && data.placeholder != null) {
+                                    Text(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .align(Alignment.Center),
+                                        style = DiiaTextStyle.t4TextSmallDescription,
+                                        text = data.placeholder,
+                                        color = BlackAlpha30,
+                                        maxLines = 1
+                                    )
+                                }
+
+                                innerTextField()
+                            }
+                        }
+                        data.iconRight?.let { iconRight ->
+                            Box(
+                                modifier = Modifier
+                                    .padding(4.dp)
+                                    .noRippleClickable {
+                                        onUIAction(iconRight.action())
+                                    }
+                            ) {
+                                if (focusState.isFocused() && data.value != null) {
+                                    Image(
+                                        modifier = modifier
+                                            .size(24.dp)
+                                            .noRippleClickable {
+                                                onUIAction(
+                                                    UIAction(
+                                                        actionKey = UIActionKeysCompose.CLEAR_INPUT,
+                                                        action = DataActionWrapper(
+                                                            type = data.actionKey,
+                                                            resource = data.componentId
+                                                        )
+                                                    )
+                                                )
+                                            },
+                                        painter = painterResource(
+                                            id = DiiaResourceIcon.getResourceId(DiiaResourceIcon.CLEAR_INPUT.code)
+                                        ),
+                                        contentDescription = null
+                                    )
+                                } else {
+                                    SmallIconAtm(
+                                        data = iconRight,
+                                        onUIAction = onUIAction
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                if (data.validationState != UIState.Validation.Failed) {
+                    data.hint?.let { lHint ->
                         Text(
                             modifier = Modifier
-                                .padding(top = 8.dp)
-                                .bringIntoViewRequester(bringIntoErrorViewRequester),
-                            text = errorMsg.asString(),
+                                .fillMaxWidth()
+                                .padding(top = 4.dp)
+                                .padding(start = 16.dp)
+                                .bringIntoViewRequester(bringIntoHintViewRequester),
                             style = DiiaTextStyle.t4TextSmallDescription,
-                            color = Red
+                            text = lHint,
+                            color = BlackAlpha54
                         )
                     }
                 }
 
-                AnimatedVisibility(
-                    !(data.validation == UIState.Validation.Failed && (focusState == UIState.Focus.OutOfFocus || justFocused))
-                ) {
-                    data.hint?.let {
+                if (data.validationState == UIState.Validation.Failed) {
+                    data.errorMessage?.let { lErrorMessage ->
                         Text(
                             modifier = Modifier
-                                .padding(top = 8.dp)
-                                .bringIntoViewRequester(bringIntoHintViewRequester),
-                            text = data.hint.asString(),
+                                .fillMaxWidth()
+                                .padding(top = 4.dp)
+                                .padding(start = 16.dp)
+                                .bringIntoViewRequester(bringIntoErrorViewRequester),
                             style = DiiaTextStyle.t4TextSmallDescription,
-                            color = BlackAlpha30
+                            text = data.errorMessage,
+                            color = Red
                         )
                     }
                 }
@@ -275,561 +325,285 @@ fun InputNumberMlc(
     )
 }
 
-private fun getColorForInput(
-    isEnabled: Boolean,
+private fun getBackgroundColor(
+    interactionState: UIState.Interaction
 ): Color {
-    return if (isEnabled) {
+    return if (interactionState == UIState.Interaction.Enabled) {
+        White
+    } else {
+        AzureMist
+    }
+}
+
+private fun getBorderColor(
+    focusState: UIState.Focus,
+    validationState: UIState.Validation,
+    interactionState: UIState.Interaction
+): Color {
+    return when (focusState) {
+        UIState.Focus.NeverBeenFocused -> {
+            if (interactionState == UIState.Interaction.Enabled) {
+                PeriwinkleGray
+            } else {
+                AzureMist
+            }
+        }
+
+        UIState.Focus.FirstTimeInFocus -> {
+            if (validationState == UIState.Validation.Failed) {
+                Red
+            } else {
+                Black
+            }
+        }
+
+        UIState.Focus.InFocus -> {
+            if (validationState == UIState.Validation.Failed) {
+                Red
+            } else {
+                Black
+            }
+        }
+
+        UIState.Focus.OutOfFocus -> {
+            if (validationState == UIState.Validation.Failed) {
+                Red
+            } else {
+                PeriwinkleGray
+            }
+        }
+    }
+}
+
+private fun getLabelColor(
+    focusState: UIState.Focus,
+    validationState: UIState.Validation,
+    interactionState: UIState.Interaction
+): Color {
+    return when (focusState) {
+        UIState.Focus.NeverBeenFocused -> {
+            if (interactionState == UIState.Interaction.Enabled) {
+                Black
+            } else {
+                BlackAlpha30
+            }
+        }
+
+        UIState.Focus.FirstTimeInFocus -> {
+            if (validationState == UIState.Validation.Failed) {
+                Red
+            } else {
+                Black
+            }
+        }
+
+        UIState.Focus.InFocus -> {
+            if (validationState == UIState.Validation.Failed) {
+                Red
+            } else {
+                Black
+            }
+        }
+
+        UIState.Focus.OutOfFocus -> {
+            if (validationState == UIState.Validation.Failed) {
+                Red
+            } else {
+                Black
+            }
+        }
+    }
+}
+
+private fun getInputColor(
+    interactionState: UIState.Interaction
+): Color {
+    return if (interactionState == UIState.Interaction.Enabled) {
         Black
     } else {
         BlackAlpha30
     }
 }
 
-private fun getColorForBottomLine(
-    focusState: UIState.Focus,
-    validationState: UIState.Validation,
-    justFocused: Boolean
-): Color {
-    return when (focusState) {
-        UIState.Focus.NeverBeenFocused -> BlackAlpha30
-        UIState.Focus.FirstTimeInFocus -> Black
-        UIState.Focus.InFocus -> {
-            when (validationState) {
-                UIState.Validation.Failed ->
-                    if (justFocused) Red else Black
+private class MaskVisualTransformation(
+    val mask: String,
+    val maskSymbol: Char
+) : VisualTransformation {
 
-                else -> Black
+    private val maxLength = mask.count { it == maskSymbol }
+
+    override fun filter(text: AnnotatedString): TransformedText {
+        val trimmed = if (text.length > maxLength) text.take(maxLength) else text
+
+        val annotatedString = buildAnnotatedString {
+            if (trimmed.isEmpty()) return@buildAnnotatedString
+
+            var maskIndex = 0
+            var textIndex = 0
+            while (textIndex < trimmed.length && maskIndex < mask.length) {
+                if (mask[maskIndex] != maskSymbol) {
+                    val nextDigitIndex = mask.indexOf(maskSymbol, maskIndex)
+                    append(mask.substring(maskIndex, nextDigitIndex))
+                    maskIndex = nextDigitIndex
+                }
+                append(trimmed[textIndex++])
+                maskIndex++
             }
         }
 
-        UIState.Focus.OutOfFocus -> {
-            when (validationState) {
-                UIState.Validation.Failed -> Red
-                else -> BlackAlpha30
-            }
-        }
+        return TransformedText(
+            text = annotatedString,
+            offsetMapping = MaskOffsetMapper(mask, maskSymbol)
+        )
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is PhoneVisualTransformation) return false
+        if (mask != other.mask) return false
+        if (maskSymbol != other.maskSymbol) return false
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return mask.hashCode()
     }
 }
 
-private fun getColorForLabel(
-    focusState: UIState.Focus,
-    validationState: UIState.Validation,
-    justFocused: Boolean
-): Color {
-    return when (focusState) {
-        UIState.Focus.NeverBeenFocused -> BlackAlpha30
-        UIState.Focus.FirstTimeInFocus -> Black
-        UIState.Focus.InFocus -> {
-            when (validationState) {
-                UIState.Validation.Failed ->
-                    if (justFocused) Red else Black
+class MaskOffsetMapper(val mask: String, val maskSymbol: Char) : OffsetMapping {
 
-                else -> Black
-            }
+    override fun originalToTransformed(offset: Int): Int {
+        var noneDigitCount = 0
+        var i = 0
+        while (i < offset + noneDigitCount) {
+            if (mask[i++] != maskSymbol) noneDigitCount++
         }
-
-        UIState.Focus.OutOfFocus -> {
-            when (validationState) {
-                UIState.Validation.Failed -> Red
-                else -> Black
-            }
-        }
+        return offset + noneDigitCount
     }
-}
 
+    override fun transformedToOriginal(offset: Int): Int =
+        offset - mask.take(offset).count { it != maskSymbol }
+
+}
 
 data class InputNumberMlcData(
     val actionKey: String = UIActionKeysCompose.INPUT_NUMBER_MLC,
-    val componentId: UiText? = null,
-    val inputCode: UiText? = null,
-    val label: UiText,
-    val placeholder: UiText? = null,
-    val hint: UiText? = null,
+    val componentId: String? = null,
+    val inputCode: String? = null,
+    val label: String,
+    val placeholder: String? = null,
+    val hint: String? = null,
+    val mask: String? = null,
     val value: Long? = null,
-    val maxValue: Long? = null,
     val minValue: Long? = null,
+    val maxValue: Long? = null,
     val mandatory: Boolean? = null,
-    val errorMessage: UiText? = null,
-    val validation: UIState.Validation = UIState.Validation.NeverBeenPerformed,
-    val isEnabled: Boolean = true,
-    val action: DataActionWrapper? = null
+    val errorMessage: String? = null,
+    val iconRight: SmallIconAtmData? = null,
+    val topPaddingMode: TopPaddingMode? = null,
+    val sidePaddingMode: SidePaddingMode? = null,
+    val validationState: UIState.Validation = UIState.Validation.NeverBeenPerformed,
+    val interactionState: UIState.Interaction = UIState.Interaction.Enabled
 ) : UIElementData {
+
     fun onInputChanged(newValue: String?): InputNumberMlcData {
-        if (newValue.isNullOrEmpty()) {
-            return this.copy(
-                value = null,
-                validation = dataValidation(
-                    value = null,
-                    previousValueIsEmpty = this.value == null
-                )
-            )
-        }
-        val newValueAsLong: Long?
-        try {
-            newValueAsLong = newValue.toLong()
-        } catch (nfe: NumberFormatException) {
-            return this
-        }
-        return this.copy(
-            value = newValueAsLong,
-            validation = dataValidation(
-                value = newValueAsLong,
-                previousValueIsEmpty = this.value == null
-            )
+        val longValue = newValue?.toLongOrNull()
+        return copy(
+            value = longValue,
+            validationState = validateData(longValue)
         )
     }
 
-    private fun dataValidation(
-        value: Long?,
-        previousValueIsEmpty: Boolean,
-    ): UIState.Validation {
-        if (minValue == null && maxValue == null) {
-            return UIState.Validation.Passed
-        }
-        if (value == null && minValue != null) {
-            return UIState.Validation.Failed
-        }
-        val isMatches =
-            (minValue == null && maxValue != null && (value != null && value <= maxValue))
-                    ||
-                    (minValue != null && maxValue == null && (value != null && value >= minValue))
-                    ||
-                    (minValue != null && maxValue != null && (value != null && value >= minValue && value <= maxValue))
-
-        return if (value == null && previousValueIsEmpty) {
-            UIState.Validation.NeverBeenPerformed
-        } else if (isMatches) {
-            UIState.Validation.Passed
-        } else {
-            UIState.Validation.Failed
-        }
-    }
-}
-
-fun InputNumberMlc.toUIModel(): InputNumberMlcData {
-    return InputNumberMlcData(
-        componentId = this.componentId.orEmpty().toDynamicString(),
-        inputCode = this.inputCode?.let {
-            it.toDynamicString()
-        },
-        label = this.label.let {
-            it.toDynamicString()
-        },
-        placeholder = this.placeholder?.let {
-            it.toDynamicString()
-        },
-        hint = this.hint?.let {
-            it.toDynamicString()
-        },
-        value = this.value,
-        maxValue = this.maxValue,
-        minValue = this.minValue,
-        mandatory = this.mandatory,
-        errorMessage = this.errorMessage?.let {
-            it.toDynamicString()
-        },
-        validation = UIState.Validation.NeverBeenPerformed,
-        isEnabled = true
-    )
-}
-
-enum class InputNumberMlcMockType {
-    empty, filled, disabled, error,
-}
-
-fun generateInputNumberMlcMockData(mockType: InputNumberMlcMockType): InputNumberMlcData {
-    return when (mockType) {
-        InputNumberMlcMockType.empty -> InputNumberMlcData(
-            label = "label".toDynamicString(),
-            inputCode = "123456".toDynamicString(),
-            placeholder = "Placeholder".toDynamicString(),
-            hint = "Hint message".toDynamicString(),
-            minValue = 5,
-            maxValue = 10,
-            mandatory = false,
-            errorMessage = "error".toDynamicString(),
-        )
-
-        InputNumberMlcMockType.filled -> InputNumberMlcData(
-            label = "label".toDynamicString(),
-            inputCode = "123456".toDynamicString(),
-            placeholder = "Placeholder".toDynamicString(),
-            hint = "Hint message".toDynamicString(),
-            value = 20,
-            minValue = 5,
-            maxValue = 30,
-            mandatory = false,
-            validation = UIState.Validation.Passed,
-            errorMessage = "error".toDynamicString(),
-        )
-        InputNumberMlcMockType.error -> InputNumberMlcData(
-            label = "label".toDynamicString(),
-            inputCode = "123456".toDynamicString(),
-            placeholder = "Placeholder".toDynamicString(),
-            hint = "Hint message".toDynamicString(),
-            value = 20,
-            minValue = 5,
-            maxValue = 10,
-            mandatory = false,
-            validation = UIState.Validation.Failed,
-            errorMessage = "error".toDynamicString()
-        )
-        InputNumberMlcMockType.disabled -> InputNumberMlcData(
-            label = "label".toDynamicString(),
-            inputCode = "123456".toDynamicString(),
-            placeholder = "Placeholder".toDynamicString(),
-            hint = "Hint message".toDynamicString(),
-            minValue = 5,
-            maxValue = 10,
-            mandatory = false,
-            isEnabled = false,
-            errorMessage = "error".toDynamicString(),
-        )
-    }
-}
-
-@OptIn(ExperimentalComposeUiApi::class)
-@Composable
-@Preview
-fun InputNumberMlcPreview_Empty() {
-    val data = generateInputNumberMlcMockData(InputNumberMlcMockType.empty)
-    val focusRequester = remember { FocusRequester() }
-    val focusManager = LocalFocusManager.current
-
-    val state = remember {
-        mutableStateOf(data)
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(White), horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-
-        InputNumberMlc(modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth()
-            .focusRequester(focusRequester),
-            data = state.value,
-            onUIAction = {
-                it.action?.let { action ->
-                    state.value = state.value.onInputChanged(action.resource)
-                }
-            })
-
-        Button(modifier = Modifier.padding(bottom = 16.dp), onClick = {
-            focusManager.clearFocus()
-        }) {
-            Text("Click to remove focus from search")
-        }
-    }
-}
-
-@OptIn(ExperimentalComposeUiApi::class)
-@Composable
-@Preview
-fun InputNumberMlcPreview_Filled() {
-    val data = generateInputNumberMlcMockData(InputNumberMlcMockType.filled)
-    val focusRequester = remember { FocusRequester() }
-    val focusManager = LocalFocusManager.current
-
-    val state = remember {
-        mutableStateOf(data)
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(White), horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-
-        InputNumberMlc(modifier = Modifier
-            .fillMaxWidth()
-            .focusRequester(focusRequester),
-            data = state.value,
-            onUIAction = {
-                it.action?.let { action ->
-                    state.value = state.value.onInputChanged(action.resource)
-                }
-            })
-
-        Button(modifier = Modifier.padding(bottom = 16.dp), onClick = {
-            focusManager.clearFocus()
-        }) {
-            Text("Click to remove focus from search")
-        }
-    }
-}
-
-@OptIn(ExperimentalComposeUiApi::class)
-@Composable
-@Preview
-fun InputNumberMlcPreview_Error() {
-
-    val data = generateInputNumberMlcMockData(InputNumberMlcMockType.error)
-
-
-    val focusRequester = remember { FocusRequester() }
-    val focusManager = LocalFocusManager.current
-
-    val state = remember {
-        mutableStateOf(data)
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(White), horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-
-        InputNumberMlc(modifier = Modifier
-            .fillMaxWidth()
-            .focusRequester(focusRequester),
-            data = state.value,
-            onUIAction = {
-                it.action?.let { action ->
-                    state.value = state.value.onInputChanged(action.resource)
-                }
-            })
-
-        Button(modifier = Modifier.padding(bottom = 16.dp), onClick = {
-            focusManager.clearFocus()
-        }) {
-            Text("Click to remove focus from search")
-        }
-    }
-}
-
-@OptIn(ExperimentalComposeUiApi::class)
-@Composable
-@Preview
-fun InputNumberMlcPreview_Disabled() {
-
-    val data = generateInputNumberMlcMockData(InputNumberMlcMockType.disabled)
-
-    val focusRequester = remember { FocusRequester() }
-    val focusManager = LocalFocusManager.current
-
-    val state = remember {
-        mutableStateOf(data)
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(White), horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-
-        InputNumberMlc(modifier = Modifier
-            .fillMaxWidth()
-            .focusRequester(focusRequester),
-            data = state.value,
-            onUIAction = {
-                it.action?.let { action ->
-                    state.value = state.value.onInputChanged(action.resource)
-                }
-            })
-
-        Button(modifier = Modifier.padding(bottom = 16.dp), onClick = {
-            focusManager.clearFocus()
-        }) {
-            Text("Click to remove focus from search")
-        }
-    }
-}
-
-@OptIn(ExperimentalComposeUiApi::class)
-@Composable
-@Preview
-fun InputNumberMlcPreview_Poor() {
-
-    val data = InputNumberMlcData(
-        label = "label".toDynamicString(),
-        inputCode = "123456".toDynamicString(),
-        mandatory = false,
-        isEnabled = true,
-    )
-
-    val focusRequester = remember { FocusRequester() }
-    val focusManager = LocalFocusManager.current
-
-    val state = remember {
-        mutableStateOf(data)
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(White), horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-
-        InputNumberMlc(modifier = Modifier
-            .fillMaxWidth()
-            .focusRequester(focusRequester),
-            data = state.value,
-            onUIAction = {
-                it.action?.let { action ->
-                    state.value = state.value.onInputChanged(action.resource)
-                }
-            })
-
-        Button(modifier = Modifier.padding(bottom = 16.dp), onClick = {
-            focusManager.clearFocus()
-        }) {
-            Text("Click to remove focus from search")
-        }
-    }
-}
-
-@OptIn(ExperimentalComposeUiApi::class)
-@Composable
-@Preview
-fun InputNumberMlcPreview_Several() {
-
-    val focusRequester = remember { FocusRequester() }
-    val focusManager = LocalFocusManager.current
-
-    val inputField1 = InputNumberMlcData(
-        label = "label".toDynamicString(),
-        inputCode = "123456".toDynamicString(),
-        placeholder = "Placeholder".toDynamicString(),
-        hint = LoremIpsum(5).values.joinToString().toDynamicString(),
-        minValue = 5,
-        maxValue = 10,
-        mandatory = false,
-        errorMessage = "error".toDynamicString(),
-    )
-
-    val state1 = remember {
-        mutableStateOf(inputField1)
-    }
-
-    val inputField2 = InputNumberMlcData(
-        label = "label".toDynamicString(),
-        inputCode = "123456".toDynamicString(),
-        placeholder = "Placeholder".toDynamicString(),
-        hint = LoremIpsum(5).values.joinToString().toDynamicString(),
-        minValue = 5,
-        maxValue = 10,
-        mandatory = false,
-        errorMessage = "error".toDynamicString(),
-    )
-
-    val state2 = remember {
-        mutableStateOf(inputField2)
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(White)
-            .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-
-        InputNumberMlc(modifier = Modifier
-            .fillMaxWidth()
-            .focusRequester(focusRequester),
-            data = state1.value,
-            onUIAction = {
-                it.action?.let { action ->
-                    state1.value = state1.value.onInputChanged(action.resource)
-                }
-            })
-
-        DividerLineMlc(
-            data = DividerLineMlcData(type = "default")
-        )
-
-        InputNumberMlc(modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth()
-            .focusRequester(focusRequester),
-            data = state2.value,
-            onUIAction = {
-                it.action?.let { action ->
-                    state2.value = state2.value.onInputChanged(action.resource)
-                }
-            })
-
-        Button(modifier = Modifier.padding(bottom = 16.dp), onClick = {
-            focusManager.clearFocus()
-        }) {
-            Text("Click to remove focus from search")
-        }
-    }
-}
-
-private const val groupingSymbol = ' '
-private const val decimalSymbol = '.'
-
-private val numberFormatter: DecimalFormat = DecimalFormat("#,###").apply {
-    decimalFormatSymbols = DecimalFormatSymbols(Locale.getDefault()).apply {
-        groupingSeparator = groupingSymbol
-        decimalSeparator = decimalSymbol
-    }
-}
-
-private class DecimalAmountTransformation : VisualTransformation {
-
-    override fun filter(text: AnnotatedString): TransformedText {
-        val transformation = reformat(text.text)
-
-        return TransformedText(
-            AnnotatedString(transformation.formatted ?: ""),
-            object : OffsetMapping {
-                override fun originalToTransformed(offset: Int): Int {
-                    return transformation.originalToTransformed[offset]
-                }
-
-                override fun transformedToOriginal(offset: Int): Int {
-                    return transformation.transformedToOriginal[offset]
-                }
-            },
+    fun clearInput(): InputNumberMlcData {
+        return copy(
+            value = null,
+            validationState = UIState.Validation.NeverBeenPerformed
         )
     }
 
-    private fun reformat(original: String): Transformation {
-        val parts = original.split(decimalSymbol)
-        check(parts.size < 3) { "original text must have only one dot (use filteredDecimalText)" }
-
-        val hasEndDot = original.endsWith('.')
-        var formatted = original
-
-        if (original.isNotEmpty() && parts.size == 1) {
-            formatted = numberFormatter.format(BigDecimal(parts[0]))
-
-            if (hasEndDot) {
-                formatted += decimalSymbol
-            }
-        } else if (parts.size == 2) {
-            val numberPart = numberFormatter.format(BigDecimal(parts[0]))
-            val decimalPart = parts[1]
-
-            formatted = "$numberPart.$decimalPart"
-        }
-
-        val originalToTransformed = mutableListOf<Int>()
-        val transformedToOriginal = mutableListOf<Int>()
-        var specialCharsCount = 0
-
-        formatted.forEachIndexed { index, char ->
-            if (groupingSymbol == char) {
-                specialCharsCount++
-            } else {
-                originalToTransformed.add(index)
-            }
-            transformedToOriginal.add(index - specialCharsCount)
-        }
-        originalToTransformed.add(originalToTransformed.maxOrNull()?.plus(1) ?: 0)
-        transformedToOriginal.add(transformedToOriginal.maxOrNull()?.plus(1) ?: 0)
-
-        return Transformation(formatted, originalToTransformed, transformedToOriginal)
-    }
 }
 
-data class Transformation(
-    val formatted: String?,
-    val originalToTransformed: List<Int>,
-    val transformedToOriginal: List<Int>,
+private fun InputNumberMlcData.validateData(newValue: Long?): UIState.Validation {
+    if (newValue == null) {
+        return UIState.Validation.Passed
+    }
+
+    if (minValue != null && newValue < minValue) {
+        return UIState.Validation.Failed
+    }
+
+    if (maxValue != null && newValue > maxValue) {
+        return UIState.Validation.Failed
+    }
+
+    return UIState.Validation.Passed
+}
+
+fun InputNumberMlc.toUIModel() = InputNumberMlcData(
+    componentId = componentId,
+    inputCode = inputCode,
+    label = label,
+    placeholder = placeholder,
+    hint = hint,
+    mask = mask,
+    value = value,
+    minValue = minValue,
+    maxValue = maxValue,
+    mandatory = mandatory,
+    errorMessage = errorMessage,
+    iconRight = iconRight?.toUiModel(),
+    topPaddingMode = paddingMode?.top?.toTopPaddingMode(),
+    sidePaddingMode = paddingMode?.side?.toSidePaddingMode(),
+    interactionState = if (isDisabled == true) UIState.Interaction.Disabled else UIState.Interaction.Enabled
 )
+
+fun generateMockInputNumberMlcData(id: Int = 0) = InputNumberMlcData(
+    componentId = "input_number_mlc_component_id_$id",
+    inputCode = "input_number_mlc_input_code_$id",
+    label = "Label $id",
+    placeholder = "Placeholder $id",
+    hint = "Hint $id",
+    mask = "### ## #",
+    value = null,
+    minValue = 10,
+    maxValue = 2000,
+    mandatory = null,
+    errorMessage = "Error message $id",
+    iconRight = SmallIconAtmData(
+        code = DiiaResourceIcon.BARCODE_SCAN.code
+    ),
+    sidePaddingMode = SidePaddingMode.NONE
+)
+
+@Preview
+@Composable
+private fun InputNumberMlcPreview() {
+    var inputNumberMlcData by remember {
+        mutableStateOf(generateMockInputNumberMlcData())
+    }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Grey)
+            .statusBarsPadding()
+    ) {
+        InputNumberMlc(
+            modifier = Modifier
+                .align(Alignment.Center),
+            data = inputNumberMlcData,
+            onUIAction = { uiAction ->
+                when (uiAction.actionKey) {
+                    UIActionKeysCompose.INPUT_NUMBER_MLC -> {
+                        inputNumberMlcData = inputNumberMlcData.onInputChanged(
+                            newValue = uiAction.action?.subresource
+                        )
+                    }
+
+                    UIActionKeysCompose.CLEAR_INPUT -> {
+                        inputNumberMlcData = inputNumberMlcData.clearInput()
+                    }
+                }
+            }
+        )
+    }
+}

@@ -8,9 +8,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import ua.gov.diia.core.models.common_compose.atm.SpacerAtmType
 import ua.gov.diia.ui_base.components.atom.space.SpacerAtm
 import ua.gov.diia.ui_base.components.atom.space.SpacerAtmData
+import ua.gov.diia.ui_base.components.atom.space.SpacerAtmType
 import ua.gov.diia.ui_base.components.infrastructure.UIElementData
 import ua.gov.diia.ui_base.components.theme.Primary
 
@@ -37,8 +37,8 @@ data class DividerWithSpaceData(
 fun SpaceDividerPreview() {
     DividerWithSpace(
         data = DividerWithSpaceData(
-            spaceAbove = SpacerAtmType.SPACER_32,
-            spaceBelow = SpacerAtmType.SPACER_32
+            spaceAbove = SpacerAtmType.EXTRA_LARGE,
+            spaceBelow = SpacerAtmType.EXTRA_LARGE
         )
     )
 }

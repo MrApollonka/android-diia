@@ -2,6 +2,7 @@ package ua.gov.diia.ui_base.components.molecule.checkbox
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,6 +17,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -33,6 +38,8 @@ import ua.gov.diia.ui_base.components.theme.Black
 import ua.gov.diia.ui_base.components.theme.DiiaTextStyle
 import ua.gov.diia.ui_base.components.theme.Mantis
 import ua.gov.diia.ui_base.components.theme.White
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.selected
 
 @Composable
 fun CheckIconMlc(
@@ -40,10 +47,22 @@ fun CheckIconMlc(
     data: CheckIconMlcData,
     onUIAction: (UIAction) -> Unit
 ) {
-
-    Column(modifier = modifier.width(width = 64.dp)) {
+    val checkIconMlcDescription = data.title?.asString()
+    Column(
+        modifier = modifier
+            .width(width = 64.dp)
+            .semantics(mergeDescendants = true) {
+                contentDescription = checkIconMlcDescription ?: ""
+                selected = data.selectionState == UIState.Selection.Selected
+                liveRegion = LiveRegionMode.Polite
+            }
+            .focusable()
+            
+    ) {
         Box(
-            modifier = modifier.fillMaxWidth(),
+            modifier = modifier
+                .fillMaxWidth()
+                .clearAndSetSemantics {  },
             contentAlignment = Alignment.Center
         ) {
             IconButton(
@@ -60,12 +79,13 @@ fun CheckIconMlc(
                     .background(Black, CircleShape)
                     .conditional(data.interactionState == UIState.Interaction.Disabled) {
                         noRippleClickable {}
-                    },
+                    }
+                    .clearAndSetSemantics { },
             ) {
                 Image(
                     modifier = modifier.size(24.dp),
                     painter = painterResource(DiiaResourceIcon.getResourceId(data.icon.code)),
-                    contentDescription = "contentDescription",
+                    contentDescription = null,
                     colorFilter = ColorFilter.tint(White),
                 )
             }
@@ -81,7 +101,7 @@ fun CheckIconMlc(
                     Image(
                         modifier = modifier.size(10.dp),
                         painter = painterResource(R.drawable.diia_check),
-                        contentDescription = "contentDescription",
+                        contentDescription = null,
                         colorFilter = ColorFilter.tint(White),
                     )
                 }
@@ -90,7 +110,10 @@ fun CheckIconMlc(
 
         if (data.title != null) {
             Text(
-                modifier = modifier.fillMaxWidth().padding(top = 4.dp),
+                modifier = modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp)
+                    .clearAndSetSemantics { },
                 text = data.title.asString(),
                 style = DiiaTextStyle.t4TextSmallDescription,
                 textAlign = TextAlign.Center

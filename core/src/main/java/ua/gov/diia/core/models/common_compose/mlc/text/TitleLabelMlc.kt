@@ -2,6 +2,7 @@ package ua.gov.diia.core.models.common_compose.mlc.text
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+import ua.gov.diia.core.models.common_compose.general.PaddingMode
 
 @JsonClass(generateAdapter = true)
 data class TitleLabelMlc(
@@ -9,4 +10,6 @@ data class TitleLabelMlc(
     val label: String,
     @Json(name = "componentId")
     val componentId: String?,
+    @Json(name = "paddingMode")
+    val paddingMode: PaddingMode?
 )

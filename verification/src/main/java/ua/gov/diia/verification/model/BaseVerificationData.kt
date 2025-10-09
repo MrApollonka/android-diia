@@ -7,5 +7,6 @@ import kotlinx.parcelize.Parcelize
 data class BaseVerificationData(
     val schema: String,
     val method: String,
-    val requestId: String
+    val requestId: String,
+    val token: String?
 ) : Parcelable

@@ -10,9 +10,9 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.transform
-import ua.gov.diia.diia_storage.store.repository.authorization.AuthorizationRepository
 import ua.gov.diia.core.di.actions.GlobalActionLogout
 import ua.gov.diia.core.models.UserType
 import ua.gov.diia.core.models.dialogs.TemplateDialogButton
@@ -21,11 +21,11 @@ import ua.gov.diia.core.models.dialogs.TemplateDialogModel
 import ua.gov.diia.core.ui.dynamicdialog.ActionsConst.DIALOG_ACTION_CANCEL
 import ua.gov.diia.core.ui.dynamicdialog.ActionsConst.DIALOG_ACTION_CODE_LOGOUT
 import ua.gov.diia.core.ui.dynamicdialog.ActionsConst.FRAGMENT_USER_ACTION_RESULT_KEY
-import ua.gov.diia.core.util.alert.ClientAlertDialogsFactory
 import ua.gov.diia.core.util.delegation.WithErrorHandlingOnFlow
 import ua.gov.diia.core.util.delegation.WithRetryLastAction
 import ua.gov.diia.core.util.event.UiEvent
 import ua.gov.diia.core.util.extensions.vm.executeActionOnFlow
+import ua.gov.diia.diia_storage.store.repository.authorization.AuthorizationRepository
 import ua.gov.diia.pin.R
 import ua.gov.diia.pin.helper.PinHelper
 import ua.gov.diia.pin.repository.LoginPinRepository
@@ -74,8 +74,11 @@ class PinInputVM @Inject constructor(
     private val _uiData = mutableStateListOf<UIElementData>()
     val uiData: SnapshotStateList<UIElementData> = _uiData
 
+    private val _accessibilityMessage = MutableStateFlow<Int?>(null)
+    val accessibilityMessage: StateFlow<Int?> = _accessibilityMessage
 
     init {
+        _uiData.clear()
         _uiData.add(
             NavigationPanelMlcData(
                 title = UiText.StringResource(R.string.pin_input_title_text),
@@ -111,11 +114,16 @@ class PinInputVM @Inject constructor(
             if (loginPinRepository.isPinValid(pin)) {
                 completeVerification(pin)
             } else {
+                _accessibilityMessage.value = R.string.accessibility_wrong_pin_try_again
                 validateTryCount {
                     clearPinWithShake()
                 }
             }
         }
+    }
+
+    fun clearAccessibilityMessage() {
+        _accessibilityMessage.value = null
     }
 
     private fun showResetPinRationale() {

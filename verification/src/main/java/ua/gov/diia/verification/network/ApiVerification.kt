@@ -14,7 +14,8 @@ interface ApiVerification {
     @GET("api/v3/auth/{authSchema}/methods")
     suspend fun getVerificationMethods(
         @Path("authSchema") schema: String,
-        @Query("processId") processId: String?
+        @Query("processId") processId: String?,
+        @Query("selectedMethod") selectedMethod: String? = null,
     ): VerificationMethodsData
 
     @Analytics("getAuthUrl")
@@ -31,7 +32,8 @@ interface ApiVerification {
         @Path("method") verificationMethodCode: String,
         @Path("requestId") requestId: String,
         @Query("processId") processId: String,
-        @Query("bankId") bankCode: String?
+        @Query("bankId") bankCode: String?,
+        @Query("otp") otpCode: String? = null,
     ): TemplateDialogModelWithProcessCode
 
 }

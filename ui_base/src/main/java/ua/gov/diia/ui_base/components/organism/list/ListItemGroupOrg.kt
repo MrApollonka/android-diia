@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
@@ -23,6 +25,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ua.gov.diia.core.models.common_compose.org.list.ListItemGroupOrg
@@ -36,10 +42,15 @@ import ua.gov.diia.ui_base.components.infrastructure.UIElementData
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
 import ua.gov.diia.ui_base.components.infrastructure.state.UIState
+import ua.gov.diia.ui_base.components.infrastructure.utils.SidePaddingMode
+import ua.gov.diia.ui_base.components.infrastructure.utils.TopPaddingMode
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiIcon
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.toDynamicString
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.toDynamicStringOrNull
+import ua.gov.diia.ui_base.components.infrastructure.utils.toDp
+import ua.gov.diia.ui_base.components.infrastructure.utils.toSidePaddingMode
+import ua.gov.diia.ui_base.components.infrastructure.utils.toTopPaddingMode
 import ua.gov.diia.ui_base.components.molecule.list.ListItemMlc
 import ua.gov.diia.ui_base.components.molecule.list.ListItemMlcData
 import ua.gov.diia.ui_base.components.molecule.list.toUiModel
@@ -66,12 +77,15 @@ fun ListItemGroupOrg(
 
     Column(
         modifier = modifier
-            .padding(top = 16.dp, start = 24.dp, end = 24.dp)
+            .padding(
+                start = data.paddingHorizontal.toDp(defaultPadding = 24.dp),
+                top = data.paddingTop.toDp(defaultPadding = 16.dp),
+                end = data.paddingHorizontal.toDp(defaultPadding = 24.dp)
+            )
             .fillMaxWidth()
             .background(color = White, shape = RoundedCornerShape(16.dp))
             .testTag(data.componentId?.asString() ?: ""),
     ) {
-
         data.title?.let {
             Text(
                 modifier = Modifier
@@ -88,9 +102,12 @@ fun ListItemGroupOrg(
             DividerSlimAtom(color = BlackSqueeze)
         }
 
-        if(data.itemsList.isNotEmpty()){
+        if (data.itemsList.isNotEmpty()) {
             data.itemsList.forEachIndexed { index, item ->
                 ListItemMlc(
+                    modifier = Modifier.semantics {
+                        role = Role.Button
+                    },
                     data = item.copy(
                         interactionState = if (isLoading) {
                             if (progressIndicator.first == item.id) {
@@ -120,16 +137,18 @@ fun ListItemGroupOrg(
             }
         }
 
-// BTN ADD ITEM
-        if(data.button != null && data.itemsList.isNotEmpty()) {
+        // BTN ADD ITEM
+        if (data.button != null && data.itemsList.isNotEmpty()) {
             DividerSlimAtom(
                 modifier = Modifier.height(1.dp),
                 color = BlackSqueeze
             )
         }
+
         data.button?.let {
             Row(
-                modifier = Modifier.padding(vertical = 16.dp)
+                modifier = Modifier
+                    .padding(vertical = 16.dp)
                     .fillMaxWidth()
                     .clickable {
                         onUIAction(
@@ -142,7 +161,7 @@ fun ListItemGroupOrg(
                 horizontalArrangement = Arrangement.Center
             ) {
                 BtnPlainIconAtm(
-                    modifier = modifier,
+                    modifier = Modifier,
                     data = data.button,
 
                     ) {
@@ -173,8 +192,18 @@ data class ListItemGroupOrgData(
     val componentId: UiText? = null,
     val title: UiText? = null,
     val itemsList: List<ListItemMlcData>,
-    val button: BtnPlainIconAtmData? = null
-    ) : UIElementData
+    val button: BtnPlainIconAtmData? = null,
+    val paddingTop: TopPaddingMode? = null,
+    val paddingHorizontal: SidePaddingMode? = null,
+) : UIElementData {
+
+    fun filterByQuery(query: String): ListItemGroupOrgData {
+        val filtered = itemsList.filter { item ->
+            item.getLabel()?.contains(query, ignoreCase = true) == true
+        }
+        return copy(itemsList = filtered)
+    }
+}
 
 fun ListItemGroupOrg.toUIModel(): ListItemGroupOrgData {
     val entity: ListItemGroupOrg = this
@@ -186,12 +215,139 @@ fun ListItemGroupOrg.toUIModel(): ListItemGroupOrgData {
                 add(item.toUiModel(id = index.toString()))
             }
         },
-        button = this.btnPlainIconAtm?.toUiModel()
+        button = this.btnPlainIconAtm?.toUiModel(),
+        paddingTop = this?.paddingMode?.top.toTopPaddingMode(),
+        paddingHorizontal = this?.paddingMode?.side.toSidePaddingMode(),
     )
 }
 
-enum class ActionTypes {
-    enabled, disabled, invisible
+fun LazyListScope.loadListItemGroupOrg(
+    data: ListItemGroupOrgData,
+    progressIndicator: Pair<String, Boolean> = Pair("", false),
+    onUIAction: (UIAction) -> Unit = {}
+) {
+    data.title?.let { title ->
+        item {
+            Text(
+                modifier = Modifier
+                    .background(
+                        color = White,
+                        shape = if (data.button == null && data.itemsList.isEmpty())
+                            RoundedCornerShape(16.dp)
+                        else
+                            RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+                    )
+                    .padding(
+                        start = data.paddingHorizontal.toDp(defaultPadding = 24.dp),
+                        top = data.paddingTop.toDp(defaultPadding = 16.dp),
+                        end = data.paddingHorizontal.toDp(defaultPadding = 24.dp)
+                    )
+                    .conditional(data.itemsList.none {
+                        it.interactionState == UIState.Interaction.Enabled
+                    }) {
+                        alpha(0.3f)
+                    },
+                text = title.asString(),
+                textAlign = TextAlign.Left,
+                style = DiiaTextStyle.t3TextBody,
+                color = Black
+            )
+        }
+    }
+
+    items(data.itemsList) { item ->
+        val index = data.itemsList.indexOf(item)
+        val isFirstItem = index <= 0
+        val isLastItem = (index + 1) == data.itemsList.size
+
+        ListItemMlc(
+            modifier = Modifier
+                .padding(
+                    top = if (isFirstItem) data.paddingTop.toDp(defaultPadding = 16.dp) else 0.dp,
+                    start = data.paddingHorizontal.toDp(defaultPadding = 24.dp),
+                    end = data.paddingHorizontal.toDp(defaultPadding = 24.dp)
+                )
+                .background(
+                    color = White,
+                    shape = if (data.title == null && data.button == null && data.itemsList.size == 1)
+                        RoundedCornerShape(16.dp)
+                    else if (data.title == null && isFirstItem)
+                        RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+                    else if (data.button == null && isLastItem)
+                        RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)
+                    else
+                        RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp)
+                )
+                .semantics {
+                    role = Role.Button
+                },
+            data = item,
+            progressIndicator = progressIndicator,
+            onUIAction = {
+                onUIAction(
+                    UIAction(
+                        actionKey = item.actionKey,
+                        data = it.data,
+                        optionalId = item.id,
+                        action = it.action
+                    )
+                )
+            },
+        )
+
+        if (data.button == null && !isLastItem)
+            DividerSlimAtom(
+                modifier = Modifier
+                    .height(1.dp)
+                    .padding(
+                        start = data.paddingHorizontal.toDp(defaultPadding = 24.dp),
+                        end = data.paddingHorizontal.toDp(defaultPadding = 24.dp)
+                    ),
+                color = BlackSqueeze
+            )
+        else if (data.button != null && isLastItem)
+            DividerSlimAtom(
+                modifier = Modifier
+                    .height(1.dp)
+                    .padding(horizontal = 24.dp),
+                color = BlackSqueeze
+            )
+    }
+
+    data.button?.let {
+        item {
+            Row(
+                modifier = Modifier
+                    .background(
+                        color = White,
+                        shape = if (data.title == null && data.itemsList.isEmpty())
+                            RoundedCornerShape(16.dp)
+                        else
+                            RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)
+                    )
+                    .padding(vertical = 16.dp)
+                    .clickable {
+                        onUIAction(
+                            UIAction(
+                                actionKey = data.actionKey,
+                                action = data.button.action
+                            )
+                        )
+                    },
+                horizontalArrangement = Arrangement.Center
+            ) {
+                BtnPlainIconAtm(data = data.button) {
+                    onUIAction(
+                        UIAction(
+                            actionKey = data.actionKey,
+                            action = data.button.action
+                        )
+                    )
+                }
+            }
+        }
+    }
+
 }
 
 enum class ListItemGroupOrgMockType {
@@ -199,7 +355,7 @@ enum class ListItemGroupOrgMockType {
 }
 
 fun generateListItemGroupOrgData(mockType: ListItemGroupOrgMockType): ListItemGroupOrgData {
-    return when(mockType) {
+    return when (mockType) {
         ListItemGroupOrgMockType.default -> ListItemGroupOrgData(
             title = UiText.DynamicString("title:"),
             itemsList = SnapshotStateList<ListItemMlcData>().apply {
@@ -212,8 +368,14 @@ fun generateListItemGroupOrgData(mockType: ListItemGroupOrgMockType): ListItemGr
                         )
                     )
                 }
+                add(ListItemMlcData(
+                    id = "id123",
+                    label = UiText.DynamicString("Label"),
+                    iconRight = UiIcon.DrawableResource(DiiaResourceIcon.ARROW_MIN_RIGHT.code)
+                ))
             }
         )
+
         ListItemGroupOrgMockType.disabled -> ListItemGroupOrgData(
             title = UiText.DynamicString("title:"),
             itemsList = SnapshotStateList<ListItemMlcData>().apply {
@@ -253,6 +415,7 @@ fun generateListItemGroupOrgData(mockType: ListItemGroupOrgMockType): ListItemGr
                 }
             }
         )
+
         ListItemGroupOrgMockType.withBtnAdd -> ListItemGroupOrgData(
             title = UiText.DynamicString("title:"),
             itemsList = SnapshotStateList<ListItemMlcData>().apply {
@@ -272,6 +435,7 @@ fun generateListItemGroupOrgData(mockType: ListItemGroupOrgMockType): ListItemGr
                 icon = UiIcon.DrawableResource(DiiaResourceIcon.ADD.code)
             )
         )
+
         ListItemGroupOrgMockType.btnAddWithoutElements -> ListItemGroupOrgData(
             itemsList = listOf(),
             button = BtnPlainIconAtmData(
@@ -282,9 +446,6 @@ fun generateListItemGroupOrgData(mockType: ListItemGroupOrgMockType): ListItemGr
         )
     }
 }
-
-
-
 
 @Composable
 @Preview
@@ -309,7 +470,6 @@ fun ListItemGroupOrgPreview_Disabled_and_Enabled() {
 fun ListItemGroupOrgPreview_BtnAdd() {
     ListItemGroupOrg(data = generateListItemGroupOrgData(ListItemGroupOrgMockType.withBtnAdd)) {}
 }
-
 
 @Composable
 @Preview

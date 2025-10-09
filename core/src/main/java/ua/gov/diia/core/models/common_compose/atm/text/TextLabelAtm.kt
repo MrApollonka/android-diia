@@ -10,15 +10,18 @@ import kotlinx.parcelize.Parcelize
 data class TextLabelAtm(
     @Json(name = "componentId")
     val componentId: String? = null,
-    @Json(name = "code")
+    @Json(name = "mode")
     val mode: Mode,
     @Json(name = "label")
     val label: String,
     @Json(name = "value")
     val value: String?
 ) : Parcelable {
+
     enum class Mode(val type: String) {
+        @Json(name = "primary")
         PRIMARY("primary"),
+        @Json(name = "secondary")
         SECONDARY("secondary")
     }
 }

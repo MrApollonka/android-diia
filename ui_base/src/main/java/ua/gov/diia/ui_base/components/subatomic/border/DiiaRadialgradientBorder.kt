@@ -20,13 +20,11 @@ import ua.gov.diia.ui_base.components.theme.GradientAlternativePosition02
 import ua.gov.diia.ui_base.components.theme.GradientAlternativePosition03
 import ua.gov.diia.ui_base.components.theme.GradientAlternativePosition04
 import ua.gov.diia.ui_base.components.theme.GradientAlternativePosition05
-import ua.gov.diia.ui_base.components.theme.GradientAlternativePosition06
 
-private const val RADIUS_MULTIPLIER = 3.0f
+private const val RADIUS_MULTIPLIER = 2.1f
 
 fun Modifier.diiaRadialGradientBorder() =
     composed {
-
         val configuration = LocalConfiguration.current
 
         val screenWidth = configuration.screenWidthDp.dp.value
@@ -42,19 +40,18 @@ fun Modifier.diiaRadialGradientBorder() =
                     GradientAlternativePosition03,
                     GradientAlternativePosition04,
                     GradientAlternativePosition05,
-                    GradientAlternativePosition06,
                 ),
             ), RoundedCornerShape(8.dp)
         )
     }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun DiiaRadialGradientBorderPreview() {
     Column(modifier = Modifier.fillMaxSize()) {
         Box(
             modifier = Modifier
-                .size(300.dp, 200.dp)
+                .size(300.dp, 100.dp)
                 .padding(30.dp)
                 .diiaRadialGradientBorder()
         )

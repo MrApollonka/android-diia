@@ -6,6 +6,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ua.gov.diia.core.models.common_compose.atm.text.SectionTitleAtm
@@ -24,7 +26,8 @@ fun SectionTitleAtm(
             .padding(horizontal = 24.dp)
             .fillMaxWidth()
             .padding(top = if (isFirstAtBody) 8.dp else 32.dp)
-            .testTag(data.componentId?.asString() ?: ""),
+            .testTag(data.componentId?.asString() ?: "")
+            .semantics { heading() },
         text = data.label.asString(),
         style = DiiaTextStyle.t1BigText
     )

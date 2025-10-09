@@ -4,8 +4,8 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import ua.gov.diia.diia_storage.AndroidBase64Wrapper
-import ua.gov.diia.diia_storage.Base64Wrapper
+import ua.gov.diia.core.util.decoder.AndroidBase64Wrapper
+import ua.gov.diia.core.util.decoder.Base64Wrapper
 
 @Module
 @InstallIn(SingletonComponent::class)

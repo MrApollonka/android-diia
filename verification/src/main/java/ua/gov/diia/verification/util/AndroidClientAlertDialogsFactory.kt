@@ -5,6 +5,7 @@ import ua.gov.diia.core.models.dialogs.TemplateDialogData
 import ua.gov.diia.core.models.dialogs.TemplateDialogModel
 import ua.gov.diia.core.ui.dynamicdialog.ActionsConst
 import ua.gov.diia.core.util.alert.ClientAlertDialogsFactory
+import ua.gov.diia.core.util.throwExceptionInDebugOrShowAlert
 import javax.inject.Inject
 
 class AndroidClientAlertDialogsFactory @Inject constructor(
@@ -21,23 +22,11 @@ class AndroidClientAlertDialogsFactory @Inject constructor(
                     "\uD83D\uDE1E",
                     "Неможливо підтвердити особу користувача",
                     "На жаль, на поточний момент немає доступних методів підтвердження особи користувача для створення Дія.Підпису. Спробуйте пізніше.",
-                    TemplateDialogButton("Зрозуміло", null, "skip")
+                    TemplateDialogButton("Зрозуміло", null, ActionsConst.DIALOG_ACTION_CODE_SKIP)
                 )
             )
 
-            else -> TemplateDialogModel(
-                type = "smallAlert",
-                key = ActionsConst.FRAGMENT_USER_ACTION_RESULT_KEY,
-                isClosable = isClosable,
-                data = TemplateDialogData(
-                    icon = "\uD83D\uDE1E",
-                    title = "На жаль, сталася помилка",
-                    mainButton = TemplateDialogButton(
-                        name = if (isClosable) "Спробувати ще" else "Зрозуміло",
-                        action = if (isClosable) ActionsConst.GENERAL_RETRY else ActionsConst.ERROR_DIALOG_DEAL_WITH_IT,
-                    ),
-                ),
-            )
+            else -> "Unhandled keyAlert".throwExceptionInDebugOrShowAlert(isClosable)
         }
     }
 

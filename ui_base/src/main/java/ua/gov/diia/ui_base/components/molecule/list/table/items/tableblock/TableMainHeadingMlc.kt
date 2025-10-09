@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -18,8 +17,13 @@ import ua.gov.diia.ui_base.components.atom.icon.IconAtmData
 import ua.gov.diia.ui_base.components.infrastructure.UIElementData
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
+import ua.gov.diia.ui_base.components.infrastructure.utils.SidePaddingMode
+import ua.gov.diia.ui_base.components.infrastructure.utils.TopPaddingMode
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.toDynamicString
+import ua.gov.diia.ui_base.components.infrastructure.utils.toDp
+import ua.gov.diia.ui_base.components.infrastructure.utils.toSidePaddingMode
+import ua.gov.diia.ui_base.components.infrastructure.utils.toTopPaddingMode
 import ua.gov.diia.ui_base.components.noRippleClickable
 import ua.gov.diia.ui_base.components.theme.Black
 import ua.gov.diia.ui_base.components.theme.BlackAlpha50
@@ -36,12 +40,18 @@ fun TableMainHeadingMlc(
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .padding(
+                start = data.paddingHorizontal.toDp(defaultPadding = 0.dp),
+                top = data.paddingTop.toDp(defaultPadding = 0.dp),
+                end = data.paddingHorizontal.toDp(defaultPadding = 0.dp)
+            )
             .testTag(componentId)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
+                .padding(end = 16.dp)
         ) {
             data.title?.let { lTitle ->
                 Text(
@@ -50,10 +60,12 @@ fun TableMainHeadingMlc(
                     style = DiiaTextStyle.h4ExtraSmallHeading
                 )
             }
-            data.description?.let { lDescription ->
+            val description = data.description?.asString()
+            if (!description.isNullOrBlank()) {
                 Text(
-                    modifier = Modifier.padding(top = 8.dp),
-                    text = lDescription.asString(),
+                    modifier = Modifier
+                        .padding(top = 8.dp),
+                    text = description,
                     color = BlackAlpha50,
                     style = DiiaTextStyle.t2TextDescription
                 )
@@ -62,7 +74,6 @@ fun TableMainHeadingMlc(
         data.iconAtmData?.let { lIconAtmData ->
             IconAtm(
                 modifier = Modifier
-                    .padding(start = 16.dp)
                     .size(24.dp)
                     .noRippleClickable {
                         onUIAction(
@@ -82,18 +93,22 @@ data class TableMainHeadingMlcData(
     val componentId: UiText? = null,
     val title: UiText? = null,
     val description: UiText? = null,
-    val iconAtmData: IconAtmData? = null
+    val iconAtmData: IconAtmData? = null,
+    val paddingTop: TopPaddingMode? = null,
+    val paddingHorizontal: SidePaddingMode? = null,
 ) : UIElementData
 
 fun TableMainHeadingMlc.toUIModel() = TableMainHeadingMlcData(
     componentId = componentId?.let { UiText.DynamicString(it) },
     title = UiText.DynamicString(label),
     description = description?.let { UiText.DynamicString(it) },
-    iconAtmData = icon?.toUiModel()
+    iconAtmData = icon?.toUiModel(),
+    paddingTop = paddingMode?.top.toTopPaddingMode(),
+    paddingHorizontal = paddingMode?.side.toSidePaddingMode(),
 )
 
 fun UiText?.toTableMainHeadingMlcData() = TableMainHeadingMlcData(
-    componentId = null,
+    componentId = "table_main_heading_mlc".toDynamicString(),
     title = this,
     description = null,
     iconAtmData = null
@@ -109,7 +124,6 @@ fun TableMainHeadingMlcPreview() {
         )
     )
     TableMainHeadingMlc(
-        modifier = Modifier.padding(16.dp),
         data = state
     ) {
         /* no-op */
@@ -127,7 +141,6 @@ fun TableMainHeadingMlcWithDescriptionPreview() {
         )
     )
     TableMainHeadingMlc(
-        modifier = Modifier.padding(16.dp),
         data = state
     ) {
         /* no-op */

@@ -13,6 +13,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.intl.LocaleList
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ua.gov.diia.core.models.common_compose.atm.button.BtnStrokeAdditionalAtm
@@ -29,6 +33,7 @@ import ua.gov.diia.ui_base.components.theme.BlackAlpha10
 import ua.gov.diia.ui_base.components.theme.BlackAlpha30
 import ua.gov.diia.ui_base.components.theme.DiiaTextStyle
 import ua.gov.diia.ui_base.components.theme.Transparent
+import ua.gov.diia.ui_base.util.extensions.language.detectLanguageCode
 import ua.gov.diia.ui_base.util.toDataActionWrapper
 
 
@@ -80,7 +85,13 @@ fun BtnStrokeAdditionalAtm(
         }
         if (!isLoading.value) {
             Text(
-                text = data.title.asString(),
+                text = buildAnnotatedString {
+                    val textContent = data.title.asString()
+                    val languageCode = textContent.detectLanguageCode()
+                    withStyle(style = SpanStyle(localeList = LocaleList(languageCode))) {
+                        append(textContent)
+                    }
+                },
                 color = when (data.interactionState) {
                     UIState.Interaction.Disabled -> BlackAlpha30
                     UIState.Interaction.Enabled -> Black

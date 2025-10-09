@@ -3,11 +3,12 @@ package ua.gov.diia.opensource.helper
 import androidx.fragment.app.Fragment
 import ua.gov.diia.core.models.ContextMenuField
 import ua.gov.diia.core.models.rating_service.RatingFormModel
+import ua.gov.diia.core.util.delegation.WithCrashlytics
 import ua.gov.diia.core.util.extensions.fragment.navigate
+import ua.gov.diia.core.util.extensions.fragment.sendPdf
+import ua.gov.diia.core.util.extensions.fragment.sendZip
 import ua.gov.diia.opensource.NavMainDirections
-import ua.gov.diia.opensource.util.extensions.fragment.sendZip
 import ua.gov.diia.publicservice.helper.PSNavigationHelper
-import ua.gov.diia.publicservice.util.extensions.fragment.sendPdf
 
 class PSNavigationHelperImpl : PSNavigationHelper {
     override fun navigateToContextMenu(
@@ -40,12 +41,22 @@ class PSNavigationHelperImpl : PSNavigationHelper {
         // Implement navigation to support screen
     }
 
-    override fun sendPdf(fragment: Fragment, file: String, name: String) {
-        fragment.sendPdf(file, name, "")
+    override fun sendPdf(
+        fragment: Fragment,
+        file: String,
+        name: String,
+        withCrashlytics: WithCrashlytics
+    ) {
+        fragment.sendPdf(file, name, "", withCrashlytics)
     }
 
-    override fun sendZip(fragment: Fragment, file: String, name: String) {
-        fragment.sendZip(file, name)
+    override fun sendZip(
+        fragment: Fragment,
+        file: String,
+        name: String,
+        withCrashlytics: WithCrashlytics
+    ) {
+        fragment.sendZip(file, name, "", withCrashlytics)
     }
 
     override fun navigateToGlobalDestinationPS(

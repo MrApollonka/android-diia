@@ -16,6 +16,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/large"
+            android:contentDescription="@string/back"
             app:layout_constraintBottom_toBottomOf="@+id/et_searchF_value"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -27,8 +28,9 @@
             android:layout_marginStart="@dimen/middle"
             android:layout_marginTop="@dimen/large"
             android:layout_marginEnd="@dimen/xlarge"
-            android:inputType="textCapSentences"
+            android:contentDescription="@string/accessibility_search"
             android:imeOptions="actionDone"
+            android:inputType="textCapSentences"
             app:drawableStartCompat="@drawable/ic_baseline_search_24"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/img_search_close"

@@ -14,7 +14,6 @@ interface SplashHelper {
      * */
     suspend fun setUserAuthorized(protectionKey: String)
 
-
     /**
      * Navigate the user to pin creation screen
      */
@@ -23,4 +22,7 @@ interface SplashHelper {
         resultDestinationId: Int,
         resultKey: String,
     )
+
+    fun navigateToQrScan(fragment: Fragment)
+
 }

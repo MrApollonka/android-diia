@@ -24,5 +24,8 @@ object AddressSearchFieldType {
         const val CORPS = "corps"
         const val APARTMENT = "apartment"
         const val ZIP = "zip"
+
+        const val INTERNATIONAL_DELIVERY = "international-delivery"
+        const val DEFAULT_MASK = "###############"
     }
 }

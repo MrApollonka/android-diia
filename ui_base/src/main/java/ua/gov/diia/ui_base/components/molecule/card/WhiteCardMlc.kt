@@ -14,10 +14,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
+import coil.compose.AsyncImage
 import ua.gov.diia.ui_base.R
 import ua.gov.diia.ui_base.components.DiiaResourceIcon
 import ua.gov.diia.ui_base.components.atom.icon.DoubleIconAtm
@@ -39,7 +40,6 @@ import ua.gov.diia.ui_base.components.theme.Black
 import ua.gov.diia.ui_base.components.theme.DiiaTextStyle
 import ua.gov.diia.ui_base.components.theme.WhiteAlpha50
 
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun WhiteCardMlc(
     modifier: Modifier = Modifier,
@@ -64,23 +64,19 @@ fun WhiteCardMlc(
                 onUIAction(onClick)
             }
     ) {
-
-        data.image?.let {
-            GlideImage(
-                model = data.image,
-                contentDescription = "",
-                contentScale = ContentScale.Crop,
+        data.image?.let { lImageUrl ->
+            AsyncImage(
                 modifier = Modifier
                     .height(80.dp)
                     .fillMaxWidth()
                     .padding(bottom = 12.dp)
-                    .clip(shape = RoundedCornerShape(12.dp))
-
-            ) {
-                it.error(R.drawable.diia_article_placeholder)
-                    .placeholder(R.drawable.diia_article_placeholder)
-                    .load(data.image)
-            }
+                    .clip(shape = RoundedCornerShape(12.dp)),
+                model = lImageUrl,
+                contentDescription = "",
+                contentScale = ContentScale.Crop,
+                placeholder = painterResource(R.drawable.diia_article_placeholder),
+                error = painterResource(R.drawable.diia_article_placeholder)
+            )
         }
         data.title?.let {
             Text(
@@ -110,7 +106,9 @@ fun WhiteCardMlc(
         ) {
             data.doubleIconAtm?.let {
                 DoubleIconAtm(
-                    modifier = Modifier.padding(end = 8.dp),
+                    modifier = Modifier
+                        .padding(end = 8.dp)
+                        .clearAndSetSemantics {},
                     data = it
                 ) {
                     onUIAction(onClick)
@@ -118,7 +116,9 @@ fun WhiteCardMlc(
             }
             data.iconAtm?.let {
                 IconAtm(
-                    modifier = Modifier.padding(end = 8.dp),
+                    modifier = Modifier
+                        .padding(end = 8.dp)
+                        .clearAndSetSemantics {},
                     data = it
                 ) {
                     onUIAction(onClick)
@@ -126,7 +126,9 @@ fun WhiteCardMlc(
             }
             data.largeIconAtm?.let {
                 LargeIconAtm(
-                    modifier = Modifier.padding(end = 8.dp),
+                    modifier = Modifier
+                        .padding(end = 8.dp)
+                        .clearAndSetSemantics {},
                     data = it
                 ) {
                     onUIAction(onClick)
@@ -135,7 +137,9 @@ fun WhiteCardMlc(
             Spacer(modifier = Modifier.weight(1f))
             data.smallIcon?.let {
                 SmallIconAtm(
-                    modifier = Modifier.padding(start = 8.dp),
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                        .clearAndSetSemantics {},
                     data = it
                 ) {
                     onUIAction(onClick)

@@ -27,7 +27,7 @@ import ua.gov.diia.ui_base.components.infrastructure.collectAsEffect
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
 import ua.gov.diia.ui_base.fragments.dialog.system.DiiaSystemDFVM
 import ua.gov.diia.ui_base.navigation.BaseNavigation
-import ua.gov.diia.ui_base.util.view.showCopyDeviceUuidClipedSnackBar
+import ua.gov.diia.ui_base.util.view.showCopyClippedSnackBar
 
 @Composable
 fun MenuC(
@@ -126,7 +126,7 @@ fun MenuC(
 
             else -> {
                 val uuid = action as? MenuAction.DoCopyDeviceUid ?: return@collectAsEffect
-                context.getActivity()?.window?.decorView?.showCopyDeviceUuidClipedSnackBar(
+                context.getActivity()?.window?.decorView?.showCopyClippedSnackBar(
                     uuid.deviceUid,
                     topPadding = 40f,
                     bottomPadding = 0f

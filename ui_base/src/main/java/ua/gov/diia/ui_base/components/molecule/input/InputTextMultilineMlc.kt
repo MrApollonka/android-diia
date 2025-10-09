@@ -60,6 +60,7 @@ import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.toDynamicString
 import ua.gov.diia.ui_base.components.theme.Black
 import ua.gov.diia.ui_base.components.theme.BlackAlpha30
+import ua.gov.diia.ui_base.components.theme.BlackAlpha54
 import ua.gov.diia.ui_base.components.theme.DiiaTextStyle
 import ua.gov.diia.ui_base.components.theme.Red
 import ua.gov.diia.ui_base.components.theme.White
@@ -181,7 +182,7 @@ fun InputTextMultilineMlc(
                             justFocused = justFocused
                         )
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
 
                 Box(modifier = Modifier.fillMaxWidth()) {
@@ -234,7 +235,7 @@ fun InputTextMultilineMlc(
                                 .bringIntoViewRequester(bringIntoHintViewRequester),
                             text = data.hint.asString(),
                             style = DiiaTextStyle.t4TextSmallDescription,
-                            color = BlackAlpha30
+                            color = BlackAlpha54
                         )
                     }
                 }
@@ -249,7 +250,7 @@ private fun getColorForInput(
     return if (isEnabled) {
         Black
     } else {
-        BlackAlpha30
+        BlackAlpha54
     }
 }
 
@@ -286,7 +287,7 @@ private fun getColorForLabel(
     justFocused: Boolean
 ): Color {
     return when (focusState) {
-        UIState.Focus.NeverBeenFocused -> BlackAlpha30
+        UIState.Focus.NeverBeenFocused -> BlackAlpha54
         UIState.Focus.FirstTimeInFocus -> Black
         UIState.Focus.InFocus -> {
             when (validationState) {

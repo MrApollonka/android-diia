@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.tooling.preview.Preview
@@ -44,7 +45,7 @@ fun IconAtm(
         painter = painterResource(
             id = DiiaResourceIcon.getResourceId(data.code)
         ),
-        contentDescription = data.accessibilityDescription
+        contentDescription = stringResource(id = DiiaResourceIcon.getContentDescription(data.code))
     )
 }
 
@@ -92,4 +93,3 @@ fun IconAtmPreview_enabled() {
     )
     IconAtm(data = data)
 }
-

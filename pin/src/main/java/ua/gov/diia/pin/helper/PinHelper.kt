@@ -29,4 +29,7 @@ interface PinHelper {
         resultKey: String,
         pin: String,
     )
+
+    fun navigateToQrScan(fragment: Fragment)
+
 }

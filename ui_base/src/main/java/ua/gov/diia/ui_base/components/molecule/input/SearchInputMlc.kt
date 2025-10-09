@@ -41,13 +41,18 @@ import ua.gov.diia.ui_base.components.infrastructure.UIElementData
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
 import ua.gov.diia.ui_base.components.infrastructure.state.UIState
+import ua.gov.diia.ui_base.components.infrastructure.utils.SidePaddingMode
+import ua.gov.diia.ui_base.components.infrastructure.utils.TopPaddingMode
 import ua.gov.diia.ui_base.components.infrastructure.utils.clearFocusOnKeyboardDismiss
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiIcon
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
+import ua.gov.diia.ui_base.components.infrastructure.utils.toDp
+import ua.gov.diia.ui_base.components.infrastructure.utils.toSidePaddingMode
+import ua.gov.diia.ui_base.components.infrastructure.utils.toTopPaddingMode
 import ua.gov.diia.ui_base.components.noRippleClickable
 import ua.gov.diia.ui_base.components.subatomic.icon.UiIconWrapperSubatomic
 import ua.gov.diia.ui_base.components.theme.AzureishWhite
-import ua.gov.diia.ui_base.components.theme.BlackAlpha30
+import ua.gov.diia.ui_base.components.theme.BlackAlpha54
 import ua.gov.diia.ui_base.components.theme.DiiaTextStyle
 import ua.gov.diia.ui_base.components.theme.White
 
@@ -75,8 +80,11 @@ fun SearchInputMlc(
         ModeSearchInput.EDITABLE.value -> {
             BasicTextField(
                 modifier = modifier
-                    .padding(horizontal = 24.dp)
-                    .padding(top = 8.dp)
+                    .padding(
+                        start = data.sidePaddingMode.toDp(defaultPadding = 0.dp),
+                        top = data.topPaddingMode.toDp(defaultPadding = 0.dp),
+                        end = data.sidePaddingMode.toDp(defaultPadding = 0.dp),
+                    )
                     .height(height = 40.dp)
                     .focusable(true)
                     .focusRequester(focusRequester)
@@ -139,7 +147,10 @@ fun SearchInputMlc(
                             UiIconWrapperSubatomic(
                                 modifier = Modifier
                                     .padding(start = 8.dp)
-                                    .size(24.dp),
+                                    .size(24.dp)
+                                    .semantics {
+                                        contentDescription = ""
+                                    },
                                 icon = it
                             )
                         }
@@ -152,7 +163,7 @@ fun SearchInputMlc(
                                     Text(
                                         text = data.placeholder.asString(),
                                         style = DiiaTextStyle.t3TextBody,
-                                        color = BlackAlpha30
+                                        color = BlackAlpha54
                                     )
                                 }
                             }
@@ -171,6 +182,7 @@ fun SearchInputMlc(
                                                 data = ""
                                             )
                                         )
+                                        focusRequester.requestFocus()
                                     },
                                 icon = UiIcon.DrawableResource(DiiaResourceIcon.CLOSE_RECTANGLE.code),
                                 contentDescription = UiText.StringResource(R.string.clean_search_field),
@@ -186,6 +198,8 @@ fun SearchInputMlc(
 data class SearchInputMlcData(
     val actionKey: String = UIActionKeysCompose.SEARCH_INPUT,
     val id: String? = null,
+    val topPaddingMode: TopPaddingMode? = null,
+    val sidePaddingMode: SidePaddingMode? = null,
     val searchFieldValue: UiText? = null,
     val placeholder: UiText? = null,
     val mode: Int = ModeSearchInput.EDITABLE.value,
@@ -205,6 +219,8 @@ data class SearchInputMlcData(
 fun SearchInputMlc.toUiModel(): SearchInputMlcData {
     return SearchInputMlcData(
         id = "searchInputMlc",
+        topPaddingMode = paddingMode?.top.toTopPaddingMode(),
+        sidePaddingMode = paddingMode?.side.toSidePaddingMode(),
         placeholder = UiText.DynamicString(this.label),
         iconLeft = this.iconLeft?.let { icon ->
             UiIcon.DrawableResource(code = icon.code)

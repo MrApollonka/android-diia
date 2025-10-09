@@ -37,6 +37,19 @@ inline fun <reified T> SnapshotStateList<UIElementData>.findAndChangeFirstByInst
     }
 }
 
+inline fun <reified T : UIElementData> SnapshotStateList<UIElementData>.update(
+    noinline predicate: (T) -> Boolean = { true },
+    action: (T) -> UIElementData
+) {
+    val index = this.indexOfFirst { element ->
+        element is T && predicate(element)
+    }
+
+    if (index != -1) {
+        this[index] = action(this[index] as T)
+    }
+}
+
 inline fun <reified T> SnapshotStateList<UIElementData>.firstOrNull(): T? {
     val index = this.indexOfFirst { it is T }
     return if (index == -1) {

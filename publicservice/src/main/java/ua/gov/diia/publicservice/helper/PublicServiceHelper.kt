@@ -10,12 +10,19 @@ interface PublicServiceHelper {
      * Navigate to PublicServiceCategory screen
      */
     fun navigateToCategoryServices(fragment: Fragment, category: PublicServiceCategory)
+
     /**
      * Navigate to PublicServiceSearch screen
      */
     fun navigateToServiceSearch(fragment: Fragment, data: Array<PublicServiceCategory>)
+
     /**
      * Navigate to PublicService screen
      */
-    fun navigateToService(fragment: Fragment, service: PublicService)
+    fun navigateToService(fragment: Fragment, service: PublicService, arg: String? = null)
+
+    /**
+     * Navigate to WebView
+     */
+    fun navigateToWebView(fragment: Fragment, link: String)
 }

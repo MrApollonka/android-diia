@@ -16,6 +16,7 @@ import ua.gov.diia.ui_base.components.infrastructure.screen.ComposeHomeTabRoot
 import ua.gov.diia.ui_base.components.infrastructure.screen.TabBodyRootLazyContainer
 import ua.gov.diia.ui_base.components.infrastructure.screen.TopBarRootContainer
 import ua.gov.diia.ui_base.components.provideTestTagsAsResourceId
+import ua.gov.diia.ui_base.mappers.loader.mapToLoader
 
 @Composable
 fun PublicServicesCategoriesComposeScreen(
@@ -35,7 +36,7 @@ fun PublicServicesCategoriesComposeScreen(
         modifier = modifier
             .background(Color.Transparent)
             .provideTestTagsAsResourceId(),
-        contentLoaded = contentLoaded,
+        loader = mapToLoader(progressIndicator, contentLoaded),
         topBar = {
             if (topBar != null) {
                 TopBarRootContainer(
@@ -61,7 +62,7 @@ fun PublicServicesCategoriesComposeScreen(
             if (bottom != null) {
                 BottomBarRootContainer(
                     bottomViews = bottom,
-                    progressIndicator = progressIndicator,
+                    loader = mapToLoader(progressIndicator, contentLoaded),
                     onUIAction = onEvent
                 )
             }

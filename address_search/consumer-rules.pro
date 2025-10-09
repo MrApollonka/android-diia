@@ -1,2 +1,1 @@
--keep public enum ua.gov.diia.address_search.models.AddressFieldInputType {*;}
--keep public class ua.gov.diia.address_search.models.AddressFieldResponse
+-keep public class ua.gov.diia.address_search.models.**{*;}

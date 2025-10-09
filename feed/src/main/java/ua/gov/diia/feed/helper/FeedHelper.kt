@@ -25,4 +25,7 @@ interface FeedHelper {
      * Navigate by specific navDirection
      */
     fun navigateByNavDirection(fragment: Fragment, navDirection: NavDirections)
+
+    fun navigateToQrScan(fragment: Fragment)
+
 }

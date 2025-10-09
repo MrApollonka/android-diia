@@ -4,7 +4,6 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import app.cash.turbine.test
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.anyOrNull
-import com.nhaarman.mockitokotlin2.never
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -19,7 +18,6 @@ import org.junit.runners.Parameterized.Parameters
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import ua.gov.diia.core.models.dialogs.TemplateDialogModelWithProcessCode
-import ua.gov.diia.core.util.alert.ClientAlertDialogsFactory
 import ua.gov.diia.core.util.delegation.WithErrorHandlingOnFlow
 import ua.gov.diia.core.util.delegation.WithRetryLastAction
 import ua.gov.diia.core.util.system.application.ApplicationLauncher
@@ -33,6 +31,7 @@ import ua.gov.diia.verification.network.ApiVerification
 import ua.gov.diia.verification.rules.MainDispatcherRule
 import ua.gov.diia.verification.ui.VerificationSchema
 import ua.gov.diia.verification.ui.methods.VerificationMethod
+import ua.gov.diia.verification.util.AndroidClientAlertDialogsFactory
 import ua.gov.diia.verification.util.StubErrorHandlerOnFlow
 import ua.gov.diia.verification.util.StubVerificationMethod
 import ua.gov.diia.verification.util.dummyTemplateDialog
@@ -49,7 +48,7 @@ class VerificationControllerOnFlowVMTest(
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 
     @Mock
-    lateinit var clientAlertDialogsFactory: ClientAlertDialogsFactory
+    lateinit var clientAlertDialogsFactory: AndroidClientAlertDialogsFactory
 
     @Mock
     lateinit var retryErrorBehavior: WithRetryLastAction
@@ -103,7 +102,8 @@ class VerificationControllerOnFlowVMTest(
                     actionButton = null,
                     processId = "1234",
                     skipAuthMethods = null,
-                    template = null
+                    template = null,
+                    disabledMethods = null
                 )
             )
         viewModel.navigateToVerification.test {
@@ -122,7 +122,8 @@ class VerificationControllerOnFlowVMTest(
                     actionButton = ActivityViewActionButton("test"),
                     processId = "1234",
                     skipAuthMethods = null,
-                    template = null
+                    template = null,
+                    disabledMethods = null
                 )
             )
         viewModel.navigateToMethodsSelectionDialog.test {
@@ -133,31 +134,6 @@ class VerificationControllerOnFlowVMTest(
         }
     }
 
-    @Test
-    fun `no available verification methods`() = runTest {
-        whenever(apiVerification.getVerificationMethods(any(), anyOrNull()))
-            .thenReturn(
-                VerificationMethodsData(
-                    title = null,
-                    methods = listOf(verificationMethods[2].name),
-                    actionButton = null,
-                    processId = "1234",
-                    skipAuthMethods = null,
-                    template = null
-                )
-            )
-        whenever(clientAlertDialogsFactory.getNoVerificationMethodsDialog())
-            .thenReturn(dummyTemplateDialog())
-        viewModel.showTemplateDialog.test {
-            viewModel.loadData(schema)
-            viewModel.processVerificationMethods()
-            Assert.assertEquals(
-                dummyTemplateDialog(VerificationControllerConst.VERIFICATION_ALERT_DIALOG_ACTION),
-                awaitItem().peekContent()
-            )
-            verify(clientAlertDialogsFactory).getNoVerificationMethodsDialog()
-        }
-    }
 
     @Test
     fun `external verification`() = runTest {
@@ -170,7 +146,8 @@ class VerificationControllerOnFlowVMTest(
                     actionButton = null,
                     processId = "1234",
                     skipAuthMethods = null,
-                    template = null
+                    template = null,
+                    disabledMethods = null
                 )
             )
         whenever(apiVerification.completeVerificationStep(any(), any(), any(), anyOrNull()))
@@ -214,7 +191,8 @@ class VerificationControllerOnFlowVMTest(
                     actionButton = null,
                     processId = processId,
                     skipAuthMethods = false,
-                    template = null
+                    template = null,
+                    disabledMethods = null
                 )
             )
         // check for noop
@@ -258,7 +236,8 @@ class VerificationControllerOnFlowVMTest(
                     actionButton = null,
                     processId = processId,
                     skipAuthMethods = true,
-                    template = null
+                    template = null,
+                    disabledMethods = null
                 )
             )
         whenever(apiVerification.completeVerificationStep(any(), any(), any(), anyOrNull()))
@@ -281,31 +260,6 @@ class VerificationControllerOnFlowVMTest(
         Assert.assertTrue(viewModel.authMethodSkippedVar)
     }
 
-    @Test
-    fun `no methods`() = runTest {
-        val processId = "3243s00"
-        whenever(apiVerification.getVerificationMethods(any(), anyOrNull()))
-            .thenReturn(
-                VerificationMethodsData(
-                    title = null,
-                    methods = null,
-                    actionButton = null,
-                    processId = processId,
-                    skipAuthMethods = false,
-                    template = null
-                )
-            )
-        whenever(clientAlertDialogsFactory.getNoVerificationMethodsDialog())
-            .thenReturn(dummyTemplateDialog())
-
-        viewModel.showTemplateDialog.test {
-            viewModel.startVerification(schema)
-            Assert.assertEquals(
-                dummyTemplateDialog(VerificationControllerConst.VERIFICATION_ALERT_DIALOG_ACTION),
-                awaitItem().peekContent()
-            )
-        }
-    }
 
     @Test
     fun `invalid method url`() = runTest {
@@ -319,7 +273,8 @@ class VerificationControllerOnFlowVMTest(
                     actionButton = null,
                     processId = "1234",
                     skipAuthMethods = null,
-                    template = null
+                    template = null,
+                    disabledMethods = null
                 )
             )
         viewModel.cleanUpAndLaunchVerificationMethod(
@@ -329,35 +284,6 @@ class VerificationControllerOnFlowVMTest(
         viewModel.awaitUserVerifying()
         viewModel.handleVerificationResult(VerificationFlowResult.CompleteVerificationStep(null, null))
         Assert.assertFalse(viewModel.verifyingUserValue)
-    }
-
-    @Test
-    fun `unsupported method`() = runTest {
-        val methodName = "nosuchmethod"
-        whenever(apiVerification.getVerificationMethods(any(), anyOrNull()))
-            .thenReturn(
-                VerificationMethodsData(
-                    title = null,
-                    methods = listOf(methodName),
-                    actionButton = null,
-                    processId = "1234",
-                    skipAuthMethods = null,
-                    template = null
-                )
-            )
-        whenever(clientAlertDialogsFactory.getNoVerificationMethodsDialog())
-            .thenReturn(dummyTemplateDialog())
-        viewModel.showTemplateDialog.test {
-            viewModel.startVerification(schema)
-            viewModel.awaitUserVerifying()
-            viewModel.handleVerificationResult(VerificationFlowResult.VerificationMethod(methodName))
-            viewModel.awaitUserVerifying()
-            Assert.assertEquals(
-                dummyTemplateDialog(key = VerificationControllerConst.VERIFICATION_ALERT_DIALOG_ACTION),
-                awaitItem().getContentIfNotHandled()
-            )
-        }
-        verify(applicationLauncher, never()).launch(any())
     }
 
     companion object {

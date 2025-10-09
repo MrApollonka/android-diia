@@ -25,8 +25,14 @@ import ua.gov.diia.ui_base.components.infrastructure.UIElementData
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
 import ua.gov.diia.ui_base.components.infrastructure.state.UIState
+import ua.gov.diia.ui_base.components.infrastructure.utils.SidePaddingMode
+import ua.gov.diia.ui_base.components.infrastructure.utils.TopPaddingMode
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.toDynamicString
+import ua.gov.diia.ui_base.components.infrastructure.utils.toDp
+import ua.gov.diia.ui_base.components.infrastructure.utils.toSidePaddingMode
+import ua.gov.diia.ui_base.components.infrastructure.utils.toTopPaddingMode
+import ua.gov.diia.ui_base.components.molecule.list.table.items.tableblock.TableBlockItem
 import ua.gov.diia.ui_base.components.noRippleClickable
 import ua.gov.diia.ui_base.components.theme.Black
 import ua.gov.diia.ui_base.components.theme.BlackAlpha10
@@ -40,8 +46,11 @@ fun BtnLinkAtm(
 ) {
     Row(
         modifier = modifier
-            .padding(horizontal = 24.dp)
-            .padding(top = 24.dp)
+            .padding(
+                start = data.paddingHorizontal.toDp(defaultPadding = 24.dp),
+                top = data.paddingTop.toDp(defaultPadding = 24.dp),
+                end = data.paddingHorizontal.toDp(defaultPadding = 24.dp)
+            )
             .fillMaxWidth()
             .noRippleClickable(debounce = true) {
                 onUIAction(
@@ -52,7 +61,7 @@ fun BtnLinkAtm(
                     )
                 )
             }
-            .testTag(data.componentId?.asString() ?: ""),
+            .testTag(data.componentId?.asString().orEmpty()),
     ) {
         Text(
             text = AnnotatedString(data.title.asString()),
@@ -72,15 +81,16 @@ fun BtnLinkAtm(
     }
 }
 
-
 data class BtnLinkAtmData(
     val componentId: UiText? = null,
     val actionKey: String = UIActionKeysCompose.BTN_LINK_ATM,
     val id: String = "",
     val title: UiText,
     val interactionState: UIState.Interaction = UIState.Interaction.Enabled,
-    val action: DataActionWrapper? = null
-) : UIElementData
+    val action: DataActionWrapper? = null,
+    val paddingTop: TopPaddingMode? = null,
+    val paddingHorizontal: SidePaddingMode? = null
+) : UIElementData, TableBlockItem
 
 fun BtnLinkAtm.toUIModel(
     id: String = "",
@@ -99,6 +109,8 @@ fun BtnLinkAtm.toUIModel(
                 else -> UIState.Interaction.Enabled
             }
         } ?: UIState.Interaction.Enabled,
+        paddingTop = this.paddingMode?.top.toTopPaddingMode(),
+        paddingHorizontal = this.paddingMode?.side.toSidePaddingMode()
     )
 }
 

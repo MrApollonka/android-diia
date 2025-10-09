@@ -1,164 +1,362 @@
 package ua.gov.diia.ps_criminal_cert.ui.steps.nationality
 
-import androidx.lifecycle.MediatorLiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import ua.gov.diia.address_search.network.ApiAddressSearch
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.combine
+import ua.gov.diia.address_search.models.NationalityItem
 import ua.gov.diia.core.di.data_source.http.AuthorizedClient
 import ua.gov.diia.core.models.ContextMenuField
-import ua.gov.diia.ui_base.views.NameModel
-import ua.gov.diia.address_search.models.AddressNationality
-import ua.gov.diia.address_search.models.NationalityItem
-import ua.gov.diia.ps_criminal_cert.models.enums.CriminalCertScreen
-import ua.gov.diia.ps_criminal_cert.models.response.CriminalCertNationalities
+import ua.gov.diia.core.models.common_compose.general.DiiaResponse
 import ua.gov.diia.core.models.rating_service.RatingRequest
-import ua.gov.diia.ps_criminal_cert.ui.CriminalCertConst
-import ua.gov.diia.ui_base.views.common.card_item.DiiaCardInputField.FieldMode.BUTTON
 import ua.gov.diia.core.util.delegation.WithContextMenu
-import ua.gov.diia.core.util.delegation.WithErrorHandling
-import ua.gov.diia.core.util.delegation.WithRatingDialog
+import ua.gov.diia.core.util.delegation.WithErrorHandlingOnFlow
+import ua.gov.diia.core.util.delegation.WithRatingDialogOnFlow
 import ua.gov.diia.core.util.delegation.WithRetryLastAction
-import ua.gov.diia.core.util.event.UiDataEvent
-import ua.gov.diia.core.util.extensions.lifecycle.asLiveData
-import ua.gov.diia.core.util.extensions.vm.executeAction
+import ua.gov.diia.core.util.extensions.vm.executeActionOnFlow
+import ua.gov.diia.ps_criminal_cert.models.enums.CriminalCertApplicationInfoNextStep
+import ua.gov.diia.ps_criminal_cert.models.request.Citizenship
+import ua.gov.diia.ps_criminal_cert.models.request.NationalitiesRequest
 import ua.gov.diia.ps_criminal_cert.network.ApiCriminalCert
+import ua.gov.diia.ps_criminal_cert.ui.CriminalCertConst
+import ua.gov.diia.ps_criminal_cert.ui.CriminalCertConst.BTN_CANCEL_APPLICATION_ACTION
+import ua.gov.diia.ps_criminal_cert.ui.CriminalCertConst.SCREEN_NATIONALITIES_ACTION_ADD_BLOCK
+import ua.gov.diia.ps_criminal_cert.ui.CriminalCertConst.SCREEN_NATIONALITIES_ACTION_DELETE_BLOCK
+import ua.gov.diia.ps_criminal_cert.ui.CriminalCertConst.SCREEN_NATIONALITIES_ACTION_SAVE_CITIZENSHIP
+import ua.gov.diia.ps_criminal_cert.ui.CriminalCertConst.SCREEN_NATIONALITIES_SELECTOR_FIRST_ID
 import ua.gov.diia.publicservice.helper.PSNavigationHelper
+import ua.gov.diia.ui_base.components.infrastructure.UIElementData
+import ua.gov.diia.ui_base.components.infrastructure.addAllIfNotNull
+import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
+import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
+import ua.gov.diia.ui_base.components.infrastructure.findAndChangeFirstByInstance
+import ua.gov.diia.ui_base.components.infrastructure.navigation.NavigationPath
+import ua.gov.diia.ui_base.components.infrastructure.state.UIState
+import ua.gov.diia.ui_base.components.organism.bottom.BottomGroupOrgData
+import ua.gov.diia.ui_base.components.organism.container.BackgroundWhiteOrgData
+import ua.gov.diia.ui_base.components.organism.input.RecursiveContainerOrgData
+import ua.gov.diia.ui_base.mappers.getEllipseMenu
+import ua.gov.diia.ui_base.mappers.mapToComposeBodyData
+import ua.gov.diia.ui_base.mappers.mapToComposeBottomData
+import ua.gov.diia.ui_base.mappers.mapToComposeTopData
+import ua.gov.diia.ui_base.navigation.BaseNavigation
 import javax.inject.Inject
 
 @HiltViewModel
 class CriminalCertStepNationalityVM @Inject constructor(
-    @AuthorizedClient private val apiAddressSearch: ApiAddressSearch,
     @AuthorizedClient private val api: ApiCriminalCert,
-    private val errorHandlingDelegate: WithErrorHandling,
-    private val contextMenuDelegate: WithContextMenu<ContextMenuField>,
-    private val retryActionDelegate: WithRetryLastAction,
-    private val withRatingDialog: WithRatingDialog,
+    private val withContextMenu: WithContextMenu<ContextMenuField>,
+    private val errorHandling: WithErrorHandlingOnFlow,
+    private val retryLastAction: WithRetryLastAction,
     private val navigationHelper: PSNavigationHelper,
-) : ViewModel(), WithErrorHandling by errorHandlingDelegate,
-    WithContextMenu<ContextMenuField> by contextMenuDelegate,
-    WithRetryLastAction by retryActionDelegate,
-    WithRatingDialog by withRatingDialog,
-    PSNavigationHelper by navigationHelper {
+    private val withRatingDialog: WithRatingDialogOnFlow,
+    private val composeMapper: CriminalCertNationalitiesMapper
+) : ViewModel(),
+    WithRetryLastAction by retryLastAction,
+    WithErrorHandlingOnFlow by errorHandling,
+    PSNavigationHelper by navigationHelper,
+    WithContextMenu<ContextMenuField> by withContextMenu,
+    WithRatingDialogOnFlow by withRatingDialog,
+    CriminalCertNationalitiesMapper by composeMapper {
 
-    private val _isLoading = MutableLiveData<Boolean>()
-    val isLoading = _isLoading.asLiveData()
-
-    private val _state = MutableLiveData<CriminalCertNationalities>()
-    val state = _state.asLiveData()
-
-    private val _nationalities = MutableLiveData<AddressNationality>()
-    val nationalities = _nationalities.asLiveData()
-
-    private val _onNextEvent =
-        MutableLiveData<UiDataEvent<Pair<CriminalCertScreen, List<String>>>>()
-    val onNextEvent = _onNextEvent.asLiveData()
-
-    private val _navigateToCountrySelection = MutableLiveData<UiDataEvent<List<NationalityItem>>>()
-    val navigateToCountrySelection = _navigateToCountrySelection.asLiveData()
-
-    private val _isNextEnabled = MediatorLiveData<Boolean>()
-    val isNextEnabled = _isNextEnabled.asLiveData()
-
-    private var selectionItem: NameModel? = null
-
-    fun loadContent() {
-        executeAction(progressIndicator = _isLoading) {
-            _nationalities.value = apiAddressSearch.getNationalities()
-            api.getCriminalCertNationalities().also { res ->
-                _state.value = CriminalCertNationalities(
-                    data = res.data,
-                    countryList = state.value?.countryList?.map { item ->
-                        item.copy(
-                            hint = res.data?.country?.hint.orEmpty(),
-                            title = res.data?.country?.label.orEmpty()
-                        )
-                    } ?: listOf(
-                        NameModel(
-                            id = "0",
-                            name = "",
-                            withRemove = false,
-                            hint = res.data?.country?.hint.orEmpty(),
-                            title = res.data?.country?.label.orEmpty(),
-                            fieldMode = BUTTON
-                        )
-                    )
-                )
-                res.template?.apply(::showTemplateDialog)
-            }
+    private val _contentLoadedKey =
+        MutableStateFlow(UIActionKeysCompose.PAGE_LOADING_LINEAR_WITH_LABEL)
+    private val _contentLoaded = MutableStateFlow(false)
+    val contentLoaded: Flow<Pair<String, Boolean>> =
+        _contentLoaded.combine(_contentLoadedKey) { value, key ->
+            key to value
         }
+
+    private val _progressIndicatorKey = MutableStateFlow("")
+    private val _progressIndicator = MutableStateFlow(false)
+    val progressIndicator: Flow<Pair<String, Boolean>> =
+        _progressIndicator.combine(_progressIndicatorKey) { value, key ->
+            key to value
+        }
+
+    private val _topGroupData = mutableStateListOf<UIElementData>()
+    val topGroupData: SnapshotStateList<UIElementData> = _topGroupData
+
+    private val _bodyData = mutableStateListOf<UIElementData>()
+    val bodyData: SnapshotStateList<UIElementData> = _bodyData
+
+    private val _bottomData = mutableStateListOf<UIElementData>()
+    val bottomData: SnapshotStateList<UIElementData> = _bottomData
+
+    private val _navigation =
+        MutableSharedFlow<NavigationPath>(
+            replay = 0,
+            extraBufferCapacity = 1,
+            onBufferOverflow = BufferOverflow.DROP_OLDEST
+        )
+    val navigation = _navigation.asSharedFlow()
+
+    fun doInit(navBarTitle: String?) {
+        this.navBarTitle = navBarTitle
     }
 
-    fun addCountry() {
-        _state.value?.also { state ->
-            if (state.canAdd) {
-                _state.value = state.copy(
-                    countryList = state.countryList.plus(
-                        NameModel(
-                            id = "${state.countryList.size}",
-                            name = "",
-                            hint = state.data?.country?.hint.orEmpty(),
-                            title = state.data?.country?.label.orEmpty(),
-                            fieldMode = BUTTON,
-                        )
+    private var navBarTitle: String? = null
+    var applicationId: String? = null
+    private var nationalitySelected: Boolean = false
+    private var nationalities = listOf<NationalityItem>()
+    private val selectedNationalityItemsList = mutableStateListOf<NationalityItem>()
+    private var selectedNationalityItem: NationalityItem? = null
+    private var selectorId: String? = ""
+
+    private val selectedNationalityIds: Set<String>
+        get() = buildSet {
+            addAll(selectedNationalityItemsList.mapNotNull { it.id })
+            selectedNationalityItem?.id?.let { add(it) }
+        }
+
+    private val availableNationalities: List<NationalityItem>
+        get() = nationalities.filter { it.id !in selectedNationalityIds }
+
+    fun onUIAction(event: UIAction) {
+
+        when (event.actionKey) {
+            UIActionKeysCompose.TOOLBAR_NAVIGATION_BACK -> {
+                _navigation.tryEmit(BaseNavigation.Back)
+            }
+
+            UIActionKeysCompose.TOOLBAR_CONTEXT_MENU -> {
+                _navigation.tryEmit(BaseNavigation.ContextMenu(withContextMenu.getMenu()))
+            }
+
+            UIActionKeysCompose.SELECTOR_ORG -> {
+                selectorId = event.data
+                nationalitySelected = event.data != SCREEN_NATIONALITIES_SELECTOR_FIRST_ID
+                _navigation.tryEmit(
+                    NationalityNavigation.NavigateToNationalitySelection(
+                        contextMenuArray = withContextMenu.getMenu(),
+                        navBarTitle = navBarTitle,
+                        nationalities = availableNationalities
                     )
                 )
             }
         }
-    }
 
-    fun removeCountry(model: NameModel) {
-        _state.value?.also { state ->
-            _state.value = state.copy(
-                countryList = state.countryList.toMutableList().apply {
-                    remove(model)
+        val action = event.action
+        when (action?.type) {
+            SCREEN_NATIONALITIES_ACTION_SAVE_CITIZENSHIP -> {
+                saveNationalities(action.resource)
+            }
+
+            SCREEN_NATIONALITIES_ACTION_DELETE_BLOCK -> {
+                _bodyData.findAndChangeFirstByInstance<RecursiveContainerOrgData> {
+                    it.removeOrCollapseItem(event.data)
                 }
-            )
-        }
-    }
-
-    fun setCountry(item: NationalityItem) {
-        selectionItem?.also {
-            updateCountry(it.copy(name = item.name))
-        }
-    }
-
-    private fun updateCountry(model: NameModel) {
-        _state.value?.also { state ->
-            _state.value = state.copy(
-                countryList = state.countryList.map {
-                    if (model.id == it.id) {
-                        it.copy(name = model.name, isValid = model.isValid)
-                    } else {
-                        it
+                val itemToRemove = selectedNationalityItemsList.firstOrNull {
+                    it.containerId == event.data?.let { id ->
+                        getContainerId(id)
                     }
                 }
-            )
+                if (itemToRemove != null) {
+                    selectedNationalityItemsList.remove(itemToRemove)
+                }
+                changeBottomGroupOrgState()
+                changeRecursiveContainerBtnState()
+            }
+
+            SCREEN_NATIONALITIES_ACTION_ADD_BLOCK -> {
+                _bodyData.findAndChangeFirstByInstance<RecursiveContainerOrgData> {
+                    it.expandOrAddItem()
+                }
+                changeBottomGroupOrgState()
+                changeRecursiveContainerBtnState()
+            }
+
+            BTN_CANCEL_APPLICATION_ACTION -> {
+                cancelApplication(false)
+            }
         }
-        _isNextEnabled.value = state.value?.countryList?.all { it.isValid } == true
     }
 
-    fun selectCountry(model: NameModel) {
-        nationalities.value?.also { addressNationality ->
-            selectionItem = model
-            val selectedList = state.value?.countryList.orEmpty()
-            val nationalityList = addressNationality.nationalities.toMutableList()
-            nationalityList.removeIf { item ->
-                if (selectedList.size > 1 && item.name.uppercase() == "УКРАЇНА") {
-                    true
-                } else {
-                    selectedList.find { it.name == item.name } != null
+    fun getScreenContent(id: String, countryCode: String?) {
+        if (nationalitySelected) return
+        applicationId = id
+        executeActionOnFlow(
+            contentLoadedIndicator = _contentLoaded.also {
+                _contentLoadedKey.value =
+                    UIActionKeysCompose.PAGE_LOADING_TRIDENT_WITH_BACK_NAVIGATION
+            })
+        {
+            api.getCriminalCertNationalities(id, countryCode).let { response ->
+                response.template?.let { showTemplateDialog(it) }
+                if (response.template == null) {
+                    response.topGroup?.let { setContextMenu(it.getEllipseMenu()?.toTypedArray()) }
+                    showScreenContent(response)
                 }
             }
-            _navigateToCountrySelection.value = UiDataEvent(nationalityList)
         }
     }
 
-    fun onNext() {
-        state.value?.also { state ->
-            state.data?.nextScreen ?: return@also
-            _onNextEvent.value = UiDataEvent(
-                content = state.data.nextScreen to state.countryList.map { it.name }
+    private fun getContainerId(data: String): String {
+        val idList: List<String> = data.split("\\s")
+        return idList[0]
+    }
+
+    private fun saveNationalities(id: String?) {
+        executeActionOnFlow(
+            progressIndicator = _progressIndicator.also {
+                _progressIndicatorKey.value = CriminalCertConst.SAVE_NATIONALITIES_BUTTON_ID
+            }) {
+            val nationalities: List<Citizenship> =
+                selectedNationalityItemsList.map { Citizenship(citizenshipCountry = it.id) }
+            val request = NationalitiesRequest(
+                nationalities, selectedNationalityItem?.id
+            )
+            id?.let {
+                api.saveCriminalCertNationalities(it, request).let { response ->
+                    if (response.template != null) {
+                        showTemplateDialog(response.template)
+                    }
+                    when (response.nextStep) {
+                        CriminalCertApplicationInfoNextStep.FORMAT_EXTRACT.code -> {
+                            _navigation.tryEmit(
+                                NationalityNavigation.NavigateToFormatExtract(
+                                    applicationId
+                                )
+                            )
+                        }
+                        CriminalCertApplicationInfoNextStep.CONTACTS.code -> {
+                            _navigation.tryEmit(
+                                NationalityNavigation.NavigateToContacts(
+                                    applicationId
+                                )
+                            )
+                        }
+                    }
+                    if (response.template?.data?.mainButton?.resource != null) {
+                        applicationId = response.template.data.mainButton.resource
+                    }
+                }
+            }
+        }
+    }
+
+    fun cancelApplication(force: Boolean) {
+        executeActionOnFlow(
+            progressIndicator = _progressIndicator.also {
+                _progressIndicatorKey.value = CriminalCertConst.BTN_CANCEL_ID
+            }
+        ) {
+            if (!applicationId.isNullOrEmpty()) {
+                api.cancelCriminalCertApplication(
+                    applicationId = applicationId ?: return@executeActionOnFlow,
+                    force = force,
+                ).let {
+                    it.template?.let {
+                        showTemplateDialog(it)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun showScreenContent(content: DiiaResponse) {
+        content.topGroup?.forEach { item ->
+            item.mapToComposeTopData(!withContextMenu.getMenu().isNullOrEmpty())?.let {
+                _topGroupData.addAllIfNotNull(it)
+            }
+        }
+
+        content.body?.forEach { item ->
+            item.mapToComposeBodyData()?.let {
+                _bodyData.addAllIfNotNull(it)
+            }
+            item.backgroundWhiteOrg?.items?.forEach { backgroundWhiteOrgItem ->
+                backgroundWhiteOrgItem.selectorOrg?.let { selectorOrg ->
+                    selectorOrg.selectorListWidgetOrg?.let {
+                        nationalities = toNationalityList(it.items)
+                    }
+                }
+            }
+        }
+        content.bottomGroup?.forEach { item ->
+            item.mapToComposeBottomData()?.let {
+                _bottomData.addAllIfNotNull(it)
+            }
+        }
+    }
+
+    fun clearContent() {
+        if (!nationalitySelected) {
+            _topGroupData.clear()
+            _bodyData.clear()
+            _bottomData.clear()
+        }
+    }
+
+    fun selectNationalityItem(positionId: String?, positionName: String) {
+        if (selectorId == SCREEN_NATIONALITIES_SELECTOR_FIRST_ID) {
+            selectNationalityItemBackgroundWhite(positionId, positionName)
+        } else {
+            selectNationalityItemRecursive(positionId, positionName)
+        }
+    }
+
+    private fun selectNationalityItemRecursive(positionId: String?, positionName: String) {
+        val containerId = selectorId?.let { getContainerId(it) }
+        val newItem =
+            nationalities.firstOrNull { it.id == positionId }?.copy(containerId = containerId)
+
+        if (newItem != null) {
+            val previouslySelected = selectedNationalityItemsList
+                .firstOrNull { it.containerId == containerId }
+
+            previouslySelected?.let { selectedNationalityItemsList.remove(it) }
+
+            selectedNationalityItemsList.add(newItem)
+        }
+
+        _bodyData.findAndChangeFirstByInstance<RecursiveContainerOrgData> {
+            it.onInputChanged(selectorId, positionName)
+        }
+        changeRecursiveContainerBtnState()
+        changeBottomGroupOrgState()
+    }
+
+
+    private fun selectNationalityItemBackgroundWhite(positionId: String?, positionName: String) {
+        selectedNationalityItem = nationalities.firstOrNull { it.id == positionId }
+
+        _bodyData.findAndChangeFirstByInstance<BackgroundWhiteOrgData> {
+            it.onInputChanged(selectorId, positionName)
+        }
+        changeRecursiveContainerBtnState()
+        changeBottomGroupOrgState()
+    }
+
+
+    private fun changeRecursiveContainerBtnState() {
+        _bodyData.findAndChangeFirstByInstance<RecursiveContainerOrgData> { item ->
+            val isFull = item.items.size >= (item.itemsMaxSize
+                ?: 0)
+            item.changeBtnState(
+                if (selectedNationalityItem?.id != "999" && !isFull && isFormFilledAndValid())
+
+                    UIState.Interaction.Enabled else
+                    UIState.Interaction.Disabled
+            )
+        }
+    }
+
+    private fun isFormFilledAndValid(): Boolean {
+        val forms = _bodyData.filterIsInstance<RecursiveContainerOrgData>()
+        return forms.all { it.isFormFilledAndValid() }
+    }
+
+    private fun changeBottomGroupOrgState() {
+        _bottomData.findAndChangeFirstByInstance<BottomGroupOrgData> { item ->
+            item.changeStateByValidation(
+                if (isFormFilledAndValid()) UIState.Interaction.Enabled else UIState.Interaction.Disabled
             )
         }
     }
@@ -176,5 +374,18 @@ class CriminalCertStepNationalityVM @Inject constructor(
             category = CriminalCertConst.RATING_SERVICE_CATEGORY,
             serviceCode = CriminalCertConst.RATING_SERVICE_CODE
         )
+    }
+
+    sealed class NationalityNavigation : NavigationPath {
+        data class NavigateToNationalitySelection(
+            val contextMenuArray: Array<ContextMenuField>? = null,
+            val navBarTitle: String? = null,
+            val nationalities: List<NationalityItem>
+        ) : NationalityNavigation()
+
+        data class NavigateToFormatExtract(val applicationId: String? = null) :
+            NationalityNavigation()
+
+        data class NavigateToContacts(val applicationId: String? = null) : NationalityNavigation()
     }
 }

@@ -31,7 +31,11 @@ abstract class AndroidKeyValueStore : BaseSecuredKeyValueStore() {
 
     override fun getString(key: PreferenceKey, defValue: String): String {
         scopeCheck(key)
-        return getSharedPreferences().getString(key.name, defValue) ?: defValue
+        return try {
+            getSharedPreferences().getString(key.name, defValue) ?: defValue
+        } catch (e: Exception) {
+            defValue // Return default value on decryption error.
+        }
     }
 
     override fun delete(key: PreferenceKey) {
@@ -44,18 +48,23 @@ abstract class AndroidKeyValueStore : BaseSecuredKeyValueStore() {
             Boolean::class.java -> {
                 getSharedPreferences().edit().putBoolean(key.name, value as Boolean).apply()
             }
+
             Int::class.java -> {
                 getSharedPreferences().edit().putInt(key.name, value as Int).apply()
             }
+
             Float::class.java -> {
                 getSharedPreferences().edit().putFloat(key.name, value as Float).apply()
             }
+
             Long::class.java -> {
                 getSharedPreferences().edit().putLong(key.name, value as Long).apply()
             }
+
             String::class.java -> {
                 getSharedPreferences().edit().putString(key.name, value as String).apply()
             }
+
             else -> {
                 getSharedPreferences().edit().putString(key.name, value.toString()).apply()
             }

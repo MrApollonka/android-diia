@@ -6,15 +6,34 @@
 
     <fragment
         android:id="@+id/destination_searchF"
-        android:name="ua.gov.diia.search.ui.SearchF">
+        android:name="ua.gov.diia.search.ui.search_ds.SearchScreenF">
         <argument
             android:name="key"
             app:argType="string" />
+        <argument
+            android:name="contextMenu"
+            android:defaultValue="@null"
+            app:argType="ua.gov.diia.core.models.ContextMenuField[]"
+            app:nullable="true" />
+        <argument
+            android:name="navBarTitle"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
+        <argument
+            android:name="searchPlaceholder"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
         <argument
             android:name="searchableList"
             android:defaultValue="@null"
             app:argType="ua.gov.diia.search.models.SearchableItem[]"
             app:nullable="true" />
-
+        <argument
+            android:name="argRequestCode"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
     </fragment>
 </navigation>

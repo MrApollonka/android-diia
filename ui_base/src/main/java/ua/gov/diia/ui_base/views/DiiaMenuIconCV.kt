@@ -70,6 +70,15 @@ class DiiaMenuIconCV @JvmOverloads constructor(
         }
     }
 
+    fun drawableIcon(icon: Drawable) {
+        this.icon = icon
+    }
+
+    fun menuTitle(title: String) {
+        this.label = title
+    }
+
+
     fun setBadgeVisible(badgeVisible: Boolean) {
         if (badgeVisible) {
             findViewById<View>(R.id.v_badge).visibility = View.VISIBLE

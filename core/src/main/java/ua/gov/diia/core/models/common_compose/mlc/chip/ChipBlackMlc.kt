@@ -4,6 +4,7 @@ import android.os.Parcelable
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import kotlinx.parcelize.Parcelize
+import ua.gov.diia.core.models.common_compose.general.Action
 
 @JsonClass(generateAdapter = true)
 @Parcelize
@@ -22,5 +23,7 @@ data class ChipBlackMlc(
     @Json(name = "code")
     val code: String,
     @Json(name = "active")
-    val active: Boolean?
+    val active: Boolean?,
+    @Json(name = "action")
+    val action: Action?
 ) : Parcelable

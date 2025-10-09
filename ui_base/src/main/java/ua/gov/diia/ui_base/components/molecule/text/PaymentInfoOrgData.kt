@@ -2,11 +2,19 @@ package ua.gov.diia.ui_base.components.molecule.text
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -39,18 +47,27 @@ fun PaymentInfoOrg(
             .background(color = White, shape = RoundedCornerShape(8.dp))
             .testTag(data.componentId?.asString() ?: "")
     ) {
+        var tableItemHorizontalMlcItemHeight by remember { mutableStateOf(0) }
+
         if (!data.itemsTableBlock.isNullOrEmpty()) {
-            data.itemsTableBlock.forEach {
-                if (it is TableItemHorizontalMlcData) {
+            data.itemsTableBlock.forEachIndexed { index, item ->
+                if (item is TableItemHorizontalMlcData) {
                     TableItemHorizontalMlc(
-                        modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                        data = it
+                        modifier = Modifier
+                            .padding(top = 16.dp, start = 16.dp, end = 16.dp)
+                            .onGloballyPositioned { coordinates ->
+                                tableItemHorizontalMlcItemHeight = coordinates.size.height
+                            },
+                        data = item
                     )
+                    if (index == data.itemsTableBlock.lastIndex && tableItemHorizontalMlcItemHeight > with(LocalDensity.current) { 24.dp.toPx() }) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
                 }
-                if (it is TableItemPrimaryMlcData) {
+                if (item is TableItemPrimaryMlcData) {
                     TableItemPrimaryMlc(
                         modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                        data = it,
+                        data = item,
                     )
                 }
             }
@@ -167,6 +184,22 @@ fun PaymentInfoOrgPreview_TableBlock() {
             horizontalMlc,
             horizontalMlc2,
             horizontalLargeMlc
+        )
+    )
+    PaymentInfoOrg(data = data)
+}
+
+@Composable
+@Preview
+fun PaymentInfoOrgPreview() {
+    val horizontalMlc = TableItemHorizontalMlcData(
+        id = "123",
+        title = UiText.DynamicString("Доставка на відділення Укрпошти"),
+        value = "294,00 грн"
+    )
+    val data = PaymentInfoOrgData(
+        itemsTableBlock = listOf(
+            horizontalMlc
         )
     )
     PaymentInfoOrg(data = data)

@@ -1,7 +1,5 @@
 package ua.gov.diia.publicservice.models
 
-
-import android.content.Context
 import android.os.Parcelable
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
@@ -17,12 +15,12 @@ data class ContextMenu(
     val name: String,
     @Json(name = "code")
     val code: String?
-): Parcelable, ContextMenuField {
+) : Parcelable, ContextMenuField {
 
     override fun getActionType() = type
 
     override fun getSubType(): String? = code
 
-    override fun getDisplayName(c: Context) = name
+    override fun getDisplayName() = name
 
 }

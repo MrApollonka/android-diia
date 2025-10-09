@@ -124,16 +124,12 @@ class NotificationFCompose : Fragment() {
     }
 
     private fun navigateToDocuments() {
-        if (args.feedDestination == -1) {
-            findNavController().popBackStack()
-            return
-        }
         setNavigationResult(
-            arbitraryDestination = args.feedDestination,
+            arbitraryDestination = R.id.homeF,
             key = ActionsConst.ACTION_ITEM_SELECTED,
             data = ConsumableString(ActionsConst.ACTION_MENU_DOCUMENTS)
         )
-        findNavController().popBackStack(args.feedDestination, false)
+        findNavController().popBackStack(R.id.homeF, false)
     }
 
     override fun onDestroyView() {

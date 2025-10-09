@@ -27,6 +27,7 @@ import ua.gov.diia.core.di.actions.GlobalActionDocLoadingIndicator
 import ua.gov.diia.core.di.actions.GlobalActionSelectedMenuItem
 import ua.gov.diia.core.models.ConsumableString
 import ua.gov.diia.core.models.common.BackStackEvent
+import ua.gov.diia.core.models.deeplink.DeepLinkActionOpenMenu
 import ua.gov.diia.core.models.deeplink.DeepLinkActionStartFlow
 import ua.gov.diia.core.models.dialogs.TemplateDialogModel
 import ua.gov.diia.core.models.notification.pull.PullNotificationItemSelection
@@ -291,7 +292,11 @@ class HomeVM @Inject constructor(
             it?.getContentIfNotHandled()?.let { action ->
                 deeplinkProcessor.handleDeepLinkAction(action).let { route ->
                     if (route == null) {
-                        setSelectedMenuItem(HomeMenuItem.DOCUMENTS)
+                        if (action is DeepLinkActionOpenMenu) {
+                            setSelectedMenuItem(HomeMenuItem.MENU)
+                        } else {
+                            setSelectedMenuItem(HomeMenuItem.DOCUMENTS)
+                        }
                     } else {
                         _processNavigation.value = UiDataEvent(route)
                     }

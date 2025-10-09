@@ -13,6 +13,7 @@ import androidx.navigation.fragment.navArgs
 import dagger.hilt.android.AndroidEntryPoint
 import ua.gov.diia.core.models.ConsumableString
 import ua.gov.diia.core.models.common.BackStackEvent
+import ua.gov.diia.core.models.document.DiiaDocument
 import ua.gov.diia.core.models.rating_service.RatingRequest
 import ua.gov.diia.core.ui.dynamicdialog.ActionsConst
 import ua.gov.diia.core.util.delegation.WithBuildConfig
@@ -24,11 +25,10 @@ import ua.gov.diia.core.util.extensions.fragment.openLink
 import ua.gov.diia.core.util.extensions.fragment.registerForNavigationResult
 import ua.gov.diia.core.util.extensions.fragment.sendImage
 import ua.gov.diia.core.util.extensions.fragment.sendPdf
-import ua.gov.diia.diia_storage.AndroidBase64Wrapper
+import ua.gov.diia.core.util.decoder.AndroidBase64Wrapper
 import ua.gov.diia.documents.NavDocActionsDirections
 import ua.gov.diia.documents.R
 import ua.gov.diia.documents.helper.DocumentsHelper
-import ua.gov.diia.core.models.document.DiiaDocument
 import ua.gov.diia.documents.models.DocumentAction
 import ua.gov.diia.documents.navigation.AddDocBackStackResult
 import ua.gov.diia.documents.navigation.ConfirmRemoveDocBackStackResult
@@ -48,11 +48,13 @@ import ua.gov.diia.documents.ui.gallery.DocGalleryNavigationHelper
 import ua.gov.diia.documents.ui.stack.compose.StackScreen
 import ua.gov.diia.documents.util.view.showCopyDocIdClipedSnackBar
 import ua.gov.diia.ui_base.components.infrastructure.collectAsEffect
+import ua.gov.diia.ui_base.components.infrastructure.collectFlow
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
+import ua.gov.diia.ui_base.mappers.loader.mapToLoader
 import ua.gov.diia.ui_base.navigation.BaseNavigation
 import ua.gov.diia.ui_base.util.navigation.openTemplateDialog
-import ua.gov.diia.web.util.extensions.fragment.navigateToWebView
+import ua.gov.diia.web.util.navigateToWebView
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -166,26 +168,24 @@ class DocStackFCompose : Fragment() {
                 }
             }
 
-            viewModel.certificatePdf.observe(viewLifecycleOwner) { event ->
-                event.getContentIfNotHandled()?.let { e ->
-                    val bArray = AndroidBase64Wrapper().decode(e.docPDF.toByteArray())
-                    context?.sendPdf(
-                        bArray,
-                        event.peekContent().name,
-                        withBuildConfig.getApplicationId()
-                    )
-                }
+            viewModel.shareCertificatePdfEventFlow.collectAsEffect { event ->
+                val bArray = AndroidBase64Wrapper().decode(event.docPDF.toByteArray())
+                context?.sendPdf(
+                    pdfInBytes = bArray,
+                    fileName = event.name,
+                    applicationId = withBuildConfig.getApplicationId(),
+                    crashlytics = withCrashlytics
+                )
             }
 
-            viewModel.documentPdf.observe(viewLifecycleOwner) { event ->
-                event.getContentIfNotHandled()?.let { e ->
-                    val bArray = AndroidBase64Wrapper().decode(e.docPDF.toByteArray())
-                    context?.sendPdf(
-                        bArray,
-                        event.peekContent().name,
-                        withBuildConfig.getApplicationId()
-                    )
-                }
+            viewModel.shareDocumentPdfEventFlow.collectAsEffect { event ->
+                val bArray = AndroidBase64Wrapper().decode(event.docPDF.toByteArray())
+                context?.sendPdf(
+                    pdfInBytes = bArray,
+                    fileName = event.name,
+                    applicationId = withBuildConfig.getApplicationId(),
+                    crashlytics = withCrashlytics
+                )
             }
 
             registerForNavigationResult<ConsumableString>(ActionsConst.FRAGMENT_USER_ACTION_RESULT_KEY) {
@@ -330,8 +330,7 @@ class DocStackFCompose : Fragment() {
             }
 
             StackScreen(
-                contentLoaded = contentLoaded.value,
-                progressIndicator = progressIndicator.value,
+                loader = mapToLoader(progressIndicator.value, contentLoaded.value),
                 toolbar = topBar,
                 body = body,
                 onEvent = {

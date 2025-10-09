@@ -5,6 +5,7 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import kotlinx.parcelize.Parcelize
 import ua.gov.diia.core.models.common_compose.atm.icon.IconAtm
+import ua.gov.diia.core.models.common_compose.general.PaddingMode
 
 @Parcelize
 @JsonClass(generateAdapter = true)
@@ -16,5 +17,7 @@ data class TableMainHeadingMlc(
     @Json(name = "description")
     val description: String?,
     @Json(name = "icon")
-    val icon: IconAtm?
+    val icon: IconAtm?,
+    @Json(name = "paddingMode")
+    val paddingMode: PaddingMode?,
 ) : Parcelable

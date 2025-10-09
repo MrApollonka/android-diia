@@ -2,15 +2,18 @@ package ua.gov.diia.core.util.delegation
 
 import android.Manifest
 import android.os.Build
+import android.os.Parcelable
 import androidx.annotation.StringRes
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LiveData
+import kotlinx.parcelize.Parcelize
 import ua.gov.diia.core.R
 import ua.gov.diia.core.models.common.template_dialogs.SystemDialogData
 import ua.gov.diia.core.util.event.UiEvent
 
-enum class Permission {
+@Parcelize
+enum class Permission : Parcelable{
     CAMERA,
     LOCATION,
     STORAGE_READ,

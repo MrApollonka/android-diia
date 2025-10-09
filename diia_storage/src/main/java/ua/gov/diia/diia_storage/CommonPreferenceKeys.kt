@@ -24,4 +24,5 @@ object CommonPreferenceKeys {
     object UUID : AuthKey("uuid", String::class.java)
     object IsFirst : AuthKey("is_first", Boolean::class.java)
     object IsPassed : AuthKey("is_passed", Boolean::class.java)
+    object AdvertisingId : AuthKey("add_id", String::class.java)
 }

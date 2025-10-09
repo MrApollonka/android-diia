@@ -9,4 +9,5 @@ object TemplateDialogConst {
     const val ALERT_TYPE_ALERT_REVIEW = "alertReview"
     const val ALERT_TYPE_HORIZONTAL_BUTTONS = "horizontalButtons"
     const val ALERT_TYPE_HORIZONTAL_BUTTON = "horizontalButton"
+    const val ALERT_V2 = "middleCenterIconBlackButtonAlert"
 }

@@ -54,6 +54,7 @@ import ua.gov.diia.ui_base.components.infrastructure.utils.resource.toDynamicStr
 import ua.gov.diia.ui_base.components.theme.Black
 import ua.gov.diia.ui_base.components.theme.BlackAlpha10
 import ua.gov.diia.ui_base.components.theme.BlackAlpha30
+import ua.gov.diia.ui_base.components.theme.BlackAlpha54
 import ua.gov.diia.ui_base.components.theme.BlackSqueeze
 import ua.gov.diia.ui_base.components.theme.DiiaTextStyle
 import ua.gov.diia.ui_base.components.theme.White
@@ -105,7 +106,7 @@ fun InputTimeMlc(
             Text(
                 text = data.label.asString(),
                 style = DiiaTextStyle.t4TextSmallDescription,
-                color = if (data.isEnabled) Black else BlackAlpha30
+                color = if (data.isEnabled) Black else BlackAlpha54
             )
         }
         Spacer(modifier = Modifier.height(8.dp))
@@ -163,7 +164,7 @@ fun InputTimeMlc(
                 modifier = Modifier.fillMaxWidth(),
                 style = DiiaTextStyle.t4TextSmallDescription,
                 text = it.asString(),
-                color = BlackAlpha30
+                color = BlackAlpha54
             )
         }
 

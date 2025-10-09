@@ -4,12 +4,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
+import coil.compose.AsyncImage
 import ua.gov.diia.core.models.common_compose.atm.icon.IconUrlAtm
 import ua.gov.diia.ui_base.R
 import ua.gov.diia.ui_base.components.infrastructure.DataActionWrapper
@@ -18,17 +18,13 @@ import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
 import ua.gov.diia.ui_base.components.noRippleClickable
 import ua.gov.diia.ui_base.util.toDataActionWrapper
 
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun IconUrlAtm(
     modifier: Modifier = Modifier,
     data: IconUrlAtmData,
     onUIAction: (UIAction) -> Unit = {}
 ) {
-    GlideImage(
-        model = data.url,
-        contentDescription = data.accessibilityDescription,
-        contentScale = ContentScale.Fit,
+    AsyncImage(
         modifier = modifier
             .size(32.dp)
             .noRippleClickable {
@@ -42,12 +38,13 @@ fun IconUrlAtm(
             }
             .semantics {
                 testTag = data.componentId
-            }
-        ) {
-        it.error(R.drawable.ic_icon_placeholder)
-            .placeholder(R.drawable.ic_icon_placeholder)
-            .load(data.url)
-    }
+            },
+        model = data.url,
+        contentDescription = data.accessibilityDescription,
+        contentScale = ContentScale.Fit,
+        placeholder = painterResource(R.drawable.ic_icon_placeholder),
+        error = painterResource(R.drawable.ic_icon_placeholder)
+    )
 }
 
 data class IconUrlAtmData(

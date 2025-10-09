@@ -5,14 +5,16 @@ import android.view.View
 import androidx.annotation.CallSuper
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import ua.gov.diia.core.models.ConsumableItem
 import ua.gov.diia.core.ui.dynamicdialog.ActionsConst
 import ua.gov.diia.core.util.event.observeUiDataEvent
 import ua.gov.diia.core.util.extensions.fragment.currentDestinationId
 import ua.gov.diia.core.util.extensions.fragment.navigate
-import ua.gov.diia.ui_base.util.navigation.openTemplateDialog
 import ua.gov.diia.core.util.extensions.fragment.registerForDialogNavigationResultOnce
 import ua.gov.diia.core.util.extensions.fragment.registerForTemplateDialogNavResult
+import ua.gov.diia.ui_base.util.navigation.openTemplateDialog
 import ua.gov.diia.verification.R
+import ua.gov.diia.verification.model.VerificationFlowResult
 import ua.gov.diia.verification.model.VerificationMethodsView
 import ua.gov.diia.verification.ui.controller.VerificationControllerConst.VERIFICATION_ALERT_DIALOG_ACTION
 import ua.gov.diia.verification.ui.method_selection.VerificationMethodSelectionDFArgs
@@ -71,10 +73,15 @@ abstract class VerificationControllerF : Fragment() {
             }
         }
 
-        registerForDialogNavigationResultOnce(
-            RESULT_KEY_VERIFICATION_STEP,
-            verificationVM::handleVerificationResult
-        )
+        registerForDialogNavigationResultOnce<ConsumableItem>(VerificationControllerOnFlowF.RESULT_KEY_VERIFICATION_STEP) {
+            handleVerificationResult(it)
+        }
+    }
+
+    private fun handleVerificationResult(item: ConsumableItem) {
+        item.consumeEvent<VerificationFlowResult> { result ->
+            verificationVM.handleVerificationResult(result)
+        }
     }
 
     @CallSuper

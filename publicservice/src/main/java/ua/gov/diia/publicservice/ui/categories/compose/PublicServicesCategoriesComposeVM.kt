@@ -15,12 +15,15 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import ua.gov.diia.core.data.repository.DataRepository
 import ua.gov.diia.core.di.data_source.http.AuthorizedClient
+import ua.gov.diia.core.models.deeplink.DeepLinkActionStartFlow
+import ua.gov.diia.core.models.dialogs.TemplateDialogModel
 import ua.gov.diia.core.util.DispatcherProvider
 import ua.gov.diia.core.util.delegation.WithCrashlytics
 import ua.gov.diia.core.util.delegation.WithErrorHandlingOnFlow
 import ua.gov.diia.core.util.delegation.WithRetryLastAction
 import ua.gov.diia.core.util.extensions.lifecycle.asLiveData
 import ua.gov.diia.core.util.extensions.vm.executeActionOnFlow
+import ua.gov.diia.publicservice.PublicServiceConst
 import ua.gov.diia.publicservice.R
 import ua.gov.diia.publicservice.di.DataRepositoryPublicServiceCategories
 import ua.gov.diia.publicservice.helper.PublicServiceHelper
@@ -66,11 +69,11 @@ class PublicServicesCategoriesComposeVM @Inject constructor(
     private var categoryToOpen: String? = null
 
     private var selectedTab: String? = null
-    private var categoriesData =
-        PublicServicesCategories(
-            listOf(),
-            listOf()
-        )
+    private var categoriesData = PublicServicesCategories(
+        listOf(),
+        listOf(),
+        listOf()
+    )
 
     private val _tabs = MutableLiveData<List<PublicServiceTab>>(emptyList())
     val tabs = _tabs.asLiveData()
@@ -95,6 +98,8 @@ class PublicServicesCategoriesComposeVM @Inject constructor(
             }
         }
 
+    private var templateDialogModel: TemplateDialogModel? = null
+
     fun doInit(categoryToOpen: String?) {
         this.categoryToOpen = categoryToOpen
         getCategoriesData()
@@ -116,10 +121,49 @@ class PublicServicesCategoriesComposeVM @Inject constructor(
             UIActionKeysCompose.SEARCH_INPUT -> {
                 navigateCategoriesServicesSearch()
             }
+
             UIActionKeysCompose.TOOLBAR_NAVIGATION_BACK -> {
                 _navigation.tryEmit(BaseNavigation.Back)
             }
+
+            UIActionKeysCompose.HALVED_CARD_CAROUSEL_ORG -> {
+                event.action?.let { lAction ->
+                    _navigation.tryEmit(
+                        PublicServicesCategoriesNavigation.StartNewFlow(
+                            deeplink = DeepLinkActionStartFlow(
+                                flowId = lAction.type,
+                                resId = lAction.resource.orEmpty(),
+                                resType = lAction.subtype
+                            )
+                        )
+                    )
+                }
+            }
         }
+    }
+
+    fun getPublicServicePortalUrl(serviceCode: String) {
+        executeActionOnFlow(
+            contentLoadedIndicator = _contentLoaded.also {
+                _contentLoadedKey.value = UIActionKeysCompose.PAGE_LOADING_TRIDENT_WITH_UI_BLOCKING
+            }
+        ) {
+            val response = apiPublicServices.getPublicServicePortalUrl(
+                serviceCode = PublicServiceConst.mapServiceCodeToPortalCode(serviceCode)
+            )
+            response.template?.let { lTemplate ->
+                templateDialogModel = lTemplate
+                showTemplateDialog(lTemplate)
+            }
+        }
+    }
+
+    fun openWebView() {
+        _navigation.tryEmit(
+            PublicServicesCategoriesNavigation.OpenWebView(
+                link = templateDialogModel?.data?.mainButton?.resource.orEmpty()
+            )
+        )
     }
 
     private fun configureTopBar() {
@@ -166,7 +210,6 @@ class PublicServicesCategoriesComposeVM @Inject constructor(
         refreshContentList()
     }
 
-
     private fun refreshContentList() {
         val availableTabs = categoriesData.tabs
         if (selectedTab == null) {
@@ -174,7 +217,7 @@ class PublicServicesCategoriesComposeVM @Inject constructor(
         }
         val filteredCategories = if (availableTabs.size > 1) {
             categoriesData.categories.filter { ct ->
-                ct.tabCode == selectedTab
+                selectedTab in ct.tabCodes.orEmpty()
             }
         } else {
             categoriesData.categories
@@ -191,10 +234,30 @@ class PublicServicesCategoriesComposeVM @Inject constructor(
 
         _bodyData.clear()
         _bodyData.addAllIfNotNull(
-            generateSearchInputMoleculeV2("Пошук", 1)
+            generateSearchInputMoleculeV2(
+                placeholder = "Пошук",
+                mode = 1
+            )
         )
-        _bodyData.addAllIfNotNull(generateComposeChipTabBarV2(tabs.value, selectedTab))
-        _bodyData.addAllIfNotNull(filteredCategories.toComposeServiceTileOrganism())
+        _bodyData.addAllIfNotNull(
+            generateComposeChipTabBarV2(
+                tabs = tabs.value,
+                selectedTab = selectedTab
+            )
+        )
+        _bodyData.addAllIfNotNull(
+            generateHalvedCardCarouselOrgData(
+                selectedTab = selectedTab,
+                additionalElements = categoriesData.additionalElements.orEmpty()
+            )
+        )
+        _bodyData.addAllIfNotNull(
+            generateServiceCardTileOrgData(
+                categories = filteredCategories,
+                tabs = tabs.value,
+                selectedTab = selectedTab
+            )
+        )
     }
 
     private fun navigateCategoriesServicesSearch() {
@@ -207,7 +270,7 @@ class PublicServicesCategoriesComposeVM @Inject constructor(
 
     private fun doOnCategorySelected(category: PublicServiceCategory) {
         when (category.code) {
-            PS_ENEMY -> {
+            PublicServiceConst.PS_ENEMY -> {
                 openEnemyShareLink()
                 return
             }
@@ -262,19 +325,34 @@ class PublicServicesCategoriesComposeVM @Inject constructor(
             }
         }
     }
+
 }
 
-sealed class PublicServicesCategoriesNavigation : NavigationPath {
-    data class NavigateToCategory(val category: PublicServiceCategory) :
-        PublicServicesCategoriesNavigation()
+sealed interface PublicServicesCategoriesNavigation : NavigationPath {
 
-    data class NavigateToService(val service: PublicService) : PublicServicesCategoriesNavigation()
+    data class NavigateToCategory(
+        val category: PublicServiceCategory
+    ) : PublicServicesCategoriesNavigation
 
-    data class NavigateToServiceSearch(val data: Array<PublicServiceCategory>) :
-        PublicServicesCategoriesNavigation()
+    data class NavigateToService(
+        val service: PublicService
+    ) : PublicServicesCategoriesNavigation
 
-    data class OpenEnemyTrackLink(val link: String, val crashlytics: WithCrashlytics) :
-        PublicServicesCategoriesNavigation()
+    data class NavigateToServiceSearch(
+        val data: Array<PublicServiceCategory>
+    ) : PublicServicesCategoriesNavigation
+
+    data class OpenEnemyTrackLink(
+        val link: String,
+        val crashlytics: WithCrashlytics
+    ) : PublicServicesCategoriesNavigation
+
+    data class OpenWebView(
+        val link: String
+    ) : PublicServicesCategoriesNavigation
+
+    data class StartNewFlow(
+        val deeplink: DeepLinkActionStartFlow
+    ) : PublicServicesCategoriesNavigation
+
 }
-
-private const val PS_ENEMY = "enemy"

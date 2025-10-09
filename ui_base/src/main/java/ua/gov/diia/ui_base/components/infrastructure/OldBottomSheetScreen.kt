@@ -28,6 +28,7 @@ import ua.gov.diia.ui_base.components.molecule.text.TextLabelMlcData
 import ua.gov.diia.ui_base.components.provideTestTagsAsResourceId
 import ua.gov.diia.ui_base.components.theme.BlackSqueeze
 import ua.gov.diia.ui_base.components.theme.GullGray
+import ua.gov.diia.ui_base.mappers.loader.mapToLoader
 
 @Deprecated("Use BottomSheetScreen instead")
 @Composable
@@ -60,7 +61,7 @@ fun OldBottomSheetScreen(
                     color = BlackSqueeze,
                     shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
                 ),
-            contentLoaded = contentLoaded,
+            loader = mapToLoader(progressIndicator, contentLoaded),
             toolbar = null,
             body = {
                 BodyRootLazyContainer(
@@ -75,7 +76,7 @@ fun OldBottomSheetScreen(
             bottom = {
                 BottomBarRootContainer(
                     bottomViews = bottom,
-                    progressIndicator = progressIndicator,
+                    loader = mapToLoader(progressIndicator, contentLoaded),
                     onUIAction = onEvent
                 )
             },

@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.ripple.rememberRipple
+import androidx.compose.material3.ripple
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -20,6 +20,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ua.gov.diia.ui_base.components.DiiaResourceIcon
@@ -30,7 +33,7 @@ import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.toDynamicString
 import ua.gov.diia.ui_base.components.noRippleClickable
-import ua.gov.diia.ui_base.components.theme.BlackAlpha50
+import ua.gov.diia.ui_base.components.theme.BlackAlpha60
 import ua.gov.diia.ui_base.components.theme.DiiaTextStyle
 
 @Composable
@@ -53,7 +56,7 @@ fun TitleGroupMlc(
                     .size(28.dp)
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
-                        indication = rememberRipple(bounded = false, radius = 28.dp)
+                        indication = ripple(bounded = false, radius = 28.dp)
                     ) {
                         onUIAction(
                             UIAction(
@@ -65,7 +68,7 @@ fun TitleGroupMlc(
                 painter = painterResource(
                     id = DiiaResourceIcon.getResourceId(it.code)
                 ),
-                contentDescription = it.accessibilityDescription?.toString()
+                contentDescription = it.accessibilityDescription?.asString()
             )
             Spacer(modifier = Modifier.height(16.dp))
         }
@@ -77,6 +80,9 @@ fun TitleGroupMlc(
             if (title != null) {
                 Text(
                     modifier = Modifier
+                        .clearAndSetSemantics {
+                            contentDescription = title
+                        }
                         .noRippleClickable {
                             onUIAction(
                                 UIAction(
@@ -98,7 +104,7 @@ fun TitleGroupMlc(
                         .size(32.dp)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
-                            indication = rememberRipple(bounded = false, radius = 28.dp)
+                            indication = ripple(bounded = false, radius = 28.dp)
                         ) {
                             onUIAction(
                                 UIAction(
@@ -120,11 +126,17 @@ fun TitleGroupMlc(
         }
 
         if (data.label != null) {
+            val labelText = data.label.asString()
+            val labelDescription = labelText.replace(".", " ")
             Text(
-                modifier = Modifier.padding(top = 8.dp),
-                text = data.label.asString(),
+                modifier = Modifier
+                    .padding(top = 8.dp)
+                    .semantics {
+                        contentDescription = labelDescription
+                    },
+                text = labelText,
                 style = DiiaTextStyle.t2TextDescription,
-                color = BlackAlpha50,
+                color = BlackAlpha60,
             )
         }
     }

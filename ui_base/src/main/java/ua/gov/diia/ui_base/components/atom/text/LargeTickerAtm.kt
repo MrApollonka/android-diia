@@ -30,6 +30,7 @@ import ua.gov.diia.ui_base.components.theme.GrannySmithApple
 import ua.gov.diia.ui_base.components.theme.MiddleBlueGreen
 import ua.gov.diia.ui_base.components.theme.Neutral
 import ua.gov.diia.ui_base.components.theme.RedNegative
+import ua.gov.diia.ui_base.components.theme.Solitude
 import ua.gov.diia.ui_base.components.theme.Transparent
 import ua.gov.diia.ui_base.components.theme.WarningYellow
 import ua.gov.diia.ui_base.components.theme.gradientBluePosition01
@@ -104,8 +105,12 @@ fun LargeTickerAtm(
                 drawBehind {
                     drawRect(
                         when (data.type) {
-                            LargeTickerType.NEUTRAL, LargeTickerType.INFORMATIVE -> {
+                            LargeTickerType.NEUTRAL -> {
                                 Neutral
+                            }
+
+                            LargeTickerType.INFORMATIVE -> {
+                                Solitude
                             }
 
                             LargeTickerType.WARNING -> {
@@ -187,8 +192,12 @@ fun LargeTickerAtm(
                 drawBehind {
                     drawRect(
                         when (data.oldType) {
-                            LargeTickerType.INFORMATIVE, LargeTickerType.NEUTRAL -> {
+                            LargeTickerType.NEUTRAL -> {
                                 Neutral
+                            }
+
+                            LargeTickerType.INFORMATIVE -> {
+                                Solitude
                             }
 
                             LargeTickerType.WARNING -> {

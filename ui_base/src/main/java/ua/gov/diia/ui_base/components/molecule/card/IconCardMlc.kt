@@ -7,6 +7,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ua.gov.diia.ui_base.components.DiiaResourceIcon
@@ -47,6 +48,7 @@ fun IconCardMlc(
         contentAlignment = Alignment.Center
     ) {
         BtnPlainIconAtm(
+            modifier = Modifier.clearAndSetSemantics {},
             data = BtnPlainIconAtmData(
                 actionKey = data.actionKey,
                 id = data.id,
@@ -68,7 +70,7 @@ fun IconCardMlc(
 
 data class IconCardMlcData(
     val actionKey: String = UIActionKeysCompose.ICON_CARD_MLC,
-    val id: String,
+    override val id: String,
     val icon: UiIcon,
     val label: UiText,
     val action: DataActionWrapper? = null,

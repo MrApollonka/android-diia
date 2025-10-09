@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_faq"
+    app:startDestination="@id/faqHomeF">
+
+    <fragment
+        android:id="@+id/faqHomeF"
+        android:name="ua.gov.diia.faq.ui.FaqF">
+
+        <argument
+            android:name="categoryId"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
+
+        <argument
+            android:name="isRoot"
+            android:defaultValue="true"
+            app:argType="boolean" />
+
+        <action
+            android:id="@+id/navigateToSelf"
+            app:destination="@id/faqHomeF"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right">
+
+            <argument
+                android:name="categoryId"
+                android:defaultValue="@null"
+                app:argType="string"
+                app:nullable="true" />
+
+            <argument
+                android:name="isRoot"
+                android:defaultValue="true"
+                app:argType="boolean" />
+
+        </action>
+
+        <action
+            android:id="@+id/navigateToSearch"
+            app:destination="@id/faqSearchF"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/faqSearchF"
+        android:name="ua.gov.diia.faq.ui.search.FaqSearchF" />
+
+</navigation>

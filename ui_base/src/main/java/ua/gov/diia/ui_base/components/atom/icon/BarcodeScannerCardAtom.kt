@@ -16,10 +16,23 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ua.gov.diia.ui_base.components.theme.BlackAlpha70
+import ua.gov.diia.ui_base.models.orientation.Orientation
 
 
 @Composable
 fun BarcodeScannerCardAtom(
+    modifier: Modifier = Modifier,
+    orientation: Orientation,
+    framePosition: (Rect) -> Unit,
+) {
+    when (orientation) {
+        Orientation.Portrait -> BarcodeScannerCardAtomPortrait(modifier, framePosition)
+        Orientation.Landscape -> BarcodeScannerCardAtomLandscape(modifier, framePosition)
+    }
+}
+
+@Composable
+fun BarcodeScannerCardAtomPortrait(
     modifier: Modifier = Modifier,
     framePosition: (Rect) -> Unit,
 ) {
@@ -57,6 +70,7 @@ fun BarcodeScannerCardAtom(
             )
 
             val frameTopLeft = Offset(scannerPadding, size.height / 2f - frameSize / 2)
+
 
             drawRect(
                 color = Color.White,
@@ -102,14 +116,125 @@ fun BarcodeScannerCardAtom(
 
             drawRect(
                 color = Color.White,
-                topLeft = Offset(frameTopLeft.x + frameSize - cornerSize, frameTopLeft.y + frameSize - scannerStrokeWidth),
+                topLeft = Offset(
+                    frameTopLeft.x + frameSize - cornerSize,
+                    frameTopLeft.y + frameSize - scannerStrokeWidth
+                ),
                 size = Size(cornerSize, scannerStrokeWidth),
                 style = Stroke(width = scannerStrokeWidth)
             )
 
             drawRect(
                 color = Color.White,
-                topLeft = Offset(frameTopLeft.x + frameSize - scannerStrokeWidth, frameTopLeft.y + frameSize - cornerSize),
+                topLeft = Offset(
+                    frameTopLeft.x + frameSize - scannerStrokeWidth,
+                    frameTopLeft.y + frameSize - cornerSize
+                ),
+                size = Size(scannerStrokeWidth, cornerSize),
+                style = Stroke(width = scannerStrokeWidth)
+            )
+        }
+    )
+}
+
+@Composable
+fun BarcodeScannerCardAtomLandscape(
+    modifier: Modifier = Modifier,
+    framePosition: (Rect) -> Unit,
+) {
+    val cornerSize = with(LocalDensity.current) { 16.dp.toPx() }
+    val scannerPadding = with(LocalDensity.current) { 48.dp.toPx() }
+    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+    val frameSize = with(LocalDensity.current) { (screenHeight).toPx() } * 0.7f // Adjust frame size
+
+    val scannerStrokeWidth = with(LocalDensity.current) { 2.dp.toPx() }
+
+    androidx.compose.foundation.Canvas(
+        modifier = modifier
+            .fillMaxSize()
+            .graphicsLayer(alpha = 0.99f)
+            .onGloballyPositioned {
+                framePosition.invoke(
+                    Rect(
+                        left = scannerPadding,
+                        top = it.size.height / 2f - frameSize / 2,
+                        right = it.size.width - scannerPadding,
+                        bottom = it.size.height / 2f + frameSize / 2
+                    )
+                )
+            },
+        onDraw = {
+            drawRect(
+                color = BlackAlpha70,
+                size = size
+            )
+            drawRoundRect(
+                color = Color.Transparent,
+                size = Size(frameSize, frameSize),
+                topLeft = Offset((size.width / 2) - frameSize / 2, scannerPadding * 2.25f),
+                blendMode = BlendMode.SrcOut,
+            )
+
+            val frameTopLeft = Offset((size.width / 2) - frameSize / 2, scannerPadding * 2.25f)
+
+            drawRect(
+                color = Color.White,
+                topLeft = frameTopLeft,
+                size = Size(cornerSize, scannerStrokeWidth),
+                style = Stroke(width = scannerStrokeWidth)
+            )
+
+            drawRect(
+                color = Color.White,
+                topLeft = frameTopLeft,
+                size = Size(scannerStrokeWidth, cornerSize),
+                style = Stroke(width = scannerStrokeWidth)
+            )
+
+            drawRect(
+                color = Color.White,
+                topLeft = Offset(frameTopLeft.x + frameSize - cornerSize, frameTopLeft.y),
+                size = Size(cornerSize, scannerStrokeWidth),
+                style = Stroke(width = scannerStrokeWidth)
+            )
+
+            drawRect(
+                color = Color.White,
+                topLeft = Offset(frameTopLeft.x + frameSize - scannerStrokeWidth, frameTopLeft.y),
+                size = Size(scannerStrokeWidth, cornerSize),
+                style = Stroke(width = scannerStrokeWidth)
+            )
+
+            drawRect(
+                color = Color.White,
+                topLeft = Offset(frameTopLeft.x, frameTopLeft.y + frameSize - scannerStrokeWidth),
+                size = Size(cornerSize, scannerStrokeWidth),
+                style = Stroke(width = scannerStrokeWidth)
+            )
+
+            drawRect(
+                color = Color.White,
+                topLeft = Offset(frameTopLeft.x, frameTopLeft.y + frameSize - cornerSize),
+                size = Size(scannerStrokeWidth, cornerSize),
+                style = Stroke(width = scannerStrokeWidth)
+            )
+
+            drawRect(
+                color = Color.White,
+                topLeft = Offset(
+                    frameTopLeft.x + frameSize - cornerSize,
+                    frameTopLeft.y + frameSize - scannerStrokeWidth
+                ),
+                size = Size(cornerSize, scannerStrokeWidth),
+                style = Stroke(width = scannerStrokeWidth)
+            )
+
+            drawRect(
+                color = Color.White,
+                topLeft = Offset(
+                    frameTopLeft.x + frameSize - scannerStrokeWidth,
+                    frameTopLeft.y + frameSize - cornerSize
+                ),
                 size = Size(scannerStrokeWidth, cornerSize),
                 style = Stroke(width = scannerStrokeWidth)
             )
@@ -120,5 +245,12 @@ fun BarcodeScannerCardAtom(
 @Preview
 @Composable
 fun PreviewBarcodeScannerCardAtom() {
-    BarcodeScannerCardAtom{}
+    BarcodeScannerCardAtom(orientation = Orientation.Portrait) {}
 }
+
+@Preview(heightDp = 360, widthDp = 800)
+@Composable
+fun PreviewBarcodeScannerCardAtomLandscape() {
+    BarcodeScannerCardAtom(orientation = Orientation.Landscape) {}
+}
+

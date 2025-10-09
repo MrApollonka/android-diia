@@ -1,120 +1,200 @@
 package ua.gov.diia.ps_criminal_cert.ui.steps.confirm
 
-import androidx.lifecycle.MutableLiveData
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import ua.gov.diia.ps_criminal_cert.models.CriminalCertUserData
-import ua.gov.diia.ps_criminal_cert.models.request.CriminalCertConfirmationRequest
-import ua.gov.diia.ps_criminal_cert.models.request.CriminalCertConfirmationRequest.BirthPlace
-import ua.gov.diia.ps_criminal_cert.models.response.CriminalCertConfirmation
-import ua.gov.diia.ps_criminal_cert.ui.CriminalCertConst
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.combine
 import ua.gov.diia.core.di.data_source.http.AuthorizedClient
 import ua.gov.diia.core.models.ContextMenuField
+import ua.gov.diia.core.models.common_compose.general.DiiaResponse
 import ua.gov.diia.core.models.rating_service.RatingRequest
 import ua.gov.diia.core.util.delegation.WithContextMenu
-import ua.gov.diia.core.util.delegation.WithErrorHandling
-import ua.gov.diia.core.util.delegation.WithRatingDialog
+import ua.gov.diia.core.util.delegation.WithErrorHandlingOnFlow
+import ua.gov.diia.core.util.delegation.WithRatingDialogOnFlow
 import ua.gov.diia.core.util.delegation.WithRetryLastAction
-import ua.gov.diia.core.util.event.UiDataEvent
-import ua.gov.diia.core.util.extensions.lifecycle.asLiveData
-import ua.gov.diia.core.util.extensions.vm.executeAction
-import ua.gov.diia.ps_criminal_cert.helper.PSCriminalCertHelper
+import ua.gov.diia.core.util.extensions.vm.executeActionOnFlow
 import ua.gov.diia.ps_criminal_cert.network.ApiCriminalCert
+import ua.gov.diia.ps_criminal_cert.ui.CriminalCertConst
+import ua.gov.diia.ps_criminal_cert.ui.CriminalCertConst.BTN_CANCEL_APPLICATION_ACTION
+import ua.gov.diia.ps_criminal_cert.ui.CriminalCertConst.SCREEN_CONFIRMATION_ACTION_CONFIRM
+import ua.gov.diia.ps_criminal_cert.ui.CriminalCertConst.SCREEN_CONFIRMATION_ACTION_LINK
 import ua.gov.diia.publicservice.helper.PSNavigationHelper
+import ua.gov.diia.ui_base.components.infrastructure.UIElementData
+import ua.gov.diia.ui_base.components.infrastructure.addAllIfNotNull
+import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
+import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
+import ua.gov.diia.ui_base.components.infrastructure.findAndChangeFirstByInstance
+import ua.gov.diia.ui_base.components.infrastructure.navigation.NavigationPath
+import ua.gov.diia.ui_base.components.molecule.checkbox.CheckboxBtnOrgData
+import ua.gov.diia.ui_base.mappers.getEllipseMenu
+import ua.gov.diia.ui_base.mappers.mapToComposeBodyData
+import ua.gov.diia.ui_base.mappers.mapToComposeBottomData
+import ua.gov.diia.ui_base.mappers.mapToComposeTopData
+import ua.gov.diia.ui_base.navigation.BaseNavigation
 import javax.inject.Inject
 
 @HiltViewModel
 class CriminalCertStepConfirmVM @Inject constructor(
     @AuthorizedClient private val api: ApiCriminalCert,
-    private val errorHandlingDelegate: WithErrorHandling,
-    private val contextMenuDelegate: WithContextMenu<ContextMenuField>,
-    private val retryActionDelegate: WithRetryLastAction,
-    private val withRatingDialog: WithRatingDialog,
+    private val withContextMenu: WithContextMenu<ContextMenuField>,
+    private val errorHandling: WithErrorHandlingOnFlow,
+    private val retryLastAction: WithRetryLastAction,
     private val navigationHelper: PSNavigationHelper,
-    private val criminalCertHelper: PSCriminalCertHelper,
-) : ViewModel(), WithErrorHandling by errorHandlingDelegate,
-    WithContextMenu<ContextMenuField> by contextMenuDelegate,
-    WithRetryLastAction by retryActionDelegate,
-    WithRatingDialog by withRatingDialog,
+    private val withRatingDialog: WithRatingDialogOnFlow
+) : ViewModel(),
+    WithRetryLastAction by retryLastAction,
+    WithErrorHandlingOnFlow by errorHandling,
     PSNavigationHelper by navigationHelper,
-    PSCriminalCertHelper by criminalCertHelper {
+    WithContextMenu<ContextMenuField> by withContextMenu,
+    WithRatingDialogOnFlow by withRatingDialog {
 
-    private val _isLoading = MutableLiveData<Boolean>()
-    val isLoading = _isLoading.asLiveData()
-
-    private val _isOrdering = MutableLiveData<Boolean>()
-    val isOrdering = _isOrdering.asLiveData()
-
-    private val _navigateToDetails = MutableLiveData<UiDataEvent<String>>()
-    val navigateToDetails = _navigateToDetails.asLiveData()
-
-    val isConfirmed = MutableLiveData<Boolean>()
-
-    private val _state = MutableLiveData<CriminalCertConfirmation>()
-    val state = _state.asLiveData()
-
-    val openLinkListenerAM: (String) -> Unit = { link -> _openLinkAM.value = UiDataEvent(link) }
-
-    private val _openLinkAM = MutableLiveData<UiDataEvent<String>>()
-    val openLinkAM = _openLinkAM.asLiveData()
-
-    private var applicationId: String? = null
-
-    fun load(data: CriminalCertUserData) {
-        executeAction(progressIndicator = _isLoading) {
-            _state.value = api.getCriminalCertConfirmationData(getRequestData(data))
-            state.value?.template?.run(::showTemplateDialog)
+    private val _contentLoadedKey =
+        MutableStateFlow(UIActionKeysCompose.PAGE_LOADING_LINEAR_WITH_LABEL)
+    private val _contentLoaded = MutableStateFlow(false)
+    val contentLoaded: Flow<Pair<String, Boolean>> =
+        _contentLoaded.combine(_contentLoadedKey) { value, key ->
+            key to value
         }
+
+    private val _progressIndicatorKey = MutableStateFlow("")
+    private val _progressIndicator = MutableStateFlow(false)
+    val progressIndicator: Flow<Pair<String, Boolean>> =
+        _progressIndicator.combine(_progressIndicatorKey) { value, key ->
+            key to value
+        }
+
+    private val _topGroupData = mutableStateListOf<UIElementData>()
+    val topGroupData: SnapshotStateList<UIElementData> = _topGroupData
+
+    private val _bodyData = mutableStateListOf<UIElementData>()
+    val bodyData: SnapshotStateList<UIElementData> = _bodyData
+
+    private val _bottomData = mutableStateListOf<UIElementData>()
+    val bottomData: SnapshotStateList<UIElementData> = _bottomData
+
+    private val _navigation =
+        MutableSharedFlow<NavigationPath>(
+            replay = 0,
+            extraBufferCapacity = 1,
+            onBufferOverflow = BufferOverflow.DROP_OLDEST
+        )
+    val navigation = _navigation.asSharedFlow()
+
+    fun setNavBarTitle(navBarTitle: String?) {
+        this.navBarTitle = navBarTitle
     }
 
-    fun confirm(data: CriminalCertUserData) {
-        executeAction(progressIndicator = _isOrdering) {
-            val res = api.orderCriminalCert(getRequestData(data))
-            res.template?.run(::showTemplateDialog)
-            applicationId = res.applicationId
-            res.navigationPanel?.contextMenu?.let {
-                setContextMenu(it.toTypedArray())
+    private var navBarTitle: String? = null
+    private var applicationId: String? = null
+
+    fun onUIAction(event: UIAction) {
+        when (event.actionKey) {
+            UIActionKeysCompose.TOOLBAR_NAVIGATION_BACK -> {
+                _navigation.tryEmit(BaseNavigation.Back)
+            }
+
+            UIActionKeysCompose.TOOLBAR_CONTEXT_MENU -> {
+                _navigation.tryEmit(BaseNavigation.ContextMenu(withContextMenu.getMenu()))
+            }
+
+            UIActionKeysCompose.CHECKBOX_REGULAR -> {
+                _bodyData.findAndChangeFirstByInstance<CheckboxBtnOrgData> {
+                    it.onOptionsCheckChanged(event.data)
+                }
+            }
+        }
+
+        val action = event.action
+        when (action?.type) {
+            SCREEN_CONFIRMATION_ACTION_CONFIRM -> {
+                confirmApplication(action.resource ?: applicationId)
+            }
+
+            BTN_CANCEL_APPLICATION_ACTION -> {
+                cancelApplication(false)
+            }
+
+            SCREEN_CONFIRMATION_ACTION_LINK -> {
+                _navigation.tryEmit(ConfirmationNavigation.ToWebView(action.resource))
             }
         }
     }
 
-    fun navigateToDetails() {
-        val applicationId = applicationId ?: return
-        _navigateToDetails.value = UiDataEvent(applicationId)
+    fun getScreenContent(id: String) {
+        applicationId = id
+        executeActionOnFlow(
+            contentLoadedIndicator = _contentLoaded.also {
+                _contentLoadedKey.value =
+                    UIActionKeysCompose.PAGE_LOADING_TRIDENT_WITH_BACK_NAVIGATION
+            })
+        {
+            api.getCriminalCertConfirmation(id).let { response ->
+                response.template?.let { showTemplateDialog(it) }
+                if (response.template == null) {
+                    response.topGroup?.let { setContextMenu(it.getEllipseMenu()?.toTypedArray()) }
+                    showScreenContent(response)
+                }
+            }
+        }
     }
 
-    private fun getRequestData(data: CriminalCertUserData): CriminalCertConfirmationRequest {
-        return CriminalCertConfirmationRequest(
-            reasonId = data.reasonId,
-            certificateType = data.certificateType,
-            previousFirstName = if (data.prevNames?.previousFirstNameList.isNullOrEmpty()) {
-                null
-            } else {
-                data.prevNames?.previousFirstNameList?.joinToString(", ")
-            },
-            previousMiddleName = if (data.prevNames?.previousMiddleNameList.isNullOrEmpty()) {
-                null
-            } else {
-                data.prevNames?.previousMiddleNameList?.joinToString(", ")
-            },
-            previousLastName = if (data.prevNames?.previousLastNameList.isNullOrEmpty()) {
-                null
-            } else {
-                data.prevNames?.previousLastNameList?.joinToString(", ")
-            },
-            birthPlace = if (data.birth == null) {
-                null
-            } else {
-                BirthPlace(
-                    country = data.birth.country,
-                    city = data.birth.city
-                )
-            },
-            nationalities = data.nationalities,
-            registrationAddressId = data.registrationAddressId,
-            phoneNumber = data.phoneNumber,
-            publicService = data.publicService
-        )
+    private fun showScreenContent(content: DiiaResponse) {
+        content.topGroup?.forEach { item ->
+            item.mapToComposeTopData(!withContextMenu.getMenu().isNullOrEmpty())?.let {
+                _topGroupData.addAllIfNotNull(it)
+            }
+        }
+
+        content.body?.forEach { item ->
+            item.mapToComposeBodyData()?.let {
+                _bodyData.addAllIfNotNull(it)
+            }
+        }
+        content.bottomGroup?.forEach { item ->
+            item.mapToComposeBottomData()?.let {
+                _bottomData.addAllIfNotNull(it)
+            }
+        }
+    }
+
+    private fun confirmApplication(id: String?) {
+        executeActionOnFlow(
+            progressIndicator = _progressIndicator.also {
+                _progressIndicatorKey.value = CriminalCertConst.CONFIRM_BUTTON_ID
+            }) {
+            id?.let {
+                api.confirmApplication(it).let { response ->
+                    if (response.template != null) {
+                        showTemplateDialog(response.template)
+                    }
+                }
+            }
+        }
+    }
+
+    fun cancelApplication(force: Boolean) {
+        executeActionOnFlow(
+            progressIndicator = _progressIndicator.also {
+                _progressIndicatorKey.value = CriminalCertConst.CANCEL_BUTTON_ID
+            }
+        ) {
+            if (!applicationId.isNullOrEmpty()) {
+                api.cancelCriminalCertApplication(
+                    applicationId = applicationId ?: return@executeActionOnFlow,
+                    force = force,
+                ).let {
+                    it.template?.let {
+                        showTemplateDialog(it)
+                    }
+                }
+            }
+        }
     }
 
     fun getRatingForm() {
@@ -130,5 +210,9 @@ class CriminalCertStepConfirmVM @Inject constructor(
             category = CriminalCertConst.RATING_SERVICE_CATEGORY,
             serviceCode = CriminalCertConst.RATING_SERVICE_CODE
         )
+    }
+
+    sealed class ConfirmationNavigation : NavigationPath {
+        data class ToWebView(val url: String?) : ConfirmationNavigation()
     }
 }

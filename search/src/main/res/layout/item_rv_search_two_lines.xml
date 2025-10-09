@@ -4,6 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
+
+<import type="android.view.View" />
         <variable
             name="item"
             type="ua.gov.diia.search.models.SearchableItemDoubleLine" />
@@ -23,7 +25,7 @@
             style="@style/LineExtraText"
             android:layout_width="match_parent"
             android:text="@{item.displayTitle}"
-            isGone="@{!item.showTitle}"
+            android:visibility="@{(!item.showTitle) ? View.GONE : View.VISIBLE}"
             android:layout_height="wrap_content"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="ТСЦ 8045 РСЦ ГСЦ МВС в м. Київ" />
@@ -36,7 +38,7 @@
             android:layout_marginTop="@dimen/xlarge"
             app:layout_goneMarginTop="0dp"
             android:text="@{item.displayText}"
-            isGone="@{!item.showText}"
+            android:visibility="@{(!item.showText) ? View.GONE : View.VISIBLE}"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/title"

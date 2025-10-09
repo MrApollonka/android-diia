@@ -1,6 +1,7 @@
 package ua.gov.diia.ui_base.components.organism.document
 
 import android.graphics.Bitmap
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
@@ -11,10 +12,15 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import ua.gov.diia.ui_base.R
 import ua.gov.diia.ui_base.components.conditional
 import ua.gov.diia.ui_base.components.infrastructure.UIElementData
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
@@ -41,6 +47,7 @@ fun TableBlockTwoColumnsPlainOrg(
         currentPhoto.value = data.photo ?: ""
     }
 
+    val context = LocalContext.current
     Column(
         modifier = modifier
             .padding(start = 16.dp, end = 16.dp, top = 8.dp)
@@ -59,7 +66,13 @@ fun TableBlockTwoColumnsPlainOrg(
                 PhotoDocBase64Subatomic(
                     modifier = Modifier
                         .fillMaxWidth(0.48f)
-                        .aspectRatio(0.75F),
+                        .aspectRatio(0.75F)
+                        .semantics {
+                            contentDescription =
+                                context.getString(R.string.accessibility_photo_of_the_document_holder)
+                            role = Role.Image
+                        }
+                        .focusable(),
                     base64Image = currentPhoto.value ?: "",
                     photoAsBitmap = data.photoAsBitmap
                 )
@@ -73,9 +86,11 @@ fun TableBlockTwoColumnsPlainOrg(
                     when (item) {
                         is TableItemVerticalMlcData -> {
                             TableItemVerticalMlc(
-                                modifier = Modifier.conditional(index > 0) {
-                                    padding(top = 16.dp)
-                                },
+                                modifier = Modifier
+                                    .conditional(index > 0) {
+                                        padding(top = 16.dp)
+                                    }
+                                    .focusable(),
                                 data = item,
                                 onUIAction = onUIAction
                             )

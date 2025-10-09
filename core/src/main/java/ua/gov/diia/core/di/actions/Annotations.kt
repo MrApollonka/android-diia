@@ -32,6 +32,10 @@ annotation class GlobalActionFocusOnDocument
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
+annotation class GlobalActionFocusOnDocumentWithRating
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
 annotation class GlobalActionDeleteDocument
 
 @Qualifier
@@ -61,3 +65,11 @@ annotation class GlobalActionNotificationReceived
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
 annotation class GlobalActionNotificationsPop
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class GlobalActionAppStartEvent
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class ShareEmailBase64Attachments

@@ -1,9 +1,7 @@
 package ua.gov.diia.documents.ui.gallery
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.LifecycleResumeEffect
@@ -23,8 +21,7 @@ import ua.gov.diia.core.util.extensions.fragment.openLink
 import ua.gov.diia.core.util.extensions.fragment.sendImage
 import ua.gov.diia.core.util.extensions.fragment.sendPdf
 import ua.gov.diia.core.util.navigation.HomeNavigation
-import ua.gov.diia.diia_storage.AndroidBase64Wrapper
-import ua.gov.diia.documents.R
+import ua.gov.diia.core.util.decoder.AndroidBase64Wrapper
 import ua.gov.diia.documents.models.DocumentAction
 import ua.gov.diia.documents.navigation.AddDocBackStackResult
 import ua.gov.diia.documents.navigation.ConfirmDocShareBackStackResult
@@ -77,35 +74,29 @@ fun DocGalleryC(
         )
     )
 
-    val certificatePdf = viewModel.certificatePdf.observeAsState()
-    val documentPdf = viewModel.documentPdf.observeAsState()
     val buildConfig = viewModel.withBuildConfig
     val navigationBackStackEvent = navigationBackStackEventFlow.collectAsStateWithLifecycle(
         initialValue = BackStackEvent.Empty
     )
 
-    LaunchedEffect(key1 = certificatePdf.value) {
-        val event = certificatePdf.value
-        event?.getContentIfNotHandled()?.let { e ->
-            val bArray = AndroidBase64Wrapper().decode(e.docPDF.toByteArray())
-            context.sendPdf(
-                bArray,
-                event.peekContent().name,
-                buildConfig.getApplicationId()
-            )
-        }
+    viewModel.shareCertificatePdfEventFlow.collectAsEffect { event ->
+        val bArray = AndroidBase64Wrapper().decode(event.docPDF.toByteArray())
+        context.sendPdf(
+            pdfInBytes = bArray,
+            fileName = event.name,
+            applicationId = buildConfig.getApplicationId(),
+            crashlytics = withCrashlytics
+        )
     }
 
-    LaunchedEffect(key1 = documentPdf.value) {
-        val event = documentPdf.value
-        event?.getContentIfNotHandled()?.let { e ->
-            val bArray = AndroidBase64Wrapper().decode(e.docPDF.toByteArray())
-            context.sendPdf(
-                bArray,
-                event.peekContent().name,
-                buildConfig.getApplicationId()
-            )
-        }
+    viewModel.shareDocumentPdfEventFlow.collectAsEffect { event ->
+        val bArray = AndroidBase64Wrapper().decode(event.docPDF.toByteArray())
+        context.sendPdf(
+            pdfInBytes = bArray,
+            fileName = event.name,
+            applicationId = buildConfig.getApplicationId(),
+            crashlytics = withCrashlytics
+        )
     }
 
     LifecycleResumeEffect(key1 = Unit) {

@@ -26,12 +26,12 @@ class ApiLogger @Inject constructor(
                     .disableHtmlEscaping()
                     .create()
                     .toJson(msg)
-                Platform.get().log(Platform.INFO, prettyPrintJson, null)
+                Platform.get().log(prettyPrintJson, Platform.INFO, null)
             } catch (e: Exception) {
                 crashlytics.sendNonFatalError(e)
             }
         } else {
-            Platform.get().log(Platform.INFO, message, null)
+            Platform.get().log(message, Platform.INFO, null)
             return
         }
     }

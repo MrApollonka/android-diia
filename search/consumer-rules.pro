@@ -1,3 +1,1 @@
--keep public class ua.gov.diia.search.models.SearchableItem
--keep public class ua.gov.diia.search.models.SearchableItemDoubleLine
--keep public class ua.gov.diia.search.models.SearchableBullet
+-keep public class ua.gov.diia.search.models.**{*;}

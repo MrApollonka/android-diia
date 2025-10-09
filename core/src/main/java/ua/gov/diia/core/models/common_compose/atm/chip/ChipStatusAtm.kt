@@ -24,5 +24,6 @@ enum class Type(val id: String) {
     PENDING("pending"),
     FAIL("fail"),
     WHITE("white"),
-    NEUTRAL("neutral");
+    NEUTRAL("neutral"),
+    BLUE("blue")
 }

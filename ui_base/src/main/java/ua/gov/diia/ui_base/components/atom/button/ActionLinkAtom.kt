@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import ua.gov.diia.ui_base.components.infrastructure.UIElementData
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
@@ -48,10 +49,10 @@ fun LoadActionAtom(
         verticalAlignment = Alignment.CenterVertically
     ) {
         AnimatedVisibility(visible = progressIndicator.first == data.id && data.id.isNotEmpty() && progressIndicator.second) {
-            LoaderCircularEclipse23Subatomic(modifier = Modifier.size(18.dp))
+            LoaderCircularEclipse23Subatomic(modifier = Modifier.size(data.iconSize))
         }
         AnimatedVisibility(visible = progressIndicator.first != data.id || !progressIndicator.second || data.id.isEmpty()) {
-            IconBase64Subatomic(modifier = Modifier.size(18.dp), base64Image = data.icon)
+            IconBase64Subatomic(modifier = Modifier.size(data.iconSize), base64Image = data.icon)
         }
         Spacer(modifier = Modifier.width(8.dp))
         Text(
@@ -69,7 +70,8 @@ data class LoadActionAtomData(
     val icon: String,
     val name: String,
     val actionData: String? = null,
-    val interactionState: UIState.Interaction = UIState.Interaction.Enabled
+    val interactionState: UIState.Interaction = UIState.Interaction.Enabled,
+    val iconSize: Dp = 18.dp
 ) : UIElementData
 
 @Composable

@@ -17,8 +17,8 @@ import ua.gov.diia.core.ui.dynamicdialog.ActionsConst
 import ua.gov.diia.core.util.extensions.fragment.hideKeyboard
 import ua.gov.diia.core.util.extensions.fragment.openLink
 import ua.gov.diia.core.util.extensions.fragment.registerForNavigationResult
+import ua.gov.diia.publicservice.PublicServiceConst
 import ua.gov.diia.publicservice.R
-import ua.gov.diia.publicservice.models.PublicService
 import ua.gov.diia.ui_base.components.infrastructure.ServiceScreen
 import ua.gov.diia.ui_base.components.infrastructure.collectAsEffect
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
@@ -65,7 +65,16 @@ class PublicServicesSearchComposeF : Fragment() {
                     }
 
                     is PublicServicesCategoriesSearchNavigation.NavigateToService -> {
-                        navigateToService(navigation.service)
+                        if (navigation.service.code in PublicServiceConst.PORTAL_SERVICES) {
+                            viewModel.getPublicServicePortalUrl(
+                                serviceCode = navigation.service.code
+                            )
+                        } else {
+                            viewModel.navigateToService(
+                                fragment = this@PublicServicesSearchComposeF,
+                                service = navigation.service
+                            )
+                        }
                     }
 
                     is PublicServicesCategoriesSearchNavigation.OpenEnemyTrackLink -> {
@@ -86,8 +95,14 @@ class PublicServicesSearchComposeF : Fragment() {
                 if (findNavController().currentBackStack.value.last().destination.id == R.id.template_dialog) {
                     findNavController().popBackStack()
                 }
-                when (event.item) {
-                    ActionsConst.GENERAL_RETRY -> viewModel.retryLastAction()
+                event.consumeEvent { action ->
+                    when (action) {
+                        ActionsConst.GENERAL_RETRY -> viewModel.retryLastAction()
+                        ActionsConst.DIALOG_ACTION_WEB_VIEW -> viewModel.navigateToWebView(
+                            fragment = this@PublicServicesSearchComposeF,
+                            link = viewModel.templateDialogModel?.data?.mainButton?.resource.orEmpty()
+                        )
+                    }
                 }
             }
 
@@ -95,9 +110,8 @@ class PublicServicesSearchComposeF : Fragment() {
                 toolbar = toolbar,
                 body = body,
                 contentLoaded = contentLoaded.value,
-                onEvent = {
-                    viewModel.onUIAction(it)
-                })
+                onEvent = viewModel::onUIAction
+            )
         }
     }
 
@@ -106,7 +120,4 @@ class PublicServicesSearchComposeF : Fragment() {
         composeView = null
     }
 
-    private fun navigateToService(service: PublicService) {
-        viewModel.navigateToService(this@PublicServicesSearchComposeF, service)
-    }
 }

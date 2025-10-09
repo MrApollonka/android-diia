@@ -62,14 +62,6 @@
     </action>
 
     <action
-        android:id="@+id/action_global_destination_bankSelection"
-        app:destination="@id/nav_bankid"
-        app:enterAnim="@anim/slide_in_right"
-        app:exitAnim="@anim/slide_out_left"
-        app:popEnterAnim="@anim/slide_in_left"
-        app:popExitAnim="@anim/slide_out_right" />
-
-    <action
         android:id="@+id/action_global_to_template_dialog"
         app:destination="@id/nav_template_dialog">
         <argument
@@ -91,16 +83,24 @@
 
     <action
         android:id="@+id/action_global_to_setupBiometric"
-        app:destination="@id/nav_biometric">
+        app:destination="@id/nav_biometric"
+        app:enterAnim="@anim/slide_in_right"
+        app:exitAnim="@anim/slide_out_left"
+        app:popEnterAnim="@anim/slide_in_left"
+        app:popExitAnim="@anim/slide_out_right">
+
         <argument
             android:name="resultDestinationId"
             app:argType="integer" />
+
         <argument
             android:name="resultKey"
             app:argType="string" />
+
         <argument
             android:name="pin"
             app:argType="string" />
+
     </action>
 
     <action
@@ -232,10 +232,6 @@
             app:argType="ua.gov.diia.notifications.models.notification.pull.MessageIdentification" />
     </action>
 
-    <action
-        android:id="@+id/action_global_to_QrScanF"
-        app:destination="@id/qrScanF" />
-
     <dialog
         android:id="@+id/destination_systemDialog"
         android:name="ua.gov.diia.opensource.ui.fragments.dialogs.system_new.SystemDialog">
@@ -247,6 +243,44 @@
             android:name="dialog"
             app:argType="ua.gov.diia.core.models.common.template_dialogs.SystemDialogData" />
     </dialog>
+
+    <action
+        android:id="@+id/actionGlobalToNavBankid"
+        app:destination="@id/nav_bankid"
+        app:enterAnim="@anim/slide_in_right"
+        app:exitAnim="@anim/slide_out_left"
+        app:popEnterAnim="@anim/slide_in_left"
+        app:popExitAnim="@anim/slide_out_right">
+
+        <argument
+            android:name="resultKey"
+            app:argType="string" />
+
+        <argument
+            android:name="resultDestination"
+            app:argType="integer" />
+
+        <argument
+            android:name="request"
+            app:argType="ua.gov.diia.auth_bankid.model.BankSelectionRequest" />
+
+    </action>
+
+    <action
+        android:id="@+id/actionGlobalToNavFaq"
+        app:destination="@id/nav_faq"
+        app:enterAnim="@anim/slide_in_right"
+        app:exitAnim="@anim/slide_out_left"
+        app:popEnterAnim="@anim/slide_in_left"
+        app:popExitAnim="@anim/slide_out_right">
+
+        <argument
+            android:name="categoryId"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
+
+    </action>
 
     <include app:graph="@navigation/nav_home" />
     <include app:graph="@navigation/nav_biometric" />
@@ -273,5 +307,6 @@
     <include app:graph="@navigation/nav_notification_details" />
     <include app:graph="@navigation/nav_notification_settings" />
     <include app:graph="@navigation/nav_context_menu" />
+    <include app:graph="@navigation/nav_faq" />
 
 </navigation>

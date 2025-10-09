@@ -25,13 +25,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import androidx.constraintlayout.compose.ConstraintLayout
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
+import coil.compose.AsyncImage
 import ua.gov.diia.ui_base.R
 import ua.gov.diia.ui_base.components.DiiaResourceIcon
 import ua.gov.diia.ui_base.components.atom.button.BtnPlainAtm
@@ -62,7 +62,6 @@ import ua.gov.diia.ui_base.components.subatomic.preview.PreviewBase64Images
 import ua.gov.diia.ui_base.components.theme.DiiaTextStyle
 import ua.gov.diia.ui_base.components.theme.White
 
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun DocActivateCardOrg(
     modifier: Modifier = Modifier,
@@ -77,10 +76,10 @@ fun DocActivateCardOrg(
         mutableStateOf(data)
     }
 
-    val glideDisplayed = remember { mutableStateOf(cardFocus != CardFocus.OUT_OF_FOCUS) }
+    val imageDisplayed = remember { mutableStateOf(cardFocus != CardFocus.OUT_OF_FOCUS) }
 
     LaunchedEffect(key1 = cardFocus) {
-        glideDisplayed.value = cardFocus != CardFocus.OUT_OF_FOCUS
+        imageDisplayed.value = cardFocus != CardFocus.OUT_OF_FOCUS
     }
 
     ConstraintLayout(
@@ -95,25 +94,23 @@ fun DocActivateCardOrg(
     ) {
         val (image, textBlock, spacer, buttonBlock) = createRefs()
 
-        GlideImage(
-            model = cashedData.value.imageUrl,
-            contentDescription = "",
-            contentScale = ContentScale.Crop,
+        AsyncImage(
             modifier = Modifier
                 .clip(shape = RoundedCornerShape(24.dp))
                 .fillMaxWidth()
                 .height(0.35 * cardHeightDp)
-                .alpha(if (glideDisplayed.value) 1f else 0f)
+                .alpha(if (imageDisplayed.value) 1f else 0f)
                 .constrainAs(image) {
                     top.linkTo(parent.top)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
-                }
-        ) {
-            it.error(R.drawable.diia_article_placeholder)
-                .placeholder(R.drawable.diia_article_placeholder)
-                .load(cashedData.value.imageUrl)
-        }
+                },
+            model = cashedData.value.imageUrl,
+            contentDescription = "",
+            contentScale = ContentScale.Crop,
+            placeholder = painterResource(R.drawable.diia_article_placeholder),
+            error = painterResource(R.drawable.diia_article_placeholder)
+        )
 
         Column(
             modifier = Modifier
@@ -144,14 +141,16 @@ fun DocActivateCardOrg(
             )
         }
 
-        Spacer(modifier = Modifier
-            .fillMaxWidth()
-            .constrainAs(spacer) {
-                top.linkTo(textBlock.bottom)
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-                bottom.linkTo(buttonBlock.top)
-            })
+        Spacer(
+            modifier = Modifier
+                .fillMaxWidth()
+                .constrainAs(spacer) {
+                    top.linkTo(textBlock.bottom)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                    bottom.linkTo(buttonBlock.top)
+                }
+        )
 
         Column(
             modifier = Modifier
@@ -219,6 +218,7 @@ fun generateDocActivateCardOrgMockData(mockType: DocActivateCardOrgMockType): Do
                 interactionState = UIState.Interaction.Enabled
             )
         )
+
         DocActivateCardOrgMockType.withDocActivateCard -> DocActivateCardOrgData(
             actionKey = "sasd",
             imageUrl = "https://api2.diia.gov.ua/diia-images/award/gold-logo.png",
@@ -244,7 +244,8 @@ fun generateDocActivateCardOrgMockData(mockType: DocActivateCardOrgMockType): Do
 @Preview
 @Composable
 fun DocActivateCardOrgPreview() {
-    DocActivateCardOrg(modifier = Modifier,
+    DocActivateCardOrg(
+        modifier = Modifier,
         data = generateDocActivateCardOrgMockData(DocActivateCardOrgMockType.docCard)
     ) {}
 }
@@ -349,7 +350,8 @@ fun DocCarouselOrg_WithDocActivateCardOrg_Preview() {
         data = remember {
             mutableStateListOf(
                 generateDocActivateCardOrgMockData(DocActivateCardOrgMockType.withDocActivateCard),
-                docCardFlipData, docCardFlipData, docCardFlipData)
+                docCardFlipData, docCardFlipData, docCardFlipData
+            )
         }
     )
     val carouselState = remember {

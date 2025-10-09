@@ -4,98 +4,137 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import dagger.hilt.android.AndroidEntryPoint
-import ua.gov.diia.ps_criminal_cert.R
-import ua.gov.diia.ps_criminal_cert.databinding.FragmentCriminalCertStepNationalityBinding
-import ua.gov.diia.core.models.ConsumableItem
 import ua.gov.diia.address_search.models.NationalityItem
-import ua.gov.diia.ps_criminal_cert.models.enums.CriminalCertScreen
+import ua.gov.diia.core.models.ConsumableItem
 import ua.gov.diia.core.models.rating_service.RatingRequest
 import ua.gov.diia.core.ui.dynamicdialog.ActionsConst
+import ua.gov.diia.core.util.extensions.fragment.doOnSystemBackPressed
+import ua.gov.diia.core.util.extensions.fragment.navigate
+import ua.gov.diia.core.util.extensions.fragment.registerForNavigationResult
+import ua.gov.diia.core.util.extensions.fragment.registerForTemplateDialogNavResult
+import ua.gov.diia.core.util.extensions.fragment.setNavigationResult
+import ua.gov.diia.ps_criminal_cert.R
 import ua.gov.diia.ps_criminal_cert.ui.CriminalCertConst
-import ua.gov.diia.core.util.event.observeUiDataEvent
-import ua.gov.diia.ui_base.util.navigation.openTemplateDialog
-import ua.gov.diia.core.util.extensions.fragment.*
+import ua.gov.diia.ps_criminal_cert.ui.CriminalCertConst.ACTION_CODE_STATUS
+import ua.gov.diia.ps_criminal_cert.ui.CriminalCertConst.DIALOG_ACTION_CANCEL_APPLICATION
 import ua.gov.diia.ps_criminal_cert.ui.CriminalCertRatingScreenCodes
+import ua.gov.diia.ui_base.components.infrastructure.PublicServiceScreen
+import ua.gov.diia.ui_base.components.infrastructure.collectAsEffect
+import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
+import ua.gov.diia.ui_base.navigation.BaseNavigation
+import ua.gov.diia.ui_base.util.navigation.openTemplateDialog
 
 @AndroidEntryPoint
 class CriminalCertStepNationalityF : Fragment() {
 
     private val viewModel: CriminalCertStepNationalityVM by viewModels()
     private val args: CriminalCertStepNationalityFArgs by navArgs()
-    private var binding: FragmentCriminalCertStepNationalityBinding? = null
+    private var composeView: ComposeView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         with(viewModel) {
-            setContextMenu(args.contextMenu)
+            doInit(args.navBarTitle)
+            getScreenContent(args.applicationId, null)
         }
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
-        binding = FragmentCriminalCertStepNationalityBinding.inflate(
-            inflater,
-            container,
-            false
-        )
-            .apply {
-                lifecycleOwner = viewLifecycleOwner
-                vm = viewModel
-                viewModel.loadContent()
-                backBtn.setOnClickListener { findNavController().popBackStack() }
-                countryView.onAddItem(viewModel::addCountry)
-                countryView.onRemove(viewModel::removeCountry)
-                countryView.onSelect(viewModel::selectCountry)
-            }
-        return binding?.root
+        composeView = ComposeView(requireContext())
+        doOnSystemBackPressed { navigateToStatus(args.applicationId) }
+        return composeView
+
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        with(viewModel) {
-            isNextEnabled.observe(viewLifecycleOwner) {
-                binding?.nextBtn?.setIsEnabled(it)
-            }
-            showTemplateDialog.observeUiDataEvent(
-                viewLifecycleOwner,
-                ::openTemplateDialog
-            )
-            openContextMenu.observeUiDataEvent(viewLifecycleOwner) { menu ->
-                viewModel.navigateToContextMenu(
-                    this@CriminalCertStepNationalityF,
-                    menu
+
+        composeView?.setContent {
+            val topGroup = viewModel.topGroupData
+            val body = viewModel.bodyData
+            val bottom = viewModel.bottomData
+
+            val contentLoaded = viewModel.contentLoaded.collectAsState(
+                initial = Pair(
+                    UIActionKeysCompose.PAGE_LOADING_CIRCULAR,
+                    true
                 )
+            )
+            val progressIndicator =
+                viewModel.progressIndicator.collectAsState(initial = Pair("", true))
+
+            viewModel.apply {
+
+                navigation.collectAsEffect { navigation ->
+                    when (navigation) {
+                        is BaseNavigation.Back -> {
+                            navigateToStatus(args.applicationId)
+                        }
+
+                        is BaseNavigation.ContextMenu -> {
+                            navigateToContextMenu(
+                                this@CriminalCertStepNationalityF,
+                                navigation.contextMenuArray ?: emptyArray()
+                            )
+                        }
+
+                        is CriminalCertStepNationalityVM.NationalityNavigation.NavigateToNationalitySelection -> {
+                            navigate(
+                                CriminalCertStepNationalityFDirections.actionCriminalCertStepNationalityFToSearchF(
+                                    key = CriminalCertConst.RESULT_KEY_NATIONALITIES,
+                                    searchableList = navigation.nationalities.toTypedArray()
+                                )
+                            )
+                        }
+
+                        is CriminalCertStepNationalityVM.NationalityNavigation.NavigateToFormatExtract -> {
+                            navigation.applicationId?.let { navigateToFormatExtract(it) }
+                        }
+                        is CriminalCertStepNationalityVM.NationalityNavigation.NavigateToContacts -> {
+                            navigation.applicationId?.let { navigateToContacts(it) }
+                        }
+                    }
+                }
+
+                showTemplateDialog.collectAsEffect {
+                    openTemplateDialog(it.peekContent())
+                }
+                showRatingDialogByUserInitiative.collectAsEffect {
+                    val ratingModel = it.peekContent()
+                    val formCode: String? = ratingModel.formCode
+                    navigateToRatingService(
+                        fragment = this@CriminalCertStepNationalityF,
+                        ratingFormModel = ratingModel,
+                        id = args.applicationId,
+                        destinationId = R.id.criminalCertStepNationalityF,
+                        resultKey = ActionsConst.RESULT_KEY_RATING_SERVICE,
+                        screenCode = CriminalCertRatingScreenCodes.SC_NATIONALITY,
+                        ratingType = ActionsConst.TYPE_USER_INITIATIVE,
+                        formCode = formCode
+                    )
+                }
             }
 
-            viewModel.navigateToCountrySelection.observeUiDataEvent(
-                viewLifecycleOwner,
-                ::navigateToCountrySelection
-            )
-            onNextEvent.observeUiDataEvent(viewLifecycleOwner, ::navigateNext)
-
-            showRatingDialogByUserInitiative.observeUiDataEvent(
-                viewLifecycleOwner
-            ) { ratingModel ->
-                viewModel.navigateToRatingService(
-                    fragment = this@CriminalCertStepNationalityF,
-                    ratingFormModel = ratingModel,
-                    id = null,
-                    destinationId = R.id.criminalCertStepNationalityF,
-                    resultKey = ActionsConst.RESULT_KEY_RATING_SERVICE,
-                    screenCode = CriminalCertRatingScreenCodes.SC_NATIONALITY,
-                    ratingType = ActionsConst.TYPE_USER_INITIATIVE,
-                    formCode = ratingModel.formCode
-                )
-            }
+            PublicServiceScreen(
+                contentLoaded = contentLoaded.value,
+                progressIndicator = progressIndicator.value,
+                toolbar = topGroup,
+                body = body,
+                bottom = bottom,
+                onEvent = {
+                    viewModel.onUIAction(it)
+                })
         }
+
         registerForTemplateDialogNavResult { action ->
             findNavController().popBackStack()
             when (action) {
@@ -106,69 +145,69 @@ class CriminalCertStepNationalityF : Fragment() {
                 )
 
                 ActionsConst.SUPPORT_SERVICE -> viewModel.navigateToSupport(this@CriminalCertStepNationalityF)
+                ActionsConst.ERROR_DIALOG_DEAL_WITH_IT -> findNavController().popBackStack()
+                ActionsConst.DIALOG_ACTION_CODE_CLOSE -> findNavController().popBackStack()
                 ActionsConst.RATING -> viewModel.getRatingForm()
+                ACTION_CODE_STATUS -> viewModel.applicationId?.let { navigateToStatus(it) }
+                DIALOG_ACTION_CANCEL_APPLICATION -> viewModel.cancelApplication(true)
+                ActionsConst.DIALOG_ACTION_PUBLIC_SERVICES -> navigateToPublicServices()
             }
         }
-
-        registerForNavigationResultOnce(SEARCH, viewModel::setCountry)
 
         registerForNavigationResult<ConsumableItem>(ActionsConst.RESULT_KEY_RATING_SERVICE) { event ->
-            event.consumeEvent<RatingRequest> { rating ->
-                viewModel.sendRatingRequest(
-                    rating
-                )
-            }
+            event.consumeEvent<RatingRequest> { rating -> viewModel.sendRatingRequest(rating) }
+        }
+        registerForNavigationResult<NationalityItem>(CriminalCertConst.RESULT_KEY_NATIONALITIES) { result ->
+            viewModel.clearContent()
+            viewModel.getScreenContent(
+                id = args.applicationId,
+                countryCode = result.id
+            )
+            viewModel.selectNationalityItem(result.id, result.label)
         }
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        binding = null
-    }
-
-    private fun navigateToCountrySelection(items: List<NationalityItem>) {
+    private fun navigateToFormatExtract(applicationId: String) {
         navigate(
-            CriminalCertStepNationalityFDirections.actionCriminalCertStepNationalityFToSearchF(
-                key = SEARCH,
-                searchableList = items.toTypedArray()
+            CriminalCertStepNationalityFDirections.actionCriminalCertStepNationalityFToCriminalCertFormatExtractF(
+                contextMenu = args.contextMenu,
+                navBarTitle = args.navBarTitle,
+                applicationId = applicationId
             )
         )
     }
 
-    private fun navigateNext(screenData: Pair<CriminalCertScreen, List<String>>) {
-        val destination = when (screenData.first) {
-            CriminalCertScreen.BIRTH_PLACE -> {
-                CriminalCertStepNationalityFDirections.actionCriminalCertStepNationalityFToCriminalCertStepBirthF(
-                    contextMenu = args.contextMenu,
-                    dataUser = args.dataUser.copy(
-                        nationalities = screenData.second
-                    )
-                )
-            }
-
-            CriminalCertScreen.NATIONALITIES -> {
-                //already here
-                null
-            }
-
-            CriminalCertScreen.REGISTRATION_PLACE -> CriminalCertStepNationalityFDirections.actionCriminalCertStepNationalityFToCriminalCertStepAddressF(
+    private fun navigateToContacts(applicationId: String) {
+        navigate(
+            CriminalCertStepNationalityFDirections.actionCriminalCertStepNationalityFToCriminalCertStepContactsF(
                 contextMenu = args.contextMenu,
-                dataUser = args.dataUser.copy(
-                    nationalities = screenData.second
-                )
+                navBarTitle = args.navBarTitle,
+                applicationId = applicationId
             )
-
-            CriminalCertScreen.CONTACTS -> CriminalCertStepNationalityFDirections.actionCriminalCertStepNationalityFToCriminalCertStepContactsF(
-                contextMenu = args.contextMenu,
-                dataUser = args.dataUser.copy(
-                    nationalities = screenData.second
-                )
-            )
-        }
-        destination?.run(::navigate)
+        )
     }
 
-    private companion object {
-        private const val SEARCH = "SEARCH"
+    private fun navigateToPublicServices() {
+        setNavigationResult(
+            arbitraryDestination = R.id.criminalCertHomeF,
+            key = CriminalCertConst.ACTION_CODE_PUBLIC_SERVICES,
+            data = ActionsConst.DIALOG_ACTION_PUBLIC_SERVICES
+        )
+        findNavController().popBackStack(R.id.criminalCertHomeF, false)
+    }
+
+    private fun navigateToStatus(applicationId: String) {
+        navigate(
+            CriminalCertStepNationalityFDirections.actionCriminalCertStepNationalityFToCriminalCertDetailsF(
+                contextMenu = args.contextMenu,
+                navBarTitle = args.navBarTitle,
+                certId = applicationId
+            )
+        )
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        composeView = null
     }
 }

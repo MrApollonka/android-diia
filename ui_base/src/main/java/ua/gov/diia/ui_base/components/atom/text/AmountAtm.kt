@@ -10,8 +10,8 @@ import ua.gov.diia.ui_base.components.infrastructure.UIElementData
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.toDynamicString
 import ua.gov.diia.ui_base.components.theme.Black
+import ua.gov.diia.ui_base.components.theme.DarkGreen
 import ua.gov.diia.ui_base.components.theme.DiiaTextStyle
-import ua.gov.diia.ui_base.components.theme.Green
 import ua.gov.diia.ui_base.components.theme.Red
 
 @Composable
@@ -26,7 +26,7 @@ fun AmountAtm(
         style = DiiaTextStyle.t1BigText,
         color = when (data.color) {
             Color.RED -> Red
-            Color.GREEN -> Green
+            Color.GREEN -> DarkGreen
             Color.BLACK -> Black
         }
     )

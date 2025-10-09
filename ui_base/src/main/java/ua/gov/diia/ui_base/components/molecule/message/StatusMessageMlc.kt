@@ -14,6 +14,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.hideFromAccessibility
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ua.gov.diia.core.models.common.message.StatusMessage
@@ -43,6 +45,7 @@ fun StatusMessageMlc(
             .fillMaxWidth()
             .background(color = WhiteAlpha50, shape = RoundedCornerShape(8.dp))
             .testTag(data.componentId?.asString() ?: "")
+            .semantics(mergeDescendants = true) { }
     ) {
         Row(
             modifier = Modifier
@@ -51,7 +54,11 @@ fun StatusMessageMlc(
         ) {
             Column(modifier = Modifier.wrapContentWidth()) {
                 Text(
-                    modifier = Modifier.padding(end = 8.dp),
+                    modifier = Modifier
+                        .padding(end = 8.dp)
+                        .semantics {
+                            hideFromAccessibility()
+                        },
                     text = data.icon ?: "☝",
                     style = DiiaTextStyle.h4ExtraSmallHeading
                 )

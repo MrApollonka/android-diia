@@ -4,12 +4,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -23,6 +26,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -58,9 +64,29 @@ import ua.gov.diia.ui_base.components.organism.group.toUIModel
 import ua.gov.diia.ui_base.components.subatomic.loader.TridentLoaderAtm
 import ua.gov.diia.ui_base.components.subatomic.timer.ExpireLabel
 import ua.gov.diia.ui_base.components.theme.White
+import ua.gov.diia.ui_base.models.orientation.Orientation
 
 @Composable
 fun VerificationCodesOrg(
+    modifier: Modifier = Modifier,
+    data: VerificationCodesOrgData,
+    progressIndicator: Pair<String, Boolean> = Pair("", false),
+    orientation: Orientation,
+    onUIAction: (UIAction) -> Unit
+) {
+    when (orientation) {
+        Orientation.Portrait -> VerificationCodesOrgPortrait(
+            modifier, data, progressIndicator, onUIAction
+        )
+
+        Orientation.Landscape -> VerificationCodesOrgLandscape(
+            modifier, data, progressIndicator, onUIAction
+        )
+    }
+}
+
+@Composable
+fun VerificationCodesOrgPortrait(
     modifier: Modifier = Modifier,
     data: VerificationCodesOrgData,
     progressIndicator: Pair<String, Boolean> = Pair("", false),
@@ -160,17 +186,16 @@ fun VerificationCodesOrg(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .aspectRatio(1f),
-                                    data = data.qrCode
+                                    data = data.qrCode,
                                 )
                             }
                         }
-                    }
-                    else {
+                    } else {
                         Column(
                             modifier = Modifier
                                 .fillMaxSize(),
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = if(data.toggleButtonGroup == null) Arrangement.Center else Arrangement.Top
+                            verticalArrangement = if (data.toggleButtonGroup == null) Arrangement.Center else Arrangement.Top
                         ) {
                             Box(
                                 modifier = Modifier
@@ -207,7 +232,7 @@ fun VerificationCodesOrg(
                                                     fillMaxWidth()
                                                         .aspectRatio(1f)
                                                 },
-                                            data = it
+                                            data = it,
                                         )
                                     }
                                     data.barCode?.let {
@@ -244,11 +269,215 @@ fun VerificationCodesOrg(
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .aspectRatio(1f),
-                                            data = data.qrCode
+                                            data = data.qrCode,
                                         )
                                     }
-                               }
+                                }
 
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun VerificationCodesOrgLandscape(
+    modifier: Modifier = Modifier,
+    data: VerificationCodesOrgData,
+    progressIndicator: Pair<String, Boolean> = Pair("", false),
+    onUIAction: (UIAction) -> Unit
+) {
+    var expired by remember { mutableStateOf<Boolean?>(false) }
+
+    LaunchedEffect(key1 = data.qrCode?.qrLink?.asString()) {
+        expired = false
+    }
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(color = White, shape = RoundedCornerShape(24.dp))
+            .clip(RoundedCornerShape(24.dp))
+            .testTag(data.componentId?.asString() ?: ""),
+        contentAlignment = Alignment.BottomCenter
+    ) {
+        if ((progressIndicator.first == data.id && progressIndicator.second) || data.idle || (expired == null && data.errorStubMessageMlc == null)) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(color = White, shape = RoundedCornerShape(24.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                TridentLoaderAtm()
+            }
+        } else {
+            if (data.errorStubMessageMlc != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .alpha(0.98f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        StubMessageMlc(
+                            data = data.errorStubMessageMlc,
+                            onUIAction = {
+                                expired = null
+                                onUIAction(it.copy(actionKey = data.actionKey))
+                            }
+                        )
+                        Spacer(
+                            modifier = Modifier
+                                .height(64.dp)
+                                .fillMaxWidth()
+                        )
+                    }
+                }
+            } else {
+                if (expired == true) {
+                    Box(
+                        modifier = Modifier
+                            .padding(bottom = 24.dp)
+                            .fillMaxSize()
+                            .alpha(0.98f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        data.stubMessageMlc?.let {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                StubMessageMlc(
+                                    data = data.stubMessageMlc,
+                                    onUIAction = {
+                                        expired = null
+                                        onUIAction(it.copy(actionKey = data.actionKey))
+                                    }
+                                )
+                                Spacer(
+                                    modifier = Modifier
+                                        .height(64.dp)
+                                        .fillMaxWidth()
+                                )
+                            }
+                        }
+                    }
+                }
+                if (expired == false) {
+                    if (data.timer == null && data.toggleButtonGroup == null) {
+                        Box(
+                            modifier = Modifier
+                                .padding(horizontal = 40.dp)
+                                .fillMaxSize()
+                                .background(White),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            data.qrCode?.run {
+                                QrCodeMlc(
+                                    modifier = Modifier
+                                        .fillMaxSize(fraction = 0.5f)
+                                        .aspectRatio(1f),
+                                    data = data.qrCode,
+                                )
+                            }
+                        }
+                    } else {
+                        Row(modifier = Modifier.fillMaxSize()) {
+                            val localDensity = LocalDensity.current
+                            var columnHeightDp by remember { mutableStateOf(0.dp) }
+                            Column(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .onGloballyPositioned { c ->
+                                        val height = with(localDensity) { c.size.height.toDp() }
+                                        if (columnHeightDp < height) {
+                                            columnHeightDp = height
+                                        }
+                                    }
+                                    .background(Color.Cyan)
+                                    .defaultMinSize(minHeight = columnHeightDp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center,
+                            ) {
+                                if (data.timer != null && data.expireLabelFirst != null) {
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    ExpireLabel(
+                                        expireLabelFirst = data.expireLabelFirst,
+                                        timer = data.timer,
+                                        expireLabelLast = data.expireLabelLast,
+                                        expired = expired ?: true
+                                    ) {
+                                        expired = true
+                                    }
+                                } else {
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                }
+                                if (data.toggleButtonGroup != null) {
+                                    Box(
+                                        modifier = Modifier
+                                            .wrapContentHeight()
+                                            .padding(top = 16.dp, bottom = 16.dp)
+                                            .padding(horizontal = 40.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        if (data.qrCode != null &&
+                                            data.toggleButtonGroup.items.firstOrNull { it.id == VerificationCodesOrgToggleButtonCodes.qr.name }?.selectionState == UIState.Selection.Selected
+                                        ) {
+                                            QrCodeMlc(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .aspectRatio(1f),
+                                                data = data.qrCode,
+                                            )
+                                        }
+
+                                        if (data.barCode != null &&
+                                            data.toggleButtonGroup.items.firstOrNull { it.id == VerificationCodesOrgToggleButtonCodes.barcode.name }?.selectionState == UIState.Selection.Selected
+                                        ) {
+                                            BarCodeMlc(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                data = data.barCode,
+                                            )
+                                        }
+                                    }
+                                } else {
+                                    Box(
+                                        modifier = Modifier
+                                            .padding(top = 16.dp, bottom = 16.dp)
+                                            .padding(horizontal = 40.dp)
+                                            .fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        data.qrCode?.let {
+                                            QrCodeMlc(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .aspectRatio(1f),
+                                                data = data.qrCode,
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(columnHeightDp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (data.toggleButtonGroup != null) {
+                                    ToggleButtonGroupOrg(
+                                        modifier = Modifier,
+                                        data = data.toggleButtonGroup,
+                                        onUIAction = { onUIAction(it.copy(actionKey = data.actionKey)) }
+                                    )
+                                }
                             }
                         }
                     }
@@ -366,7 +595,53 @@ fun VerificationCodesOrgPreview() {
             .padding(horizontal = 24.dp)
             .padding(top = 16.dp),
         data = state.value,
-        progressIndicator = progressIndicator
+        progressIndicator = progressIndicator,
+        orientation = Orientation.Portrait
+    ) {
+        it.action?.type?.let { action ->
+            when (action) {
+                VerificationCodesOrgToggleButtonCodes.qr.name,
+                VerificationCodesOrgToggleButtonCodes.barcode.name -> {
+                    state.value = state.value.onToggleClicked(action)
+                }
+
+                DIALOG_ACTION_REFRESH -> {
+                    coroutineScope.launch {
+                        state.value = state.value.setIdleMode(true)
+                        delay(3000)
+                        updateVerificationCodesOrgFromRemote(state)
+                    }
+                }
+            }
+        }
+
+    }
+}
+
+@Composable
+@Preview(heightDp = 360, widthDp = 800, showBackground = true, backgroundColor = 0xFF0080FF)
+fun VerificationCodesOrgLandscapePreview() {
+    val coroutineScope = rememberCoroutineScope()
+    val progressIndicator by remember { mutableStateOf(UIActionKeysCompose.VERIFICATION_CODES_ORG to false) }
+
+    val data = VerificationCodesOrgData(
+        qrCode = getQrCodeMlc(),
+        barCode = getBarCodeMlc(),
+        expireLabelFirst = "Код діятиме".toDynamicString(),
+        expireLabelLast = "хв".toDynamicString(),
+        timer = 10,
+        toggleButtonGroup = getToggleGroup(),
+        stubMessageMlc = getStubMessageMlc()
+    )
+    val state = remember { mutableStateOf(data) }
+
+    VerificationCodesOrg(
+        modifier = Modifier
+            .padding(horizontal = 24.dp)
+            .padding(top = 16.dp),
+        data = state.value,
+        progressIndicator = progressIndicator,
+        orientation = Orientation.Landscape
     ) {
         it.action?.type?.let { action ->
             when (action) {
@@ -411,6 +686,7 @@ fun VerificationCodesOrgPreview_OnlyQR() {
 
     VerificationCodesOrg(
         data = state.value,
+        orientation = Orientation.Portrait,
         progressIndicator = UIActionKeysCompose.VERIFICATION_CODES_ORG to false
     ) {
 
@@ -440,6 +716,7 @@ fun VerificationCodesOrgPreview_With_Error() {
             .padding(horizontal = 24.dp)
             .padding(top = 16.dp),
         data = state.value,
+        orientation = Orientation.Portrait,
         progressIndicator = progressIndicator
     ) {
         it.action?.type?.let { action ->
@@ -509,6 +786,7 @@ fun VerificationCodesOrgPreview_From_Initial_To_Error() {
             .padding(horizontal = 24.dp)
             .padding(top = 16.dp),
         data = state.value,
+        orientation = Orientation.Portrait,
         progressIndicator = progressIndicator
     ) {
         it.action?.type?.let { action ->

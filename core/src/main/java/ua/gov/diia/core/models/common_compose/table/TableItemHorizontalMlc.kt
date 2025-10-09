@@ -4,6 +4,7 @@ import android.os.Parcelable
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import kotlinx.parcelize.Parcelize
+import ua.gov.diia.core.models.common.message.TextParameter
 import ua.gov.diia.core.models.common_compose.atm.icon.IconAtm
 
 @Parcelize
@@ -23,6 +24,10 @@ data class TableItemHorizontalMlc(
     val supportingValue: String? = null,
     @Json(name = "value")
     val value: String? = null,
+    @Json(name = "valueParameters")
+    val valueParameters: List<TextParameter>? = null,
     @Json(name = "valueImage")
     val valueImage: String? = null,
+    @Json(name = "orientation")
+    val orientation: Boolean? = null
 ) : Parcelable

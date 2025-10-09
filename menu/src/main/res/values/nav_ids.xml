@@ -4,7 +4,6 @@
     <item name="supportBF" type="id"/>
     <item name="helpBaseF" type="id"/>
     <item name="settingsF" type="id"/>
-    <item name="nav_faq" type="id"/>
     <item name="nav_diia_id" type="id"/>
     <item name="nav_app_sessions" type="id"/>
     <item name="nav_notifications" type="id"/>

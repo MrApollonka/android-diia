@@ -1,5 +1,7 @@
 plugins {
     alias(libs.plugins.diia.android.feature)
+    alias(libs.plugins.diia.android.library.jacoco)
+    alias(libs.plugins.diia.android.library.compose)
 }
 
 android {

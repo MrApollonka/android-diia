@@ -24,9 +24,17 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 import ua.gov.diia.core.di.actions.GlobalActionConfirmDocumentRemoval
 import ua.gov.diia.core.di.actions.GlobalActionFocusOnDocument
+import ua.gov.diia.core.di.actions.GlobalActionFocusOnDocumentWithRating
 import ua.gov.diia.core.di.actions.GlobalActionSelectedMenuItem
 import ua.gov.diia.core.models.common.BackStackEvent
 import ua.gov.diia.core.models.dialogs.TemplateDialogModel
+import ua.gov.diia.core.models.document.DiiaDocument
+import ua.gov.diia.core.models.document.DiiaDocumentWithMetadata
+import ua.gov.diia.core.models.document.DocumentCard
+import ua.gov.diia.core.models.document.LocalizationType
+import ua.gov.diia.core.models.document.barcode.DocumentBarcodeRepository
+import ua.gov.diia.core.models.document.barcode.DocumentBarcodeResult
+import ua.gov.diia.core.models.document.barcode.DocumentBarcodeResultLoading
 import ua.gov.diia.core.models.rating_service.RatingRequest
 import ua.gov.diia.core.models.share.ShareByteArr
 import ua.gov.diia.core.ui.dynamicdialog.ActionsConst
@@ -39,21 +47,12 @@ import ua.gov.diia.core.util.event.UiEvent
 import ua.gov.diia.core.util.extensions.lifecycle.asLiveData
 import ua.gov.diia.core.util.extensions.mutableSharedFlowOf
 import ua.gov.diia.core.util.extensions.vm.executeActionOnFlow
-import ua.gov.diia.core.models.document.barcode.DocumentBarcodeRepository
-import ua.gov.diia.core.models.document.barcode.DocumentBarcodeResult
-import ua.gov.diia.core.models.document.barcode.DocumentBarcodeResultLoading
 import ua.gov.diia.documents.data.api.ApiDocuments
 import ua.gov.diia.documents.data.repository.DocumentsDataRepository
 import ua.gov.diia.documents.di.GlobalActionUpdateDocument
 import ua.gov.diia.documents.helper.DocumentsHelper
-import ua.gov.diia.core.models.document.DiiaDocument
-import ua.gov.diia.core.models.document.DiiaDocumentWithMetadata
-import ua.gov.diia.core.models.document.DocumentCard
-import ua.gov.diia.core.models.document.LocalizationType
 import ua.gov.diia.documents.ui.DocVM
 import ua.gov.diia.documents.ui.DocsConst
-import ua.gov.diia.ui_base.mappers.document.DocumentComposeMapper
-import ua.gov.diia.ui_base.mappers.document.ToggleId
 import ua.gov.diia.documents.ui.WithPdfCertificate
 import ua.gov.diia.documents.ui.WithPdfDocument
 import ua.gov.diia.documents.ui.WithRemoveDocument
@@ -74,6 +73,8 @@ import ua.gov.diia.ui_base.components.infrastructure.navigation.NavigationPath
 import ua.gov.diia.ui_base.components.organism.pager.DocCardFlipData
 import ua.gov.diia.ui_base.components.organism.pager.DocCarouselOrgData
 import ua.gov.diia.ui_base.components.organism.pager.DocsCarouselItem
+import ua.gov.diia.ui_base.mappers.document.DocumentComposeMapper
+import ua.gov.diia.ui_base.mappers.document.ToggleId
 import ua.gov.diia.ui_base.models.homescreen.HomeMenuItemConstructor
 import ua.gov.diia.ui_base.navigation.BaseNavigation
 import ua.gov.diia.ui_base.util.navigation.generateComposeNavigationPanel
@@ -86,6 +87,7 @@ class DocStackVMCompose @Inject constructor(
     @GlobalActionUpdateDocument val globalActionUpdateDocument: MutableStateFlow<UiDataEvent<DiiaDocument>?>,
     @GlobalActionFocusOnDocument val globalActionFocusOnDocument: MutableStateFlow<UiDataEvent<String>?>,
     @GlobalActionSelectedMenuItem val globalActionSelectedMenuItem: MutableStateFlow<UiDataEvent<HomeMenuItemConstructor>?>,
+    @GlobalActionFocusOnDocumentWithRating val globalActionFocusOnDocumentWithRaring: MutableStateFlow<UiDataEvent<String>?>,
     private val barcodeRepository: DocumentBarcodeRepository,
     private val documentsDataSource: DocumentsDataRepository,
     private val dispatcherProvider: DispatcherProvider,
@@ -201,6 +203,17 @@ class DocStackVMCompose @Inject constructor(
             }
         }
 
+        viewModelScope.launch {
+            globalActionFocusOnDocumentWithRaring.collectLatest { event ->
+                event?.getContentIfNotHandled()?.let { type ->
+                    focusDocType = type
+                    val wasUpdated = withUpdateExpiredDocs.updateExpirationDate(type)
+                    if (!wasUpdated) documentsDataSource.invalidate()
+                    showRatingFromPush(type)
+                }
+            }
+        }
+
     }
 
     fun subscribeForDocuments(docType: String) {
@@ -230,7 +243,7 @@ class DocStackVMCompose @Inject constructor(
                                     BaseNavigation.Back
                                 )
                             } else {
-                                currPos = setPrevPos(currPos)
+                                currPos = updateFocusOnDocumentRemoved(currPos)
                             }
                         }
                         configureBody(it)
@@ -321,6 +334,7 @@ class DocStackVMCompose @Inject constructor(
     }
 
     fun configureTopBar(title: String) {
+        _topBarData.clear()
         _topBarData.addIfNotNull(generateComposeNavigationPanel(title = title))
     }
 
@@ -541,7 +555,7 @@ class DocStackVMCompose @Inject constructor(
     }
 
     override fun removeDoc(diiaDocument: DiiaDocument) {
-        _checkStack.value = false
+        _checkStack.value = !diiaDocument.hasTemplateAfterDocRemove()
         executeActionOnFlow(
             progressIndicator = _contentLoaded.also {
                 _contentLoadedKey.value =
@@ -601,7 +615,6 @@ class DocStackVMCompose @Inject constructor(
         val status = newDoc?.status
         when (status) {
             DocsConst.DOCUMENT_UPDATED_STATUS, in 400..499 -> handleDocumentUpdatedStatus(
-                oldDoc,
                 updatedDocResponse
             )
 
@@ -616,17 +629,14 @@ class DocStackVMCompose @Inject constructor(
         }
     }
 
-    private fun handleDocumentUpdatedStatus(
-        oldDoc: DiiaDocumentWithMetadata,
-        updatedDocResponse: List<DiiaDocumentWithMetadata>?
-    ) {
-        oldDoc.diiaDocument?.getItemType()?.let { documentsDataSource.removeDocumentByType(it) }
+    private fun handleDocumentUpdatedStatus(updatedDocResponse: List<DiiaDocumentWithMetadata>?) {
         updatedDocResponse?.let { updatedDocsList ->
             updatedDocsList.forEach { diiaDocumentWithMetadata ->
                 diiaDocumentWithMetadata.diiaDocument?.let {
                     updateDocument(it)
                 }
                 if (getStackCurrentDocCount() < updatedDocsList.size) {
+                    currPos = updateFocusOnDocumentRemoved(currPos)
                     updatedDocsList.forEach {
                         documentsDataSource.attachExternalDocument(it)
                     }
@@ -645,7 +655,15 @@ class DocStackVMCompose @Inject constructor(
         }
     }
 
-    private fun setPrevPos(position: Int): Int {
+    private fun updateFocusOnDocumentRemoved(position: Int): Int {
+        return if ((documentCardData.value?.size?.minus(2) ?: 0) > position) {
+            position
+        } else {
+            getPrevPos(position)
+        }
+    }
+
+    private fun getPrevPos(position: Int): Int {
         return if (position > 0) {
             position - 1
         } else {
@@ -655,8 +673,13 @@ class DocStackVMCompose @Inject constructor(
 
 
     override fun sendRatingRequest(ratingRequest: RatingRequest) {
-        currentDoc?.getItemType()
-            ?.let { sendRating(ratingRequest, ActionsConst.DOCUMENTS_CODE, it) }
+        currentDoc?.getItemType()?.let {
+            sendRating(ratingRequest, ActionsConst.DOCUMENTS_CODE, it)
+            return
+        }
+        focusDocType?.let {
+            sendRating(ratingRequest, ActionsConst.DOCUMENTS_CODE, it)
+        }
     }
 
     override fun loadImageAndShare(docType: String, docId: String) {
@@ -682,6 +705,16 @@ class DocStackVMCompose @Inject constructor(
             }) {
             currentDoc = doc
             getRating(ActionsConst.DOCUMENTS_CODE, doc.getItemType())
+        }
+    }
+
+    private fun showRatingFromPush(docType: String) {
+        executeActionOnFlow(
+            progressIndicator = _contentLoaded.also {
+                _contentLoadedKey.value =
+                    UIActionKeysCompose.PAGE_LOADING_TRIDENT_WITH_UI_BLOCKING
+            }) {
+            getRating(ActionsConst.DOCUMENTS_CODE, docType)
         }
     }
 

@@ -19,8 +19,10 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,9 +31,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideSubcomposition
-import com.bumptech.glide.integration.compose.RequestState
+import coil.compose.SubcomposeAsyncImage
 import ua.gov.diia.core.util.type_enum.TypeEnum
 import ua.gov.diia.ui_base.R
 import ua.gov.diia.ui_base.components.DiiaResourceIcon
@@ -52,15 +52,13 @@ import ua.gov.diia.ui_base.components.theme.DiiaTextStyle
 import ua.gov.diia.ui_base.components.theme.RedAttention
 import ua.gov.diia.ui_base.components.theme.White
 
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun SmallPicAtm(
     modifier: Modifier = Modifier,
     data: SmallPicAtmData,
     onUIAction: (UIAction) -> Unit
 ) {
-
-    var requestState = remember { mutableStateOf(false) }
+    var requestState by remember { mutableStateOf(false) }
 
     val aspectRatio = when (data.aspectRatioType) {
         SmallPicAtmData.AspectRatioType.SQUARE -> 1f
@@ -76,9 +74,8 @@ fun SmallPicAtm(
         modifier = modifier
             .width(width)
             .aspectRatio(aspectRatio)
-    )
-    {
-        GlideSubcomposition(
+    ) {
+        SubcomposeAsyncImage(
             modifier = Modifier
                 .fillMaxHeight()
                 .fillMaxWidth()
@@ -95,44 +92,38 @@ fun SmallPicAtm(
                         Modifier
                     }
                 ),
-            model = data.url
-        ) {
-            when (state) {
-                RequestState.Failure -> {
-                    SmallPicAtmError()
-                }
-
-                RequestState.Loading -> {
-                    SmallPicAtmLoading()
-                }
-
-                is RequestState.Success -> {
-                    requestState.value = true
-                    Image(
-                        painter,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.noRippleClickable {
-                            if (data.progressState == UIState.MediaUploadState.Loaded) {
-                                onUIAction(
-                                    UIAction(
-                                        actionKey = data.actionKey,
-                                        data = data.id,
-                                        action = data.action
-                                    )
+            model = data.url,
+            contentDescription = null,
+            loading = {
+                SmallPicAtmLoading()
+            },
+            success = {
+                requestState = true
+                Image(
+                    painter = painter,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.noRippleClickable {
+                        if (data.progressState == UIState.MediaUploadState.Loaded) {
+                            onUIAction(
+                                UIAction(
+                                    actionKey = data.actionKey,
+                                    data = data.id,
+                                    action = data.action
                                 )
-                            }
+                            )
                         }
-                    )
-                }
-
+                    }
+                )
+            },
+            error = {
+                SmallPicAtmError()
             }
-        }
-
+        )
         if (data.progressState == UIState.MediaUploadState.InProgress) {
             SmallPicAtmLoading()
         }
-// error
+        // error
         if (data.progressState == UIState.MediaUploadState.FailedLoading) {
             Column(
                 modifier = Modifier
@@ -176,7 +167,7 @@ fun SmallPicAtm(
                 )
             }
         }
-// icon close
+        // icon close
         if (data.progressState == UIState.MediaUploadState.FailedLoading ||
             data.progressState == UIState.MediaUploadState.Loaded
         ) {
@@ -210,7 +201,7 @@ fun SmallPicAtm(
             }
         }
         // icon play
-        if (requestState.value && data.isActionPlayExist) {
+        if (requestState && data.isActionPlayExist) {
             Column(
                 modifier = Modifier
                     .fillMaxSize(),

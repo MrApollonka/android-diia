@@ -7,8 +7,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.intl.LocaleList
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -20,6 +25,7 @@ import ua.gov.diia.ui_base.components.atom.text.textwithparameter.TextParameter
 import ua.gov.diia.ui_base.components.atom.text.textwithparameter.TextWithParametersAtom
 import ua.gov.diia.ui_base.components.atom.text.textwithparameter.TextWithParametersData
 import ua.gov.diia.ui_base.components.conditional
+import ua.gov.diia.ui_base.components.infrastructure.UIElementData
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
 import ua.gov.diia.ui_base.components.infrastructure.state.UIState
@@ -28,6 +34,7 @@ import ua.gov.diia.ui_base.components.infrastructure.utils.resource.toDynamicStr
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.toDynamicStringOrNull
 import ua.gov.diia.ui_base.components.organism.list.pagination.SimplePagination
 import ua.gov.diia.ui_base.components.theme.DiiaTextStyle
+import ua.gov.diia.ui_base.util.extensions.language.detectLanguageCode
 
 @Composable
 fun StubMessageMlc(
@@ -45,32 +52,45 @@ fun StubMessageMlc(
             .testTag(data.componentId?.asString() ?: ""),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = data.icon.asString(),
-            style = TextStyle(
-                fontSize = 48.sp,
-                lineHeight = 48.sp
-            )
-        )
-        data.title?.let {
+        Column(
+            modifier = Modifier
+                .semantics(mergeDescendants = true) { },
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Text(
-                modifier = Modifier.padding(top = 16.dp),
-                text = data.title.asString(),
-                textAlign = TextAlign.Center,
-                style = DiiaTextStyle.h3SmallHeading
+                text = data.icon.asString(),
+                style = TextStyle(
+                    fontSize = 48.sp,
+                    lineHeight = 48.sp
+                )
             )
-        }
-        data.description?.let {
-            TextWithParametersAtom(
-                modifier = Modifier
-                    .padding(top = 8.dp)
-                    .align(Alignment.CenterHorizontally),
-                data = data.description,
-                style = DiiaTextStyle.t3TextBody.copy(textAlign = TextAlign.Center),
-                onUIAction = onUIAction
+            data.title?.let {
+                Text(
+                    modifier = Modifier.padding(top = 16.dp),
+                    text = buildAnnotatedString {
+                        val textContent = data.title.asString()
+                        val languageCode = textContent.detectLanguageCode()
+                        withStyle(style = SpanStyle(localeList = LocaleList(languageCode))) {
+                            append(textContent)
+                        }
+                    },
+                    textAlign = TextAlign.Center,
+                    style = DiiaTextStyle.h3SmallHeading
+                )
+            }
+            data.description?.let {
+                TextWithParametersAtom(
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .align(Alignment.CenterHorizontally),
+                    data = data.description,
+                    style = DiiaTextStyle.t3TextBody.copy(textAlign = TextAlign.Center),
+                    onUIAction = onUIAction
 
-            )
+                )
+            }
         }
+
         data.button?.let {
             BtnStrokeAdditionalAtm(
                 modifier = Modifier.padding(top = 16.dp),
@@ -88,7 +108,7 @@ data class StubMessageMlcData(
     val button: ButtonStrokeAdditionalAtomData? = null,
     val componentId: UiText? = null,
     override val id: String = "",
-) : SimplePagination
+) : SimplePagination, UIElementData
 
 fun StubMessageMlc?.toUIModel(): StubMessageMlcData? {
     val entity: StubMessageMlc = this ?: return null

@@ -1,11 +1,13 @@
 package ua.gov.diia.documents.ui.fullinfo
 
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -18,6 +20,7 @@ import ua.gov.diia.documents.ui.fullinfo.compose.FullInfoBottomSheet
 import ua.gov.diia.documents.util.view.showCopyDocIdClipedSnackBar
 import ua.gov.diia.ui_base.components.infrastructure.DataActionWrapper
 import ua.gov.diia.ui_base.components.infrastructure.collectAsEffect
+import ua.gov.diia.ui_base.models.orientation.Orientation
 
 @AndroidEntryPoint
 class FullInfoFCompose : BottomDoc() {
@@ -45,7 +48,13 @@ class FullInfoFCompose : BottomDoc() {
             val body = viewModel.bodyData
             val progressIndicator =
                 viewModel.progressIndicator.collectAsState(initial = Pair("", true))
-
+            val configuration = LocalConfiguration.current
+            val orientation =
+                if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                    Orientation.Landscape
+                } else {
+                    Orientation.Portrait
+                }
             viewModel.apply {
                 docAction.collectAsEffect { docAction ->
                     when (docAction) {
@@ -95,6 +104,7 @@ class FullInfoFCompose : BottomDoc() {
             FullInfoBottomSheet(
                 progressIndicator = progressIndicator.value,
                 data = body,
+                orientation = orientation,
                 onUIAction = {
                     viewModel.onUIAction(it)
                 })

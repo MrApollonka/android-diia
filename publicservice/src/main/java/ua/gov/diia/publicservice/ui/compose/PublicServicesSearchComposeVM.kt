@@ -16,11 +16,13 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import ua.gov.diia.core.di.data_source.http.AuthorizedClient
+import ua.gov.diia.core.models.dialogs.TemplateDialogModel
 import ua.gov.diia.core.util.DispatcherProvider
 import ua.gov.diia.core.util.delegation.WithCrashlytics
 import ua.gov.diia.core.util.delegation.WithErrorHandlingOnFlow
 import ua.gov.diia.core.util.delegation.WithRetryLastAction
 import ua.gov.diia.core.util.extensions.vm.executeActionOnFlow
+import ua.gov.diia.publicservice.PublicServiceConst
 import ua.gov.diia.publicservice.R
 import ua.gov.diia.publicservice.helper.PublicServiceHelper
 import ua.gov.diia.publicservice.models.PublicService
@@ -67,7 +69,7 @@ class PublicServicesSearchComposeVM @Inject constructor(
     val navigation = _navigation.asSharedFlow()
 
     private companion object {
-        const val MIN_QUERY_SIZE = 3
+        const val MIN_QUERY_SIZE = 2
     }
 
     private var categories: List<PublicServiceCategory> =
@@ -77,7 +79,6 @@ class PublicServicesSearchComposeVM @Inject constructor(
 
     val query = MutableLiveData<String?>()
     private val queryFlow = query.asFlow()
-
 
     private val _services =
         MutableSharedFlow<List<PublicServiceView>>(
@@ -91,10 +92,30 @@ class PublicServicesSearchComposeVM @Inject constructor(
     val contentLoaded: Flow<Pair<String, Boolean>> =
         _contentLoaded.combine(_contentLoadedKey) { value, key -> key to value }
 
+    var templateDialogModel: TemplateDialogModel? = null
+        private set
+
     init {
         viewModelScope.launch {
             queryFlow.collect(::filterServices)
         }
+    }
+
+    fun doInit(data: Array<PublicServiceCategory>) {
+        categories = data.toList()
+        prepareDisplayList(data)
+        _toolBarData.addIfNotNull(
+            generateComposeNavigationPanel(
+                title = "Сервіси",
+                componentId = UiText.StringResource(R.string.home_navigation_panel_services_test_tag)
+            )
+        )
+        _bodyData.addIfNotNull(
+            generateSearchInputMoleculeV2(
+                placeholder = "Що шукаєте?",
+                mode = 0
+            )
+        )
     }
 
     fun onUIAction(event: UIAction) {
@@ -103,6 +124,7 @@ class PublicServicesSearchComposeVM @Inject constructor(
                 _navigation.tryEmit(BaseNavigation.Back)
             }
 
+            UIActionKeysCompose.LIST_ITEM_MLC,
             UIActionKeysCompose.LIST_ITEM_GROUP_ORG -> {
                 event.action?.type?.let {
                     val serviceView = event.data?.let { findPublicService(it) }
@@ -114,7 +136,7 @@ class PublicServicesSearchComposeVM @Inject constructor(
                                 ?: return
 
                         when (serviceView.code) {
-                            PS_ENEMY -> {
+                            PublicServiceConst.PS_ENEMY -> {
                                 openEnemyShareLink()
                                 return
                             }
@@ -132,6 +154,22 @@ class PublicServicesSearchComposeVM @Inject constructor(
             UIActionKeysCompose.SEARCH_INPUT -> {
                 val newValue = event.data
                 query.value = newValue
+            }
+        }
+    }
+
+    fun getPublicServicePortalUrl(serviceCode: String) {
+        executeActionOnFlow(
+            contentLoadedIndicator = _contentLoaded.also {
+                _contentLoadedKey.value = UIActionKeysCompose.PAGE_LOADING_TRIDENT_WITH_UI_BLOCKING
+            }
+        ) {
+            val response = apiPublicServices.getPublicServicePortalUrl(
+                serviceCode = PublicServiceConst.mapServiceCodeToPortalCode(serviceCode)
+            )
+            response.template?.let { lTemplate ->
+                templateDialogModel = lTemplate
+                showTemplateDialog(lTemplate)
             }
         }
     }
@@ -154,17 +192,6 @@ class PublicServicesSearchComposeVM @Inject constructor(
                 (_bodyData[index] as SearchInputV2Data).onChange(query)
         }
 
-    }
-
-    fun doInit(data: Array<PublicServiceCategory>) {
-        categories = data.toList()
-        prepareDisplayList(data)
-        _toolBarData.addIfNotNull(
-            generateComposeNavigationPanel(title = "Сервіси", componentId = UiText.StringResource(R.string.home_navigation_panel_services_test_tag))
-        )
-        _bodyData.addIfNotNull(
-            generateSearchInputMoleculeV2("Що шукаєте?", 0)
-        )
     }
 
     private fun prepareDisplayList(data: Array<PublicServiceCategory>) {
@@ -192,7 +219,6 @@ class PublicServicesSearchComposeVM @Inject constructor(
         }
         onSearch(query)
         services.observeForever {
-
             val index = _bodyData.indexOfFirst {
                 it is ListItemGroupOrgData
             }
@@ -206,8 +232,6 @@ class PublicServicesSearchComposeVM @Inject constructor(
             configureEmptyBody(it.isEmpty(), query)
 
         }
-
-
     }
 
     private fun configureEmptyBody(isServicesExist: Boolean, query: String?) {
@@ -258,15 +282,17 @@ class PublicServicesSearchComposeVM @Inject constructor(
     }
 }
 
-sealed class PublicServicesCategoriesSearchNavigation : NavigationPath {
+sealed interface PublicServicesCategoriesSearchNavigation : NavigationPath {
 
-    data class NavigateToService(val service: PublicService) :
-        PublicServicesCategoriesSearchNavigation()
+    data class NavigateToService(
+        val service: PublicService
+    ) : PublicServicesCategoriesSearchNavigation
 
-    data class OpenEnemyTrackLink(val link: String, val crashlytics: WithCrashlytics) :
-        PublicServicesCategoriesSearchNavigation()
+    data class OpenEnemyTrackLink(
+        val link: String,
+        val crashlytics: WithCrashlytics
+    ) : PublicServicesCategoriesSearchNavigation
 
-    object HideKeyboard : PublicServicesCategoriesSearchNavigation()
+    data object HideKeyboard : PublicServicesCategoriesSearchNavigation
+
 }
-
-private const val PS_ENEMY = "enemy"

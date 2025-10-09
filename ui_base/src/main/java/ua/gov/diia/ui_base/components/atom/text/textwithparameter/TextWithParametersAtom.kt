@@ -9,6 +9,8 @@ import androidx.compose.foundation.text.ClickableText
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -34,16 +36,21 @@ fun TextWithParametersAtom(
     modifier: Modifier = Modifier,
     data: TextWithParametersData,
     style: TextStyle = DiiaTextStyle.t3TextBody,
+    maxLines: Int? = null,
     onUIAction: (UIAction) -> Unit
 ) {
-    val annotatedText: AnnotatedString =
-        data.text.buildWithMetadataComposeEdition(data.parameters ?: emptyList())
+    val annotatedText: AnnotatedString = data.text.buildWithMetadataComposeEdition(data.parameters ?: emptyList())
     val context = LocalContext.current
 
     ClickableText(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .semantics {
+                onClick(label = null, action = null)
+            },
         text = annotatedText,
-        style = style
+        style = style,
+        maxLines = maxLines ?: Int.MAX_VALUE
     ) {
         val annotation = annotatedText.getStringAnnotations(it, it)
         if (annotation.isNotEmpty()) {
@@ -119,7 +126,7 @@ fun String?.toComposeTextWithParameters(): TextWithParametersData? {
     )
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun TextWithParametersAtomPreview() {
     val linkText =
@@ -220,7 +227,7 @@ fun TextWithParametersAtomPreview_Phone() {
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun TextWithParametersAtomPreview_Email() {
     val context = LocalContext.current

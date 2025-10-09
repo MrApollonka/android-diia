@@ -20,7 +20,6 @@ import ua.gov.diia.core.util.delegation.WithRetryLastAction
 import ua.gov.diia.core.util.extensions.lifecycle.asLiveData
 import ua.gov.diia.core.util.extensions.vm.executeActionOnFlow
 import ua.gov.diia.documents.ui.DocsConst.ACTION_REFRESH
-import ua.gov.diia.ui_base.mappers.document.DocumentComposeMapper
 import ua.gov.diia.documents.verificationdata.DocumentVerificationDataRepository
 import ua.gov.diia.documents.verificationdata.DocumentVerificationDataResult
 import ua.gov.diia.ui_base.components.infrastructure.DataActionWrapper
@@ -31,6 +30,7 @@ import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
 import ua.gov.diia.ui_base.components.infrastructure.findAndChangeFirstByInstance
 import ua.gov.diia.ui_base.components.organism.document.VerificationCodesOrgData
 import ua.gov.diia.ui_base.components.organism.document.VerificationCodesOrgToggleButtonCodes
+import ua.gov.diia.ui_base.mappers.document.DocumentComposeMapper
 import javax.inject.Inject
 
 @HiltViewModel
@@ -66,6 +66,8 @@ class FullInfoFComposeVM @Inject constructor(
     val documentCardData = _documentCardData.asLiveData()
 
     fun configureBody(document: Parcelable) {
+        _bodyData.clear()
+        
         (document as? DiiaDocument)?.let {
             docFullComposeMapper.mapDocToBody(it, _bodyData)
             loadVerificationCodesOrg(it)
@@ -103,6 +105,7 @@ class FullInfoFComposeVM @Inject constructor(
                 _docAction.tryEmit(DocActions.DismissDoc)
             }
 
+            UIActionKeysCompose.LIST_ITEM_MLC,
             UIActionKeysCompose.LIST_ITEM_GROUP_ORG -> {
                 event.action?.let {
                     _docAction.tryEmit(DocActions.FullInfoAction(it))

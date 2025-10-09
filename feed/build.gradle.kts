@@ -21,8 +21,6 @@ dependencies {
     ksp(libs.moshi.codegen)
     implementation(libs.androidx.browser)
     implementation(libs.androidx.viewpager2)
-    implementation(libs.glide)
-    ksp(libs.glide.ksp)
     implementation(libs.lottie)
     implementation(libs.better.link)
     implementation(libs.kotlinx.serialization.json)

@@ -1,5 +1,6 @@
 package ua.gov.diia.ui_base.components.organism.pager
 
+import android.content.res.Configuration
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.LocalOverscrollConfiguration
 import androidx.compose.foundation.layout.Arrangement
@@ -23,27 +24,32 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
-import com.google.accompanist.pager.ExperimentalPagerApi
-import com.google.accompanist.pager.HorizontalPager
-import com.google.accompanist.pager.calculateCurrentOffsetForPage
-import com.google.accompanist.pager.rememberPagerState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.flow.collectLatest
 import ua.gov.diia.ui_base.components.atom.pager.DocDotNavigationAtm
 import ua.gov.diia.ui_base.components.atom.pager.DocDotNavigationAtmData
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
+import ua.gov.diia.ui_base.components.infrastructure.utils.cardAccessibilityAndFocusModifier
 import ua.gov.diia.ui_base.components.organism.document.AddDocOrg
 import ua.gov.diia.ui_base.components.organism.document.AddDocOrgData
 import ua.gov.diia.ui_base.components.organism.document.DocActivateCardOrg
 import ua.gov.diia.ui_base.components.organism.document.DocActivateCardOrgData
 import ua.gov.diia.ui_base.components.organism.document.DocOrg
 import ua.gov.diia.ui_base.components.organism.document.DocOrgData
+import ua.gov.diia.ui_base.models.orientation.Orientation
 import java.util.UUID
 import kotlin.math.absoluteValue
 
-@OptIn(ExperimentalPagerApi::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BaseCarouselOrg(
     modifier: Modifier = Modifier,
@@ -55,7 +61,6 @@ fun BaseCarouselOrg(
     val configuration = LocalConfiguration.current
     val screenWidthDp = configuration.screenWidthDp
     val screenHeightDp = configuration.screenHeightDp
-
     val screenDensity = LocalDensity.current.density
 
     val screenWidthPx = (screenWidthDp * screenDensity).toInt()
@@ -64,6 +69,12 @@ fun BaseCarouselOrg(
     val screenDiagonalInches = kotlin.math.sqrt(
         (screenWidthPx * screenWidthPx + screenHeightPx * screenHeightPx).toDouble()
     ) / (160 * screenDensity)
+
+    val orientation = if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+        Orientation.Landscape
+    } else {
+        Orientation.Portrait
+    }
 
     var fraction by remember {
         mutableFloatStateOf(
@@ -77,11 +88,21 @@ fun BaseCarouselOrg(
 
     val screenHeightInPixels = with(LocalDensity.current) { screenHeightDp.dp.toPx() }
     val desiredHeightInPixels = screenHeightInPixels * fraction
-    val actualFraction = desiredHeightInPixels / screenHeightInPixels
+    val actualFraction = if (orientation == Orientation.Portrait)
+        desiredHeightInPixels / screenHeightInPixels
+    else 0.9f
 
+    val state = rememberPagerState(
+        initialPage = 0,
+        initialPageOffsetFraction = 0f
+    ) {
+        pageCount
+    }
 
-    val state = rememberPagerState()
     var scrollInProgress = remember { mutableStateOf(false) }
+    var isFullCardFocus = remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         snapshotFlow {
@@ -113,19 +134,25 @@ fun BaseCarouselOrg(
             HorizontalPager(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(actualFraction),
-                count = pageCount,
+                    .fillMaxHeight(actualFraction)
+                    .semantics {
+                        role = Role.Carousel
+                    },
                 state = state,
-                itemSpacing = (16).dp,
+                pageSpacing = (16).dp,
                 key = { "${UUID.randomUUID()}" },
                 contentPadding = PaddingValues(
-                    start = 32.dp, end = 32.dp
+                    start = 32.dp,
+                    end = 32.dp,
+                    top = if (orientation == Orientation.Landscape) 16.dp else 0.dp,
+                    bottom = if (orientation == Orientation.Landscape) 16.dp else 0.dp
                 )
             ) { page ->
                 val card = data.card[page]
                 val docModifier = Modifier
                     .graphicsLayer {
-                        val pageOffset = calculateCurrentOffsetForPage(page).absoluteValue
+                        val pageOffset =
+                            ((state.currentPage - page) + state.currentPageOffsetFraction).absoluteValue
                         lerp(
                             start = 0.85f,
                             stop = 1f,
@@ -137,10 +164,20 @@ fun BaseCarouselOrg(
                     }
                 when (card) {
                     is DocCardFlipData -> {
+                        val cardTitle = card.front.docHeading?.heading?.value ?: ""
                         DocCardFlip(
-                            modifier = docModifier,
+                            modifier = docModifier
+                                .cardAccessibilityAndFocusModifier(
+                                    page = page,
+                                    state = state,
+                                    coroutineScope = coroutineScope,
+                                    isFullCardFocus = isFullCardFocus,
+                                    cardTitle = cardTitle,
+                                    context = context
+                                ),
                             data = card,
                             progressIndicator = progressIndicator,
+                            orientation = orientation,
                             cardFocus = if (scrollInProgress.value) {
                                 CardFocus.UNDEFINED
                             } else {
@@ -166,9 +203,19 @@ fun BaseCarouselOrg(
                     }
 
                     is DocOrgData -> {
+                        val cardTitle = card.docHeading?.heading?.value ?: ""
                         DocOrg(
-                            modifier = docModifier,
+                            modifier = docModifier
+                                .cardAccessibilityAndFocusModifier(
+                                    page = page,
+                                    state = state,
+                                    coroutineScope = coroutineScope,
+                                    isFullCardFocus = isFullCardFocus,
+                                    cardTitle = cardTitle,
+                                    context = context
+                                ),
                             data = card,
+                            orientation = orientation,
                             cardFocus = if (scrollInProgress.value) {
                                 CardFocus.UNDEFINED
                             } else {
@@ -192,7 +239,15 @@ fun BaseCarouselOrg(
 
                     is AddDocOrgData -> {
                         AddDocOrg(
-                            modifier = docModifier,
+                            modifier = docModifier
+                                .cardAccessibilityAndFocusModifier(
+                                    page = page,
+                                    state = state,
+                                    coroutineScope = coroutineScope,
+                                    isFullCardFocus = isFullCardFocus,
+                                    context = context
+                                ),
+                            orientation = orientation,
                             data = card,
                             onUIAction = onUIAction
                         )
@@ -200,7 +255,14 @@ fun BaseCarouselOrg(
 
                     is DocActivateCardOrgData -> {
                         DocActivateCardOrg(
-                            modifier = docModifier,
+                            modifier = docModifier
+                                .cardAccessibilityAndFocusModifier(
+                                    page = page,
+                                    state = state,
+                                    coroutineScope = coroutineScope,
+                                    isFullCardFocus = isFullCardFocus,
+                                    context = context
+                                ),
                             data = card,
                             onUIAction = onUIAction
                         )

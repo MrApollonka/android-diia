@@ -52,6 +52,7 @@ class PublicServiceCategoryDetailsComposeVM @Inject constructor(
     val category = _category.asLiveData()
 
     fun doInit(category: PublicServiceCategory) {
+        clearContent()
         _category.value = category
         _toolBarData.addIfNotNull(
             generateComposeNavigationPanel(
@@ -70,6 +71,7 @@ class PublicServiceCategoryDetailsComposeVM @Inject constructor(
                 _navigation.tryEmit(BaseNavigation.Back)
             }
 
+            UIActionKeysCompose.LIST_ITEM_MLC,
             UIActionKeysCompose.LIST_ITEM_GROUP_ORG -> {
                 event.action?.type?.let {
                     val service = event.data?.let { findPublicService(it) }
@@ -90,6 +92,11 @@ class PublicServiceCategoryDetailsComposeVM @Inject constructor(
         return snapshot.publicServices.find {
             it.code == code
         }
+    }
+
+    private fun clearContent() {
+        _toolBarData.clear()
+        _bodyData.clear()
     }
 }
 

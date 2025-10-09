@@ -6,7 +6,7 @@ import ua.gov.diia.core.models.TokenData
 import ua.gov.diia.core.models.TokenData.Companion.EMPTY_TOKEN
 import ua.gov.diia.core.models.UserType
 import ua.gov.diia.core.util.DispatcherProvider
-import ua.gov.diia.diia_storage.Base64Wrapper
+import ua.gov.diia.core.util.decoder.Base64Wrapper
 import ua.gov.diia.diia_storage.CommonPreferenceKeys
 import ua.gov.diia.diia_storage.DiiaStorage
 import ua.gov.diia.diia_storage.store.datasource.preferences.PreferenceDataSource

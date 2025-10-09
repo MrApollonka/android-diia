@@ -47,7 +47,7 @@ fun SheetNavigationBarMolecule(
                     )
                 },
             painter = painterResource(id = R.drawable.diia_close_rounded_plain),
-            contentDescription = stringResource(id = R.string.close),
+            contentDescription = stringResource(id = R.string.accessibility_back),
             tint = Black
         )
     }

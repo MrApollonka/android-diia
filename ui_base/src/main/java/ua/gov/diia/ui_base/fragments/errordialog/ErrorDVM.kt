@@ -4,17 +4,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import ua.gov.diia.ui_base.R
-import ua.gov.diia.ui_base.fragments.errordialog.ErrorDialogConst.ACTION_FINISH
-import ua.gov.diia.ui_base.fragments.errordialog.ErrorDialogConst.ACTION_RETRY
 import ua.gov.diia.core.util.event.UiDataEvent
+import ua.gov.diia.ui_base.R
 import ua.gov.diia.ui_base.components.atom.button.BtnPlainAtmData
 import ua.gov.diia.ui_base.components.atom.button.BtnPrimaryDefaultAtmData
-import ua.gov.diia.ui_base.components.atom.button.ButtonStrokeLargeAtomData
+import ua.gov.diia.ui_base.components.atom.button.BtnStrokeLargeAtmData
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
 import ua.gov.diia.ui_base.components.infrastructure.screen.TemplateDialogScreenData
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
+import ua.gov.diia.ui_base.fragments.errordialog.ErrorDialogConst.ACTION_FINISH
+import ua.gov.diia.ui_base.fragments.errordialog.ErrorDialogConst.ACTION_RETRY
 
 class ErrorDVM : ViewModel() {
 
@@ -30,7 +30,7 @@ class ErrorDVM : ViewModel() {
                 TemplateDialogScreenData(
                     icon = UiText.StringResource(R.string.emoji_sad),
                     titleText = UiText.StringResource(R.string.identity_error_timeout),
-                    strokeButton = ButtonStrokeLargeAtomData(
+                    strokeButton = BtnStrokeLargeAtmData(
                         id = "",
                         actionKey = ACTION_FINISH,
                         title = UiText.StringResource(R.string.idenity_error_understood)
@@ -43,7 +43,7 @@ class ErrorDVM : ViewModel() {
                 TemplateDialogScreenData(
                     icon = UiText.StringResource(R.string.emoji_sad),
                     titleText = UiText.StringResource(R.string.identity_error_not_registered),
-                    strokeButton = ButtonStrokeLargeAtomData(
+                    strokeButton = BtnStrokeLargeAtmData(
                         id = "",
                         actionKey = ACTION_FINISH,
                         title = UiText.StringResource(R.string.idenity_error_understood)
@@ -56,7 +56,7 @@ class ErrorDVM : ViewModel() {
                 TemplateDialogScreenData(
                     icon = UiText.StringResource(R.string.emoji_sad),
                     titleText = UiText.StringResource(R.string.identity_error_unknown),
-                    strokeButton = ButtonStrokeLargeAtomData(
+                    strokeButton = BtnStrokeLargeAtmData(
                         id = "",
                         actionKey = ACTION_RETRY,
                         title = UiText.StringResource(R.string.identity_error_try_again)
@@ -69,7 +69,7 @@ class ErrorDVM : ViewModel() {
                 TemplateDialogScreenData(
                     icon = UiText.StringResource(R.string.emoji_sad),
                     titleText = UiText.StringResource(R.string.identity_error_unknown),
-                    strokeButton = ButtonStrokeLargeAtomData(
+                    strokeButton = BtnStrokeLargeAtmData(
                         id = "",
                         actionKey = ACTION_FINISH,
                         title = UiText.StringResource(R.string.idenity_error_understood)
@@ -83,7 +83,7 @@ class ErrorDVM : ViewModel() {
                     icon = UiText.StringResource(R.string.emoji_sad),
                     titleText = UiText.StringResource(R.string.identity_error_no_internet),
                     descriptionText = UiText.StringResource(R.string.identity_error_no_internet_desc),
-                    strokeButton = ButtonStrokeLargeAtomData(
+                    strokeButton = BtnStrokeLargeAtmData(
                         id = "",
                         actionKey = ACTION_RETRY,
                         title = UiText.StringResource(R.string.identity_error_try_again)
@@ -113,7 +113,7 @@ class ErrorDVM : ViewModel() {
                 TemplateDialogScreenData(
                     icon = UiText.StringResource(R.string.emoji_sad),
                     titleText = UiText.StringResource(R.string.payment_value_changed),
-                    strokeButton = ButtonStrokeLargeAtomData(
+                    strokeButton = BtnStrokeLargeAtmData(
                         id = "",
                         actionKey = ACTION_RETRY,
                         title = UiText.StringResource(R.string.update_data)
@@ -143,7 +143,7 @@ class ErrorDVM : ViewModel() {
                 TemplateDialogScreenData(
                     icon = UiText.StringResource(R.string.critical_error_icon),
                     titleText = UiText.StringResource(R.string.critical_error_title),
-                    strokeButton = ButtonStrokeLargeAtomData(
+                    strokeButton = BtnStrokeLargeAtmData(
                         id = "",
                         actionKey = ACTION_FINISH,
                         title = UiText.StringResource(R.string.idenity_error_understood)
@@ -156,7 +156,7 @@ class ErrorDVM : ViewModel() {
                 TemplateDialogScreenData(
                     icon = UiText.StringResource(R.string.emoji_sad),
                     titleText = UiText.StringResource(R.string.share_doc_not_present),
-                    strokeButton = ButtonStrokeLargeAtomData(
+                    strokeButton = BtnStrokeLargeAtmData(
                         id = "",
                         actionKey = ACTION_FINISH,
                         title = UiText.StringResource(R.string.idenity_error_understood)
@@ -169,7 +169,7 @@ class ErrorDVM : ViewModel() {
                 TemplateDialogScreenData(
                     icon = UiText.StringResource(R.string.emoji_sad),
                     titleText = UiText.StringResource(R.string.share_doc_timeout),
-                    strokeButton = ButtonStrokeLargeAtomData(
+                    strokeButton = BtnStrokeLargeAtmData(
                         id = "",
                         actionKey = ACTION_FINISH,
                         title = UiText.StringResource(R.string.idenity_error_understood)
@@ -182,7 +182,7 @@ class ErrorDVM : ViewModel() {
                 TemplateDialogScreenData(
                     icon = UiText.StringResource(R.string.emoji_sad),
                     titleText = UiText.StringResource(R.string.error_document_not_found),
-                    strokeButton = ButtonStrokeLargeAtomData(
+                    strokeButton = BtnStrokeLargeAtmData(
                         id = "",
                         actionKey = ACTION_FINISH,
                         title = UiText.StringResource(R.string.idenity_error_understood)
@@ -195,7 +195,7 @@ class ErrorDVM : ViewModel() {
                 TemplateDialogScreenData(
                     icon = UiText.StringResource(R.string.emoji_sad),
                     titleText = UiText.StringResource(R.string.error_service_not_available),
-                    strokeButton = ButtonStrokeLargeAtomData(
+                    strokeButton = BtnStrokeLargeAtmData(
                         id = "",
                         actionKey = ACTION_FINISH,
                         title = UiText.StringResource(R.string.idenity_error_understood)
@@ -209,7 +209,7 @@ class ErrorDVM : ViewModel() {
                     icon = UiText.StringResource(R.string.emoji_sad),
                     titleText = UiText.StringResource(R.string.error_add_doc_request_limit),
                     descriptionText = UiText.StringResource(R.string.error_add_doc_request_limit_desc),
-                    strokeButton = ButtonStrokeLargeAtomData(
+                    strokeButton = BtnStrokeLargeAtmData(
                         id = "",
                         actionKey = ACTION_FINISH,
                         title = UiText.StringResource(R.string.idenity_error_understood)

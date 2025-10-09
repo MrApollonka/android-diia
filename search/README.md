@@ -42,26 +42,3 @@ implementation project(':libs:ui_base')
         app:nullable="true" />
 </action>
 ```
-
- ```xml
-
-<action app:enterAnim="@anim/slide_in_right" 
-    app:exitAnim="@anim/slide_out_left"
-    app:popEnterAnim="@anim/slide_in_left"
-    app:popExitAnim="@anim/slide_out_right"
-    android:id="@+id/action_destination_petitionSearch_to_destination_searchBulletF"
-    app:destination="@id/nav_search_bullet">
-    <argument 
-        android:name="screenHeader" 
-        app:argType="string" />
-    <argument 
-        android:name="contentTitle" 
-        app:argType="string" />
-    <argument 
-        android:name="resultKey" 
-        app:argType="string" />
-    <argument 
-        android:name="data"
-        app:argType="ua.gov.diia.search.models.SearchableBullet[]" />
-</action>
-```

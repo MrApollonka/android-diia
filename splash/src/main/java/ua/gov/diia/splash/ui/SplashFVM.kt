@@ -1,18 +1,13 @@
 package ua.gov.diia.splash.ui
 
-import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.channels.SendChannel
-import kotlinx.coroutines.channels.actor
-import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import ua.gov.diia.core.di.data_source.http.UnauthorizedClient
 import ua.gov.diia.core.models.DiiaError
@@ -24,17 +19,13 @@ import ua.gov.diia.core.util.delegation.WithRetryLastAction
 import ua.gov.diia.core.util.extensions.vm.executeActionOnFlow
 import ua.gov.diia.core.util.work.WorkScheduler
 import ua.gov.diia.diia_storage.store.repository.authorization.AuthorizationRepository
-import ua.gov.diia.splash.R
 import ua.gov.diia.splash.helper.SplashHelper
-import ua.gov.diia.splash.model.SplashJob
-import ua.gov.diia.splash.ui.compose.SplashScreenData
-import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
 import ua.gov.diia.ui_base.components.infrastructure.navigation.NavigationPath
-import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
 import javax.inject.Inject
 
 @HiltViewModel
 class SplashFVM @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     @UnauthorizedClient private val apiAuth: ApiAuth,
     private val authorizationRepository: AuthorizationRepository,
     private val splashHelper: SplashHelper,
@@ -43,77 +34,58 @@ class SplashFVM @Inject constructor(
     private val retryLastAction: WithRetryLastAction,
     private val crashlytics: WithCrashlytics,
     private val worksToSchedule: Set<@JvmSuppressWildcards WorkScheduler>,
-) : ViewModel(),
-    WithRetryLastAction by retryLastAction,
-    WithErrorHandlingOnFlow by errorHandling {
+) : ViewModel(), WithRetryLastAction by retryLastAction, WithErrorHandlingOnFlow by errorHandling {
 
-    private val _navigation = MutableSharedFlow<NavigationPath>(
-        extraBufferCapacity = 1,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST
-    )
-    val navigation = _navigation.asSharedFlow()
-    val uiData = mutableStateOf(
-        SplashScreenData(
-            UiText.StringResource(R.string.splash_screen_title_text),
-            ANIMATION_END_KEY
-        )
-    )
+    private val skipInitialization = savedStateHandle.get<Boolean>("skipInitialization") ?: false
+    private val uuid4 = savedStateHandle.get<String>("uuid4")
+
+    private val _navigation = Channel<Navigation>(Channel.BUFFERED)
+    val navigation = _navigation.receiveAsFlow()
 
     private var serviceUserUuid: String? = null
     private var serviceUserToken: String? = null
 
-    private val isAuthServiceUserFlow: Boolean
-        get() = serviceUserUuid != null
-
-    private val splashActor: SendChannel<ActorEvent> = viewModelScope.splashActor()
-
-    private fun CoroutineScope.splashActor() = actor<ActorEvent> {
-
-        val jobsToComplete = mutableListOf(SplashJob.ANIMATION)
-
-        consumeEach { event ->
-            when (event) {
-                is ActorEvent.AddJob -> {
-                    jobsToComplete.add(event.job)
-                }
-
-                is ActorEvent.MarkAsComplete -> {
-                    jobsToComplete.remove(event.job)
-                    processJobs(jobsToComplete)
-                }
-
-                ActorEvent.ContinueWithJobs -> processJobs(jobsToComplete)
-            }
-        }
-    }
-
-    fun doInit(
-        skipInitialization: Boolean,
-        serviceUserUUID: String?
-    ) {
+    init {
         viewModelScope.launch {
-            serviceUserUuid = serviceUserUUID ?: authorizationRepository.getServiceUserUUID()
-            if (serviceUserUUID != null) {
+            serviceUserUuid = uuid4 ?: authorizationRepository.getServiceUserUUID()
+            if (uuid4 != null) {
                 startLoginServiceUserFlow()
             } else {
                 if (!skipInitialization) {
                     setupAppVersionVerificationServices()
                 }
             }
+
+            if (serviceUserUuid != null) {
+                resolveServiceUserNavigation()
+            } else {
+                when (authorizationRepository.getUserType()) {
+                    UserType.PRIMARY_USER -> resolvePrimaryUserNavigation()
+                    UserType.SERVICE_USER -> {
+                        _navigation.send(Navigation.ToProtection)
+                    }
+                }
+            }
+        }
+    }
+
+    fun setServiceUserPin(pin: String) {
+        val authToken = serviceUserToken ?: return
+        val serviceUserUUID = serviceUserUuid ?: return
+        executeActionOnFlow {
+            authorizeServiceUser(pin, authToken, serviceUserUUID)
+            _navigation.send(Navigation.ToQrScanner)
         }
     }
 
     private fun setupAppVersionVerificationServices() {
         viewModelScope.launch {
-            splashActor.send(ActorEvent.AddJob(SplashJob.APP_CHECK))
             scheduleWorkers()
-            splashActor.send(ActorEvent.MarkAsComplete(SplashJob.APP_CHECK))
         }
     }
 
     private fun startLoginServiceUserFlow() {
         viewModelScope.launch {
-            splashActor.send(ActorEvent.AddJob(SplashJob.SERVICE_USER_AUTHORIZATION))
             loginAsServiceUser()
             setupAppVersionVerificationServices()
         }
@@ -127,44 +99,8 @@ class SplashFVM @Inject constructor(
 
             if (tokenData.template == null) {
                 serviceUserToken = tokenData.token
-                splashActor.send(ActorEvent.MarkAsComplete(SplashJob.SERVICE_USER_AUTHORIZATION))
             } else {
                 crashlytics.sendNonFatalError(IllegalStateException("Service user token is null"))
-            }
-        }
-    }
-
-    /**
-     * Used to resume the Splash screen navigation when the user came back after
-     * [AlreadyAuthorizedError] has been shown.
-     */
-    fun resumeSplashJobs() {
-        viewModelScope.launch {
-            splashActor.send(ActorEvent.ContinueWithJobs)
-        }
-    }
-
-    private fun markSplashJobComplete(job: SplashJob) {
-        viewModelScope.launch {
-            splashActor.send(ActorEvent.MarkAsComplete(job))
-        }
-    }
-
-    private suspend fun processJobs(jobs: List<SplashJob>) {
-        if (jobs.isEmpty()) {
-            executeActionOnFlow {
-                if (isAuthServiceUserFlow) {
-                    resolveServiceUserNavigation()
-                } else {
-                    viewModelScope.launch {
-                        when (authorizationRepository.getUserType()) {
-                            UserType.PRIMARY_USER -> resolvePrimaryUserNavigation()
-                            UserType.SERVICE_USER -> {
-                                _navigation.tryEmit(Navigation.ToProtection)
-                            }
-                        }
-                    }
-                }
             }
         }
     }
@@ -176,9 +112,9 @@ class SplashFVM @Inject constructor(
     private fun resolvePrimaryUserNavigation() {
         executeActionOnFlow {
             if (splashHelper.isProtectionExists()) {
-                _navigation.tryEmit(Navigation.ToProtection)
+                _navigation.send(Navigation.ToProtection)
             } else {
-                _navigation.tryEmit(Navigation.ToLogin)
+                _navigation.send(Navigation.ToLogin)
             }
         }
     }
@@ -186,23 +122,18 @@ class SplashFVM @Inject constructor(
     private fun resolveServiceUserNavigation() {
         executeActionOnFlow {
             if (splashHelper.isProtectionExists()) {
-                _navigation.tryEmit(Navigation.ToProtection)
+                _navigation.send(Navigation.ToProtection)
             } else {
-                _navigation.tryEmit(Navigation.ToPinCreation)
+                _navigation.send(Navigation.ToPinCreation)
             }
         }
     }
 
-    fun setServiceUserPin(pin: String) {
-        val authToken = serviceUserToken ?: return
-        val serviceUserUUID = serviceUserUuid ?: return
-        executeActionOnFlow {
-            authorizeServiceUser(pin, authToken, serviceUserUUID)
-            _navigation.tryEmit(Navigation.ToQrScanner)
-        }
-    }
-
-    private suspend fun authorizeServiceUser(pin: String, authToken: String, serviceUserUuid: String) {
+    private suspend fun authorizeServiceUser(
+        pin: String,
+        authToken: String,
+        serviceUserUuid: String
+    ) {
         //splits execution to separate coroutines to speed up execution time
         coroutineScope {
             launch { authorizationRepository.setToken(authToken) }
@@ -218,34 +149,12 @@ class SplashFVM @Inject constructor(
         }
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        splashActor.close()
-    }
-
-    fun onUIAction(uiAction: UIAction) {
-        when (uiAction.actionKey) {
-            ANIMATION_END_KEY -> {
-                markSplashJobComplete(SplashJob.ANIMATION)
-            }
-        }
-    }
-
     sealed class Navigation : NavigationPath {
         data class ToErrorDialog(val diiaError: DiiaError) : Navigation()
-        object ToLogin : Navigation()
-        object ToProtection : Navigation()
-        object ToQrScanner : Navigation()
-        object ToPinCreation : Navigation()
+        data object ToLogin : Navigation()
+        data object ToProtection : Navigation()
+        data object ToQrScanner : Navigation()
+        data object ToPinCreation : Navigation()
     }
 
-    private sealed class ActorEvent {
-        data class AddJob(val job: SplashJob) : ActorEvent()
-        data class MarkAsComplete(val job: SplashJob) : ActorEvent()
-        object ContinueWithJobs : ActorEvent()
-    }
-
-    private companion object {
-        const val ANIMATION_END_KEY = "animation_end_key"
-    }
 }

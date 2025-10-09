@@ -4,13 +4,13 @@ accompanistPager = "0.23.1"
 activityKtx = "1.9.0"
 androidDesugarJdkLibs = "2.1.2"
 # AGP and tools should be updated together
-androidGradlePlugin = "8.5.1"
+androidGradlePlugin = "8.9.1"
 androidTools = "31.6.1"
 androidxActivity = "1.9.2"
 androidxAppCompat = "1.7.0"
 androidxBrowser = "1.8.0"
 androidxCardview = "1.0.0"
-androidxComposeBom = "2023.05.01"
+androidxComposeBom = "2025.04.01"
 androidxComposeRuntimeTracing = "1.5.15"
 androidxComposeCompiler = "1.5.15"
 androidxComposeLivedata = "1.7.0-rc01"
@@ -42,22 +42,22 @@ androidxWindowManager = "1.3.0"
 androidxWork = "2.7.1"
 betterLink = "2.2.0"
 cameraView = "2.7.2"
-ciscoWebex = "3.14.0"
+ciscoWebex = "3.16.0"
 coil = "2.7.0"
 constraintlayout = "2.1.4"
 constraintlayoutCompose = "1.0.1"
 converterGson = "2.9.0"
 coseJava = "1.1.0"
 dependencyGuard = "0.5.0"
-diiaCryptoClientVersion = "1.8"
-diiaMap = "1.0.5"
+diiaCryptoClientVersion = "2.4"
+diiaMap = "1.0.6"
 diiaNfcscanClientLib = "1.0"
 exoplayer = "1.4.1"
-faceDetection = "16.1.5"
+faceDetection = "16.1.7"
 googleServices = "4.4.2"
 hiltAndroidGradlePlugin = "2.51.1"
 jacksonDataformatCbor = "2.13.0"
-jmrtd = "0.7.34"
+jmrtd = "0.8.3"
 jsonSchemaValidator = "2.2.14"
 mlComputerVisionOcr = "3.2.0.300"
 mlComputerVisionOcrLatinModel = "3.2.0.300"
@@ -66,21 +66,18 @@ payment_diiaVersion = "2.3.1"
 playServicesBase = "18.5.0"
 playServicesPay = "16.5.0"
 playServicesWallet = "19.4.0"
+review = "2.0.2"
 textRecognition = "18.0.2"
-facereco = "2.2.23"
-firebaseBom = "31.0.2"
-firebaseMessaging = "23.0.1"
-firebaseCrashlyticsPlugin = "2.9.9"
+facereco = "2.2.24"
+firebaseBom = "33.13.0"
+firebaseMessaging = "24.1.1"
+firebaseCrashlyticsPlugin = "3.0.3"
 firebasePerfPlugin = "1.4.2"
-firebaseAnalytics = "21.2.0"
-firebaseCrashlytics = "18.3.1"
+firebaseAnalytics = "22.4.0"
+firebaseCrashlytics = "19.4.3"
 fragmentKtx = "1.8.4"
 gmsPlugin = "4.4.2"
-glide = "4.15.1"
-glideCompose = "1.0.0-beta01"
-glideOkHttp3 = "4.11.0"
-glideKsp = "4.14.2"
-grpc = "1.62.2"
+grpc = "1.74.0"
 gson = "2.10.1"
 googleOss = "17.1.0"
 googleOssPlugin = "0.10.6"
@@ -92,6 +89,7 @@ huaweiAnalytics = "6.8.0.300"
 huaweiAgConnect = "1.9.1.301"
 huaweiId = "6.4.0.301"
 huaweiLocation = "6.7.0.300"
+huaweiAdvertising = "3.4.62.300"
 huaweiSafetydetect = "6.4.0.301"
 integrity = "1.4.0"
 jacoco = "0.8.11"
@@ -120,14 +118,15 @@ mockitoKotlin = "2.2.0"
 mockitoCore = "4.0.0"
 mockk = "1.13.2"
 mockwebserver = "4.9.0"
-moshi = "1.15.1"
+moshi = "1.15.2"
 multidex = "2.0.1"
-okhttp = "3.12.2"
+okhttp = "4.12.0"
 pagingCompose = "3.3.0-alpha02"
 payment_diia = "2.2.7"
 playServicesAuth = "21.2.0"
 playServicesAuthApiPhone = "18.1.0"
 playServicesLocation = "21.0.1"
+playServicesAdsIdentifier = "18.2.0"
 protobuf = "3.22.3"
 protobufPlugin = "0.9.1"
 reorderable = "0.9.6"
@@ -144,7 +143,6 @@ truth = "1.4.2"
 turbine = "1.1.0"
 hamcrest = "2.2"
 uaidvalidator = "1.0.3"
-ukrgas = "1.0.5"
 zxing = "3.5.2"
 
 [bundles]
@@ -254,7 +252,6 @@ cisco-webex = { group = "com.ciscowebex", name = "webexsdk-wxc", version.ref = "
 cameraview = { group = "com.otaliastudios", name = "cameraview", version.ref = "cameraView" }
 coil-kt = { group = "io.coil-kt", name = "coil", version.ref = "coil" }
 coil-kt-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
-coil-kt-svg = { group = "io.coil-kt", name = "coil-svg", version.ref = "coil" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 cose-java = { module = "com.augustcellars.cose:cose-java", version.ref = "coseJava" }
 diia-map = { module = "ua.gov.diia:diia-map", version.ref = "diiaMap" }
@@ -279,10 +276,6 @@ jmrtd = { module = "org.jmrtd:jmrtd", version.ref = "jmrtd" }
 json-schema-validator = { module = "com.github.java-json-tools:json-schema-validator", version.ref = "jsonSchemaValidator" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 flexbox = { group = "com.google.android.flexbox", name = "flexbox", version.ref = "flexbox" }
-glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
-glide-compose = { group = "com.github.bumptech.glide", name = "compose", version.ref = "glideCompose" }
-glide-okhttp = { group = "com.github.bumptech.glide", name = "okhttp3-integration", version.ref = "glideOkHttp3" }
-glide-ksp = { group = "com.github.bumptech.glide", name = "ksp", version.ref = "glideKsp" }
 grpc-java = { group = "io.grpc", name = "protoc-gen-grpc-java", version.ref = "grpc" }
 grpc-light = { group = "io.grpc", name = "grpc-protobuf-lite", version.ref = "grpc" }
 grpc-okhttp = { group = "io.grpc", name = "grpc-okhttp", version.ref = "grpc" }
@@ -294,6 +287,7 @@ huawei-analytics = { group = "com.huawei.hms", name = "hianalytics", version.ref
 huawei-agconnect-crash = { group = "com.huawei.agconnect", name = "agconnect-crash", version.ref = "huaweiAgConnect" }
 huawei-hwid = { group = "com.huawei.hms", name = "hwid", version.ref = "huaweiId" }
 huawei-location = { group = "com.huawei.hms", name = "location", version.ref = "huaweiLocation" }
+huawei-advertising = { group = "com.huawei.hms", name = "ads-identifier", version.ref = "huaweiAdvertising" }
 huawei-safetydetect = { group = "com.huawei.hms", name = "safetydetect", version.ref = "huaweiSafetydetect" }
 
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
@@ -348,6 +342,7 @@ okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor",
 org-jacoco-core = { module = "org.jacoco:org.jacoco.core", version.ref = "jacoco" }
 play-services-auth-api-phone = { module = "com.google.android.gms:play-services-auth-api-phone", version.ref = "playServicesAuthApiPhone" }
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
+play-services-ads-identifier = { group = "com.google.android.gms", name = "play-services-ads-identifier", version.ref = "playServicesAdsIdentifier" }
 play-services-base = { module = "com.google.android.gms:play-services-base", version.ref = "playServicesBase" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
 play-services-pay = { module = "com.google.android.gms:play-services-pay", version.ref = "playServicesPay" }
@@ -359,6 +354,8 @@ retrofit-core = { group = "com.squareup.retrofit2", name = "retrofit", version.r
 retrofit-kotlin-serialization = { group = "com.squareup.retrofit2", name = "converter-kotlinx-serialization", version.ref = "retrofit" }
 retrofit-moshi-converter = { group = "com.squareup.retrofit2", name = "converter-moshi", version.ref = "retrofit" }
 retrofit2-kotlin-coroutines-adapter = { module = "com.jakewharton.retrofit:retrofit2-kotlin-coroutines-adapter", version.ref = "retrofit2KotlinCoroutinesAdapter" }
+review-ktx = { module = "com.google.android.play:review-ktx", version.ref = "review" }
+review = { module = "com.google.android.play:review", version.ref = "review" }
 robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
 roborazzi = { group = "io.github.takahirom.roborazzi", name = "roborazzi", version.ref = "roborazzi" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
@@ -373,7 +370,6 @@ ua-diia-facereco = { group = "ua.gov.diia", name = "facereco", version.ref = "fa
 ua-diia-crypto-client = { module = "ua.gov.diia:diia-crypto-client", version.ref = "diiaCryptoClientVersion" }
 ua-diia-uaidvalidator = { module = "ua.gov.diia:uaidvalidator", version.ref = "uaidvalidator" }
 ua-diia-nfcscan-client-lib = { module = "ua.gov.diia:diia-nfcscan-client-lib", version.ref = "diiaNfcscanClientLib" }
-ukrgas = { group = "com.ukrgasbank.ecom", name = "ugbpaymentkotlinsdk", version.ref = "ukrgas" }
 zxing = { group = "com.google.zxing", name = "core", version.ref = "zxing" }
 
 # Dependencies of the included build-logic
@@ -402,7 +398,6 @@ jacoco-coverage = { id = "com.azizutku.jacocoaggregatecoverageplugin", version.r
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinSerialization" }
 kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize"}
-kotlin-kapt = { id = "kotlin-kapt"}
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 module-graph = { id = "com.jraska.module.graph.assertion", version.ref = "moduleGraph" }
 navigation-safeargs = { id = "androidx.navigation.safeargs.kotlin" }
@@ -428,3 +423,4 @@ diia-hilt = { id = "diia.hilt" }
 diia-jvm-library = { id = "diia.jvm.library" }
 diia-public-service = { id = "diia.public.service" }
 diia-documents = { id = "diia.documents" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

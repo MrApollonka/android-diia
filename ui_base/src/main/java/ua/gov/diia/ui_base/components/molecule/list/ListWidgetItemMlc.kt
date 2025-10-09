@@ -38,7 +38,7 @@ import ua.gov.diia.ui_base.components.noRippleClickable
 import ua.gov.diia.ui_base.components.organism.list.pagination.SimplePagination
 import ua.gov.diia.ui_base.components.theme.AzureishWhite
 import ua.gov.diia.ui_base.components.theme.Black
-import ua.gov.diia.ui_base.components.theme.BlackAlpha30
+import ua.gov.diia.ui_base.components.theme.BlackAlpha54
 import ua.gov.diia.ui_base.components.theme.ColumbiaBlue
 import ua.gov.diia.ui_base.components.theme.DiiaTextStyle
 
@@ -93,7 +93,7 @@ fun ListWidgetItemMlc(
                         modifier = Modifier.padding(top = 4.dp),
                         text = data.description.asString(),
                         style = DiiaTextStyle.t2TextDescription,
-                        color = BlackAlpha30
+                        color = BlackAlpha54
                     )
                 }
             }

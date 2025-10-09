@@ -15,6 +15,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.hideFromAccessibility
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ua.gov.diia.core.models.common_compose.atm.button.BtnPlainIconAtm
@@ -63,7 +67,10 @@ fun BtnPlainIconAtm(
                     )
                 }
             }
-            .testTag(data.componentId?.asString() ?: ""),
+            .testTag(data.componentId?.asString() ?: "")
+            .semantics(mergeDescendants = true) {
+                role = Role.Button
+            },
         verticalAlignment = Alignment.CenterVertically
     ) {
         AnimatedVisibility(visible = isLoading) {
@@ -81,7 +88,10 @@ fun BtnPlainIconAtm(
                             .size(24.dp)
                             .alpha(
                                 if (data.interactionState == UIState.Interaction.Enabled) 1.0f else 0.3f
-                            ),
+                            )
+                            .semantics {
+                                hideFromAccessibility()
+                            },
                         icon = data.icon
                     )
                     Spacer(modifier = Modifier.width(8.dp))

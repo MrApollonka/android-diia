@@ -32,6 +32,10 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -73,46 +77,59 @@ fun SelectorOrg(
     var focusState by remember { mutableStateOf<UIState.Focus>(UIState.Focus.NeverBeenFocused) }
     val bringIntoHintViewRequester = BringIntoViewRequester()
 
+    val basicTextFieldDescription = listOfNotNull(
+        data.label,
+        data.inputValue,
+        data.hintMessage,
+        data.placeholder
+    ).joinToString(separator = " ")
 
-    BasicTextField(value = data.inputValue ?: "", enabled = false, modifier = modifier
-        .onFocusChanged {
-            focusState = when (focusState) {
-                UIState.Focus.NeverBeenFocused -> {
-                    if (data.inputValue.isNullOrEmpty()) {
-                        if (it.isFocused || it.hasFocus) {
-                            UIState.Focus.FirstTimeInFocus
+    BasicTextField(
+        value = data.inputValue ?: "", enabled = false, modifier = modifier
+            .onFocusChanged {
+                focusState = when (focusState) {
+                    UIState.Focus.NeverBeenFocused -> {
+                        if (data.inputValue.isNullOrEmpty()) {
+                            if (it.isFocused || it.hasFocus) {
+                                UIState.Focus.FirstTimeInFocus
+                            } else {
+                                UIState.Focus.NeverBeenFocused
+                            }
                         } else {
-                            UIState.Focus.NeverBeenFocused
+                            UIState.Focus.OutOfFocus
                         }
-                    } else {
+                    }
+
+                    UIState.Focus.FirstTimeInFocus -> {
                         UIState.Focus.OutOfFocus
                     }
-                }
 
-                UIState.Focus.FirstTimeInFocus -> {
-                    UIState.Focus.OutOfFocus
+                    UIState.Focus.InFocus -> UIState.Focus.OutOfFocus
+                    UIState.Focus.OutOfFocus -> UIState.Focus.InFocus
                 }
-
-                UIState.Focus.InFocus -> UIState.Focus.OutOfFocus
-                UIState.Focus.OutOfFocus -> UIState.Focus.InFocus
             }
-        }
-        .noRippleClickable {
-            onUIAction(
-                UIAction(
-                    actionKey = data.actionKey,
-                    states = listOf(focusState),
-                    optionalId = data.id
-                )
-            )
-        },
+            .noRippleClickable {
+                if (data.isEnabled) {
+                    onUIAction(
+                        UIAction(
+                            actionKey = data.actionKey,
+                            states = listOf(focusState),
+                            optionalId = data.id
+                        )
+                    )
+                }
+            }
+            .clearAndSetSemantics {
+                role = Role.Button
+                contentDescription = basicTextFieldDescription
+            },
         onValueChange = {},
         textStyle = TextStyle(
             fontFamily = FontFamily(Font(R.font.e_ukraine_regular)),
             fontWeight = FontWeight.Normal,
             fontSize = 14.sp,
             lineHeight = 17.sp,
-            color = Black
+            color = if (data.isEnabled) Black else BlackAlpha30
         ),
         singleLine = false,
         decorationBox = @Composable { innerTextField ->
@@ -125,6 +142,7 @@ fun SelectorOrg(
                     Text(
                         text = data.label,
                         style = DiiaTextStyle.t4TextSmallDescription,
+                        color = if (data.isEnabled) Black else BlackAlpha30
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                 }
@@ -148,7 +166,12 @@ fun SelectorOrg(
                     Icon(
                         modifier = Modifier.align(Alignment.CenterEnd),
                         painter = painterResource(R.drawable.ic_arrow_next),
-                        contentDescription = null
+                        contentDescription = null,
+                        tint = if (data.isEnabled) {
+                            Black
+                        } else {
+                            BlackAlpha30
+                        }
                     )
                 }
                 Box(
@@ -184,7 +207,8 @@ data class SelectorOrgData(
     val placeholder: String? = null,
     val hintMessage: String? = null,
     val inputCode: String? = null,
-    val mandatory: Boolean? = null
+    val mandatory: Boolean? = null,
+    val isEnabled: Boolean = true,
 ) : InputFormItem() {
     fun onInputChanged(newValue: String?): SelectorOrgData {
         if (newValue == null) return this
@@ -195,28 +219,63 @@ data class SelectorOrgData(
 fun SelectorOrg.toUIModel(): SelectorOrgData {
     return SelectorOrgData(
         componentId = componentId?.let { UiText.DynamicString(it) },
-        id = this.id,
+        id = this.id ?: componentId,
         label = this.label,
         inputValue = this.value,
         placeholder = this.placeholder,
         hintMessage = this.hint,
         inputCode = this.inputCode,
-        mandatory = this.mandatory
+        mandatory = this.mandatory,
+        isEnabled = this.isEnabled ?: true
     )
+}
+
+enum class SelectorOrgMockType {
+    enabled, disabled, prefilled
+}
+
+fun generateSelectorOrgMockData(mockType: SelectorOrgMockType): SelectorOrgData {
+    return when (mockType) {
+        SelectorOrgMockType.enabled -> {
+            SelectorOrgData(
+                id = "",
+                label = LoremIpsum(6).values.joinToString(),
+                inputValue = "",
+                placeholder = "Placeholder",
+                hintMessage = LoremIpsum(50).values.joinToString(),
+            )
+        }
+
+        SelectorOrgMockType.disabled -> {
+            SelectorOrgData(
+                id = "",
+                label = LoremIpsum(6).values.joinToString(),
+                inputValue = "",
+                placeholder = "Placeholder",
+                hintMessage = LoremIpsum(50).values.joinToString(),
+                isEnabled = false
+            )
+        }
+
+        SelectorOrgMockType.prefilled -> {
+            SelectorOrgData(
+                id = "",
+                label = LoremIpsum(6).values.joinToString(),
+                inputValue = "123456",
+                placeholder = "Placeholder",
+                hintMessage = LoremIpsum(50).values.joinToString(),
+            )
+        }
+    }
+
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 @Preview
-fun SelectorOrgPreview() {
+fun SelectorOrgEnabled() {
 
-    val data = SelectorOrgData(
-        id = "",
-        label = LoremIpsum(6).values.joinToString(),
-        inputValue = "",
-        placeholder = "Placeholder",
-        hintMessage = LoremIpsum(50).values.joinToString(),
-    )
+    val data = generateSelectorOrgMockData(SelectorOrgMockType.enabled)
 
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
@@ -231,12 +290,48 @@ fun SelectorOrgPreview() {
             .background(White), horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        SelectorOrg(modifier = Modifier
-            .padding(16.dp)
+        SelectorOrg(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth()
+                .focusRequester(focusRequester), data = state.value, onUIAction = {
+                state.value = state.value.onInputChanged(it.data)
+            })
+
+        Button(modifier = Modifier.padding(bottom = 16.dp), onClick = {
+            focusManager.clearFocus()
+        }) {
+            Text("Click to remove focus from search")
+        }
+    }
+}
+
+@Composable
+@Preview
+fun SelectorOrgDisabled() {
+    val data = generateSelectorOrgMockData(SelectorOrgMockType.disabled)
+
+
+    val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
+
+    val state = remember {
+        mutableStateOf(data)
+    }
+
+    Column(
+        modifier = Modifier
             .fillMaxWidth()
-            .focusRequester(focusRequester), data = state.value, onUIAction = {
-            state.value = state.value.onInputChanged(it.data)
-        })
+            .background(White), horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+
+        SelectorOrg(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth()
+                .focusRequester(focusRequester), data = state.value, onUIAction = {
+                state.value = state.value.onInputChanged(it.data)
+            })
 
         Button(modifier = Modifier.padding(bottom = 16.dp), onClick = {
             focusManager.clearFocus()
@@ -252,13 +347,8 @@ fun SelectorOrgPreview() {
 @Preview
 fun SelectorOrgPreview_Prefilled() {
 
-    val data = SelectorOrgData(
-        id = "",
-        label = LoremIpsum(6).values.joinToString(),
-        inputValue = "123456",
-        placeholder = "Placeholder",
-        hintMessage = LoremIpsum(50).values.joinToString(),
-    )
+    val data = generateSelectorOrgMockData(SelectorOrgMockType.prefilled)
+
 
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
@@ -273,12 +363,13 @@ fun SelectorOrgPreview_Prefilled() {
             .background(White), horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        SelectorOrg(modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth()
-            .focusRequester(focusRequester), data = state.value, onUIAction = {
-            state.value = state.value.onInputChanged(it.data)
-        })
+        SelectorOrg(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth()
+                .focusRequester(focusRequester), data = state.value, onUIAction = {
+                state.value = state.value.onInputChanged(it.data)
+            })
 
         Button(modifier = Modifier.padding(bottom = 16.dp), onClick = {
             focusManager.clearFocus()

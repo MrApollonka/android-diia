@@ -1,60 +1,8 @@
 package ua.gov.diia.home.ui
 
-import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.lifecycle.Observer
-import androidx.navigation.NavDirections
-import app.cash.turbine.test
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.doThrow
-import com.nhaarman.mockitokotlin2.mock
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.runTest
-import org.junit.Assert
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.TestRule
-import org.junit.runner.RunWith
-import org.mockito.Mock
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
-import org.mockito.MockitoAnnotations
-import org.mockito.junit.MockitoJUnitRunner
-import org.mockito.stubbing.Answer
-import ua.gov.diia.core.controller.DeeplinkProcessor
-import ua.gov.diia.core.controller.NotificationController
-import ua.gov.diia.core.controller.PromoController
-import ua.gov.diia.core.models.deeplink.DeepLinkAction
-import ua.gov.diia.core.models.deeplink.DeepLinkActionViewDocument
-import ua.gov.diia.core.models.dialogs.TemplateDialogModel
-import ua.gov.diia.core.models.dialogs.TemplateDialogModelWithProcessCode
-import ua.gov.diia.ui_base.models.homescreen.HomeMenuItemConstructor
-import ua.gov.diia.core.util.DispatcherProvider
-import ua.gov.diia.core.util.delegation.WithCrashlytics
-import ua.gov.diia.core.util.delegation.WithDeeplinkHandling
-import ua.gov.diia.core.util.delegation.WithErrorHandling
-import ua.gov.diia.core.util.delegation.WithRetryLastAction
-import ua.gov.diia.core.util.event.UiDataEvent
-import ua.gov.diia.documents.di.DocumentDataSourceModule
-import ua.gov.diia.home.MainDispatcherRule
-import ua.gov.diia.home.model.HomeMenuItem
-import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
-import ua.gov.diia.ui_base.components.infrastructure.state.UIState
-import ua.gov.diia.ui_base.components.organism.bottom.TabBarOrganismData
-
-@ExperimentalCoroutinesApi
-@RunWith(MockitoJUnitRunner::class)
-class HomeVMTest {
+//@ExperimentalCoroutinesApi
+//@RunWith(MockitoJUnitRunner::class)
+//class HomeVMTest {
 //    @get:Rule
 //    val mainDispatcherRule = MainDispatcherRule()
 //
@@ -509,4 +457,4 @@ class HomeVMTest {
 //        }
 //    }
 //
-}
+//}

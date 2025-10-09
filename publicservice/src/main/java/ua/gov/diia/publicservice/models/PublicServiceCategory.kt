@@ -1,14 +1,9 @@
 package ua.gov.diia.publicservice.models
 
-import android.content.Context
-import android.graphics.drawable.Drawable
 import android.os.Parcelable
-import androidx.core.content.ContextCompat
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
-import ua.gov.diia.publicservice.R
 
 @Parcelize
 @JsonClass(generateAdapter = true)
@@ -28,7 +23,11 @@ data class PublicServiceCategory(
     @Json(name = "publicServices")
     val publicServices: List<PublicService>,
     @Json(name = "tabCode")
-    val tabCode: String?
+    val tabCode: String?,
+    @Json(name = "tabCodes")
+    val tabCodes: List<String>?,
+    @Json(name = "chips")
+    val chips: List<PublicServiceChip>?
 ) : Parcelable {
 
     val isSingleServiceCategory: Boolean
@@ -40,25 +39,4 @@ data class PublicServiceCategory(
     val hasServices: Boolean
         get() = publicServices.isNotEmpty()
 
-    val nameForGrid: String
-        get() = if (name == "COVID-сертифікати") {
-            "COVID-\nсертифікати"
-        } else {
-            name
-        }
-
-    @Transient
-    @IgnoredOnParcel
-    private val iconResourceOverlay: Int = when (code) {
-        "office-workspace" -> R.drawable.ic_google
-        else -> 0
-    }
-
-    fun hasOverlayIcon(): Boolean = iconResourceOverlay != 0
-
-    fun getOverlayIcon(context: Context): Drawable? = if (iconResourceOverlay != 0) {
-        ContextCompat.getDrawable(context, iconResourceOverlay)
-    } else {
-        null
-    }
 }

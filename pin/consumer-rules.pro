@@ -1,4 +1,3 @@
 -keep enum * { *; }
 
--keep public class ua.gov.diia.pin.model.CreatePinFlowType
-
+-keep class * implements android.os.Parcelable { *; }

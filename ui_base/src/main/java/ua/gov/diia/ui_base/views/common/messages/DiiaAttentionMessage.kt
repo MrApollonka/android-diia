@@ -6,13 +6,14 @@ import android.view.View
 import android.widget.TextView
 import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.databinding.BindingAdapter
+import androidx.core.view.isVisible
 import ua.gov.diia.ui_base.R
 import ua.gov.diia.ui_base.adapters.binding.setupHtmlParameters
 import ua.gov.diia.core.models.common.message.TextParameter
 import ua.gov.diia.core.util.extensions.isStringValid
 import ua.gov.diia.core.util.extensions.validateResource
 import ua.gov.diia.core.util.extensions.validateString
+import ua.gov.diia.ui_base.components.infrastructure.utils.isTalkBackEnabled
 
 class DiiaAttentionMessage @JvmOverloads constructor(
     context: Context,
@@ -22,6 +23,7 @@ class DiiaAttentionMessage @JvmOverloads constructor(
 
     private val infoTitle: TextView
     private val infoText: TextView
+    private val infoLink: TextView
     private val emojiText: TextView
 
     init {
@@ -29,7 +31,10 @@ class DiiaAttentionMessage @JvmOverloads constructor(
 
         infoTitle = findViewById(R.id.info_title)
         infoText = findViewById(R.id.info_text)
+        infoLink = findViewById(R.id.info_link)
         emojiText = findViewById(R.id.emoji)
+
+        context.isTalkBackEnabled()
 
         context.theme.obtainStyledAttributes(
             attrs,
@@ -53,6 +58,7 @@ class DiiaAttentionMessage @JvmOverloads constructor(
             infoTitle.visibility = View.VISIBLE
             infoTitle.text = string
         }
+        updateCombinedContentDescription()
     }
 
     fun setMsgTitle(@StringRes message: Int?) {
@@ -60,6 +66,7 @@ class DiiaAttentionMessage @JvmOverloads constructor(
             infoTitle.visibility = View.VISIBLE
             infoTitle.text = context.getString(res)
         }
+        updateCombinedContentDescription()
     }
 
     fun setMsgText(message: String?) {
@@ -67,6 +74,7 @@ class DiiaAttentionMessage @JvmOverloads constructor(
             infoText.visibility = VISIBLE
             infoText.text = string
         }
+        updateCombinedContentDescription()
     }
 
     fun setMsgText(@StringRes message: Int?) {
@@ -74,6 +82,7 @@ class DiiaAttentionMessage @JvmOverloads constructor(
             infoText.visibility = VISIBLE
             infoText.text = context.getString(res)
         }
+        updateCombinedContentDescription()
     }
 
     fun setMsgEmoji(emoji: String?) {
@@ -83,23 +92,53 @@ class DiiaAttentionMessage @JvmOverloads constructor(
     fun setMsgEmoji(@StringRes emoji: Int?) {
         emoji.validateResource { res -> emojiText.text = context.getString(res) }
     }
+
+    private fun updateCombinedContentDescription() {
+        val parts = listOfNotNull(
+            infoTitle.text?.takeIf { infoTitle.isVisible },
+            infoText.text?.takeIf { infoText.isVisible }
+        )
+
+        contentDescription = parts.joinToString(separator = ". ")
+        isFocusable = true
+        isFocusableInTouchMode = true
+        importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
+    }
 }
 
-@BindingAdapter("text", "htmlMetadata", "linkActionListener", requireAll = true)
 fun DiiaAttentionMessage.setupHtmlParameters(
     displayText: String?,
     metadata: List<TextParameter>?,
     onLinkClicked: ((url: String) -> Unit)?
 ) {
-    if (displayText.isStringValid() && !metadata.isNullOrEmpty()){
-        findViewById<TextView>(R.id.info_text).apply {
-            visibility = View.VISIBLE
-            setupHtmlParameters(displayText, metadata, onLinkClicked)
+    val infoText = findViewById<TextView>(R.id.info_text)
+    val infoLink = findViewById<TextView>(R.id.info_link)
+
+    val isValid = displayText.isStringValid() && !metadata.isNullOrEmpty()
+    val isTalkBackEnabled = context.isTalkBackEnabled()
+
+    if (isValid) {
+        val param = metadata?.first()
+        val linkPlaceholder = param?.data?.name.let { "{$it}" }
+
+        if (isTalkBackEnabled) {
+            val textWithoutLink = displayText
+                ?.replace(linkPlaceholder, "")
+                ?.removeSuffix(".")
+                ?.trim()
+
+            infoText.visibility = View.VISIBLE
+            infoText.text = textWithoutLink
+            infoLink.visibility = View.VISIBLE
+            infoLink.setupHtmlParameters(linkPlaceholder, metadata, onLinkClicked)
+        } else {
+            infoText.visibility = View.VISIBLE
+            infoText.setupHtmlParameters(displayText, metadata, onLinkClicked)
+            infoLink.visibility = View.GONE
         }
-    }else {
-        findViewById<TextView>(R.id.info_text).apply {
-            visibility = View.VISIBLE
-            text = displayText
-        }
+    } else {
+        infoText.visibility = View.VISIBLE
+        infoText.text = displayText
+        infoLink.visibility = View.GONE
     }
 }

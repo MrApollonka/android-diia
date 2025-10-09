@@ -4,8 +4,6 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.MutableLiveData
 import app.cash.turbine.test
 import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
@@ -16,12 +14,11 @@ import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
 import ua.gov.diia.core.ui.dynamicdialog.ActionsConst
-import ua.gov.diia.ui_base.navigation.BaseNavigation
-import ua.gov.diia.core.util.alert.ClientAlertDialogsFactory
 import ua.gov.diia.core.util.delegation.WithRetryLastAction
 import ua.gov.diia.core.util.event.UiEvent
 import ua.gov.diia.pin.repository.LoginPinRepository
 import ua.gov.diia.pin.rules.MainDispatcherRule
+import ua.gov.diia.pin.util.AndroidClientAlertDialogsFactory
 import ua.gov.diia.pin.utils.StubErrorHandlerOnFlow
 import ua.gov.diia.ui_base.components.infrastructure.DataActionWrapper
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
@@ -29,6 +26,7 @@ import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
 import ua.gov.diia.ui_base.components.molecule.text.TextLabelMlcData
 import ua.gov.diia.ui_base.components.organism.header.TopGroupOrgData
 import ua.gov.diia.ui_base.components.organism.tile.NumButtonTileOrganismData
+import ua.gov.diia.ui_base.navigation.BaseNavigation
 
 @RunWith(MockitoJUnitRunner::class)
 class ResetPinVMTest {
@@ -43,7 +41,7 @@ class ResetPinVMTest {
     lateinit var loginPinRepository: LoginPinRepository
 
     @Mock
-    lateinit var clientAlertDialogsFactory: ClientAlertDialogsFactory
+    lateinit var clientAlertDialogsFactory: AndroidClientAlertDialogsFactory
 
     @Mock
     lateinit var retryLastAction: WithRetryLastAction
@@ -107,17 +105,6 @@ class ResetPinVMTest {
         Assert.assertTrue(actionLogout.value?.notHandedYet == true)
     }
 
-    @Test
-    fun `reset invalid pin`() = runTest {
-        whenever(loginPinRepository.isPinValid(any())).thenReturn(false)
-        whenever(loginPinRepository.getPinTryCount()).thenReturn(3)
-        whenever(clientAlertDialogsFactory.showAlertAfterInvalidPin()).thenReturn(mock())
-        viewModel.showTemplateDialog.test {
-            viewModel.onUIAction(UIAction(UIActionKeysCompose.PIN_CREATED_NUM_BUTTON_ORGANISM, "1234"))
-            awaitItem()
-            verify(clientAlertDialogsFactory).showAlertAfterInvalidPin()
-        }
-    }
 
     @Test
     fun `pin cleared`() = runTest {

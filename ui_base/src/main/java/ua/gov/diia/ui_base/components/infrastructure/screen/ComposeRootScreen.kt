@@ -1,5 +1,7 @@
 package ua.gov.diia.ui_base.components.infrastructure.screen
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -8,9 +10,14 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import ua.gov.diia.core.util.state.Circular
+import ua.gov.diia.core.util.state.Loader
+import ua.gov.diia.core.util.state.getLegacyContentLoaded
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
-import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
 import ua.gov.diia.ui_base.components.molecule.loading.FullScreenLoadingMolecule
 import ua.gov.diia.ui_base.components.molecule.loading.FullScreenTransparentMolecule
 import ua.gov.diia.ui_base.components.subatomic.loader.TridentLoaderBlock
@@ -20,16 +27,25 @@ import ua.gov.diia.ui_base.components.subatomic.loader.TridentLoaderWithUIBlocki
 @Composable
 fun ComposeRootScreen(
     modifier: Modifier = Modifier,
-    contentLoaded: Pair<String, Boolean>,
-    progressIndicator: Pair<String, Boolean> = Pair("", false),
+    loader: Loader = Loader.create(),
     toolbar: @Composable (() -> Unit)? = null,
     body: @Composable (ColumnScope.() -> Unit)? = null,
+    centeredBody: @Composable (ColumnScope.() -> Unit)? = null,
     bottom: @Composable (() -> Unit)? = null,
     onEvent: (UIAction) -> Unit
 ) {
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
     Box(
         modifier = modifier
             .fillMaxSize()
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) {
+                focusManager.clearFocus()
+                keyboardController?.hide()
+            }
             .imePadding()
     ) {
         Box(
@@ -45,28 +61,31 @@ fun ComposeRootScreen(
                 body?.let {
                     body()
                 }
+                centeredBody?.let {
+                    centeredBody()
+                }
                 bottom?.let {
                     bottom()
                 }
             }
-            if (progressIndicator.second && progressIndicator.first.isNotEmpty()) {
+            if (loader.isLoadingByComponent()) {
                 FullScreenTransparentMolecule()
             }
         }
-        if (contentLoaded.first == UIActionKeysCompose.PAGE_LOADING_CIRCULAR && !contentLoaded.second) {
+        if (loader.isLoadingFullScreen(Circular)) {
             FullScreenLoadingMolecule()
         }
-        TridentLoaderBlock(contentLoaded = contentLoaded)
+        TridentLoaderBlock(loader = loader)
         TridentLoaderWithNavigationBlock(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
                 .navigationBarsPadding(),
-            contentLoaded = contentLoaded,
+            contentLoaded = loader.getLegacyContentLoaded(),
             onUIAction = onEvent
         )
         TridentLoaderWithUIBlocking(
-            contentLoaded = contentLoaded
+            loader = loader
         )
     }
 }

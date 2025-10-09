@@ -1,33 +1,59 @@
 package ua.gov.diia.context_menu.ui
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import ua.gov.diia.core.util.extensions.mutableSharedFlowOf
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import ua.gov.diia.core.models.ContextMenuField
 import ua.gov.diia.core.ui.dynamicdialog.ActionsConst
+import ua.gov.diia.core.util.extensions.mutableSharedFlowOf
 import ua.gov.diia.ui_base.components.infrastructure.DataActionWrapper
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
 import ua.gov.diia.ui_base.components.infrastructure.navigation.NavigationPath
+import ua.gov.diia.ui_base.components.infrastructure.utils.resource.toDynamicString
+import ua.gov.diia.ui_base.components.molecule.list.ListItemMlcData
+import ua.gov.diia.ui_base.components.organism.ContextMenuOrgData
+import ua.gov.diia.ui_base.navigation.BaseNavigation
 import javax.inject.Inject
 
-
 @HiltViewModel
-class ContextMenuDVM @Inject constructor() : ViewModel() {
+class ContextMenuDVM @Inject constructor(
+    savedStateHandle: SavedStateHandle
+) : ViewModel() {
+
+    private val contextMenuFields = savedStateHandle.get<Array<ContextMenuField>>("items")?.toList()
 
     private val _navigation = mutableSharedFlowOf<NavigationPath>()
     val navigation = _navigation.asSharedFlow()
 
-    private var options: List<ContextMenuField>? = null
+    private val _contextMenuOrgData = MutableStateFlow<ContextMenuOrgData?>(null)
+    val contextMenuOrgData = _contextMenuOrgData.asStateFlow()
 
-    fun init(contextMenu: List<ContextMenuField>) {
-        options = contextMenu
+    init {
+        _contextMenuOrgData.update {
+            ContextMenuOrgData(
+                items = contextMenuFields
+                    ?.map { item ->
+                        ListItemMlcData(
+                            label = item.getDisplayName().toDynamicString(),
+                            action = DataActionWrapper(
+                                type = item.getActionType(),
+                                subtype = item.getSubType()
+                            )
+                        )
+                    }
+                    .orEmpty()
+            )
+        }
     }
 
     fun onUIAction(event: UIAction) {
         when (event.action?.type ?: event.actionKey) {
             ActionsConst.CONTEXT_MENU_CLOSE -> {
-                _navigation.tryEmit(ContextMenuNavigation.CloseMenu)
+                _navigation.tryEmit(BaseNavigation.Back)
             }
 
             else -> {
@@ -35,9 +61,9 @@ class ContextMenuDVM @Inject constructor() : ViewModel() {
                 val subType = event.action?.subtype
                 val contextMenuField =
                     if (actionType != null && subType == null) {
-                        options?.find { it.getActionType() == actionType }
+                        contextMenuFields?.find { it.getActionType() == actionType }
                     } else if (actionType != null) {
-                        options?.find {
+                        contextMenuFields?.find {
                             it.getActionType() == (event.action as DataActionWrapper).type && it.getSubType() == (event.action as DataActionWrapper).subtype
                         }
                     } else {
@@ -52,7 +78,7 @@ class ContextMenuDVM @Inject constructor() : ViewModel() {
     }
 
     sealed class ContextMenuNavigation : NavigationPath {
-        object CloseMenu : ContextMenuNavigation()
         data class NavigateByAction(val action: ContextMenuField) : ContextMenuNavigation()
     }
+
 }

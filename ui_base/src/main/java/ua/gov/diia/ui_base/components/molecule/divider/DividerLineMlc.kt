@@ -9,10 +9,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import ua.gov.diia.core.models.common_compose.atm.SpacerAtmType
 import ua.gov.diia.core.models.common_compose.mlc.divider.DividerLineMlc
 import ua.gov.diia.ui_base.components.atom.space.SpacerAtm
 import ua.gov.diia.ui_base.components.atom.space.SpacerAtmData
+import ua.gov.diia.ui_base.components.atom.space.SpacerAtmType
 import ua.gov.diia.ui_base.components.infrastructure.UIElementData
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
 import ua.gov.diia.ui_base.components.theme.ColumbiaBlue
@@ -28,7 +28,7 @@ fun DividerLineMlc(
             .padding(horizontal = 24.dp)
             .testTag(data.componentId?.asString() ?: "")
     ) {
-        SpacerAtm(data = SpacerAtmData(SpacerAtmType.SPACER_24))
+        SpacerAtm(data = SpacerAtmData(SpacerAtmType.LARGE))
         Divider(
             modifier = modifier,
             thickness = 2.dp,

@@ -18,6 +18,8 @@ object UIActionKeysCompose {
     const val BTN_LOAD_PLAIN_ICON_ATM = "btnLoadPlainIconAtm"
     const val LOAD_ACTION_ATOM_DOWNLOAD = "loadActionAtomResolutionDownload"
     const val LOAD_ACTION_ATOM_RECEIPT = "LoadActionAtomReceipt"
+    const val OUTLINE_BTN_MLC = "outlineButtonMlc"
+
     const val TICKER_ATOM_CLICK = "onTickerClick"
     const val LARGE_TICKER_ATOM_CLICK = "onLargeTickerClick"
     const val CLOSE_BUTTON = "onCloseButton"
@@ -28,15 +30,21 @@ object UIActionKeysCompose {
     const val ARTICLE_VIDEO_MLC = "articleVideoMlc"
     const val BTN_PLAIN_ICON_ATM = "btnPlainIconAtm"
     const val SMALL_ICON_ATM_DATA = "smallIconAtm"
+    const val MIDDLE_ICON_ATM_DATA = "middleIconAtm"
     const val LARGE_ICON_ATM_DATA = "largeIconAtm"
+    const val EXTRA_LARGE_ICON_ATM_DATA = "extraLargeIconAtm"
     const val TEXT_LABEL_ATM_DATA = "textLabelAtm"
     const val SLIDE_BAR_ATM = "slideBarAtm"
-
+    const val BTN_STROKE_WIDE_ATM = "btnStrokeWideAtm"
+    const val LOGO_ATM = "logoAtm"
+    const val ICON_LEFT = "iconLeft"
 
     const val SMALL_PIC_ATM_DATA = "smallPicAtm"
     const val DOUBLE_ICON_ATM_DATA = "doubleIconAtm"
     const val ICON_ATM_DATA = "iconAtm"
+    const val MEDIUM_ICON_ATM = "mediumIconAtm"
     const val ICON_URL_ATM = "iconUrlAtm"
+    const val SMALL_ICON_URL_ATM = "smallIconUrlAtm"
     const val USER_PICTURE_ATM = "userPictureAtm"
     const val CLOSE_ACTION = "close"
     const val CALENDAR_ITEM_ATM = "calendarItemAtm"
@@ -47,6 +55,7 @@ object UIActionKeysCompose {
     const val CALENDAR_ITEM_REFRESH_CALENDAR = "calendarItemRefreshCalendar"
     const val BTN_SEMI_LIGHT_ATM = "btnSemiLightAtm"
     const val BTN_LINK_ATM = "btnLinkAtm"
+    const val EXTRA_LARGE_ICON_URL_ATM = "extraLargeIconUrlAtm"
 
 
     //molecule
@@ -57,17 +66,27 @@ object UIActionKeysCompose {
     const val LIST_ITEM_CLICK = "onListItemClick"
     const val LIST_ITEM_ALTERNATIVE_CLICK = "onListItemAlternativeClick"
     const val TEXT_INPUT = "textInput"
+    const val TEXT_INPUT_V2 = "textInputV2"
+    const val CLEAR_TEXT_INPUT_V2 = "clearTextInputV2"
+    const val CLEAR_INPUT_PHONE_V2 = "clearInputPhoneV2"
+
     const val DATE_INPUT = "dateInput"
     const val INPUT_FORM = "inputForm"
     const val SEARCH_INPUT = "searchInput"
     const val CHIP_BLACK_GROUP_ORG = "chipBlackGroupOrg"
+    const val CENTERED_CHIP_BLACK_TABS_ORG = "centerChipBlackTabsOrg"
     const val TABLE_MAIN_HEADING_MLC = "tableMainHeadingMlc"
     const val TABLE_SECONDARY_HEADING_MLC = "tableSecondaryHeadingMlc"
     const val HORIZONTAL_TABLE_ITEM = "horizontalTableItem"
     const val VERTICAL_TABLE_ITEM = "verticalTableItem"
     const val PRIMARY_TABLE_ITEM = "primaryTableItem"
     const val TABLE_BLOCK_ORG = "tableBlockOrg"
+    const val TEXT_BLOCK_ORG = "textBlockOrg"
+    const val HORIZONTAL_TEXT_BLOCK_ITEM = "horizontalTextBlockItem"
+    const val VERTICAL_TEXT_BLOCK_ITEM = "verticalTextBlockItem"
+
     const val TABLE_BLOCK_ACCORDION_ORG = "tableBlockAccordionOrg"
+    const val TABLE_ACCORDION_ORG = "tableAccordionOrg"
     const val PHOTO_GROUP_ORG = "photoGroupOrg"
     const val TABLE_ITEM_CHECKBOX_MLC = "tableItemCheckboxMlc"
 
@@ -81,11 +100,13 @@ object UIActionKeysCompose {
     const val MENU_ITEM_CLICK = "onMenuItemClick"
     const val PS_ITEM_CLICK = "onPublicServiceItemClick"
     const val TEXT_LABEL_MLC = "textLabelMlc"
+    const val SUBTITLE_CENTRALIZED_MLC = "subtitleCentralizedMlc"
     const val TEXT_LABEL_CONTAINER_MLC = "textLabelContainerMlc"
     const val TITLE_LABEL_MLC = "titleLabelMlc"
     const val RADIO_BTN_MLC = "radioBtnMlc"
     const val ICON_CARD_MLC = "iconCardMlc"
     const val HALVED_CARD_MLC = "halvedCardMlc"
+    const val BANKING_CARD_MLC = "bankingCardMlc"
     const val SMALL_NOTIFICATION_MLC = "smallNotificationMlc"
     const val BLACK_CARD_MLC = "blackCardMlc"
     const val WHITE_CARD_MLC = "whiteCardMlc"
@@ -101,6 +122,7 @@ object UIActionKeysCompose {
     const val QR_CODE_MLC = "qrCodeMlc"
     const val BAR_CODE_MLC = "barCodeMlc"
     const val DASHBOARD_CARD_MLC = "dashboardCardMlc"
+    const val PAGINATION_MESSAGE_MLC = "paginationMessageMlc"
 
     const val TOGGLE_BUTTON_MOLECULE = "toggleButtonMolecule"
     const val WHITE_MENU_CARD_MLC = "whiteMenuCardMlc"
@@ -112,6 +134,7 @@ object UIActionKeysCompose {
     const val CONTROL_BUTTON_OUTPUT_MOLECULE = "controlMlcOutput"
     const val CONTROL_BUTTON_CAMERA_FLIP_MOLECULE = "controlMlcCameraFlip"
     const val SMALL_CHECK_ICON_MLC = "smallCheckIconMlc"
+    const val ITEM_READ_MLC = "itemReadMlc"
 
     const val CHECKBOX_GROUP_MOLECULE = "checkboxGroupMolecule"
     const val DOC_SERIE_INPUT = "docSerieInput"
@@ -120,8 +143,8 @@ object UIActionKeysCompose {
     const val DETAILS_TEXT_DESCRIPTION_MOLECULE = "detailsTextDescriptionMolecule"
     const val IMAGE_CARD_MLC = "imageCardMlc"
     const val LOOPING_VIDEO_PLAYER_CARD_MLC = "loopingVideoPlayerCardMlc"
-
     const val VERTICAL_CARD_MLC = "verticalCardMlc"
+    const val BTN_SLIDE_MLC = "btnSlideMlc"
 
     const val INPUT_NUMBER_MLC = "inputNumberMlc"
     const val TIMER_MLC = "timerMlc"
@@ -130,7 +153,15 @@ object UIActionKeysCompose {
 
     const val INPUT_PHONE_MLC = "inputPhoneMlc"
     const val INPUT_PHONE_CODE_ORG = "inputPhoneCodeOrg"
+    const val INPUT_PHONE_CODE_ORG_V2 = "inputPhoneCodeOrgV2"
     const val INPUT_PHONE_CODE_ORG_COUNTRY_CODE = "inputPhoneCodeOrg_CountryCode"
+    const val INPUT_PHONE_CODE_ORG_V2_COUNTRY_CODE = "inputPhoneCodeOrgV2_CountryCode"
+
+    const val CARD_PROGRESS_MLC = "cardProgressMlc"
+    const val PHOTO_CARD_MLC = "photoCardMlc"
+    const val CHECKBOX_MLC = "checkboxMlc"
+
+    const val EMOJI_ATM = "emoji_atm"
 
     /*Default action keys*/
     const val CARD_PRIMARY_BTN_ACTION = "onCardPrimaryBtnActionClick"
@@ -169,9 +200,13 @@ object UIActionKeysCompose {
     const val RADIO_BTN_WITH_ALT_ORG = "radioBtnWithAltOrg"
     const val DASHBOARD_CARD_TILE_ORG = "dashboardCardTileOrg"
     const val BACKGROUND_WHITE_ORG = "backgroundWhiteOrg"
+    const val INPUT_BLOCK_ORG = "inputBlockOrg"
+    const val UPDATED_CONTAINER_ORG = "updatedContainerOrg"
+    const val LINK_QR_SHARE_ORG = "linkQrShareOrg"
 
     const val SMALL_NOTIFICATION_CAROUSEL_ORG = "smallNotificationCarouselOrg"
     const val HALVED_CARD_CAROUSEL_ORG = "halvedCardCarouselOrg"
+    const val BANKING_CARD_CAROUSEL_ORG = "bankingCardCarouselOrg"
     const val BTN_ICON_ROUNDED_GROUP_ORG = "btnIconRoundedGroupOrg"
     const val VERTICAL_CARD_CAROUSEL_ORG = "verticalCardCarouselOrg"
     const val CARD_HORIZONTAL_SCROLL_ORG = "cardHorizontalScrollOrg"
@@ -187,10 +222,15 @@ object UIActionKeysCompose {
 
 
     const val SELECTOR_ORG = "selectorOrg"
+    const val SELECTOR_ORG_V2 = "selectorOrgV2"
     const val CALENDAR_ORG = "calendarOrg"
     const val INPUT_DATE_TIME_ORG = "inputDateTimeOrg"
     const val INPUT_TIME_MLC = "inputTimeMlc"
     const val INPUT_DATE_MLC = "inputDateMlc"
+    const val RECURSIVE_CONTAINER_ORG = "recursiveContainerOrg"
+
+    const val CHECKBOX_CASCADE_ORG = "checkboxCascadeOrg"
+    const val CHECKBOX_CASCADE_GROUP_ORG = "checkboxCascadeGroupOrg"
 
     //loading
     const val PAGE_LOADING_CIRCULAR = "pageLoadingCircular"
@@ -209,6 +249,7 @@ object UIActionKeysCompose {
     const val ITEM_REQUEST_PERMISSION = "requestPermission"
     const val ITEM_MAP_POINT = "mapPoint"
     const val ITEM_MAP_UNSELECT_POINT = "mapUnselectPoint"
+    const val ITEM_FOCUS_LOST = "itemFocusLost"
     const val ITEM_MAP_ROUTE = "createRoute"
     const val ITEM_POINT_DETAILS = "openDetails"
     const val ITEM_WATER_MARK_MAP_CLICK = "mapWatermarkClick"
@@ -220,5 +261,7 @@ object UIActionKeysCompose {
     const val ITEM_HANG_UP = "hangUpAction"
     const val ITEM_FACE_DET_CONFIGURED = "faceDetectorConfigured"
     const val ON_SCANNING_BARCODE_DETECTED = "onScanningBarcodeDetected"
+    const val RECURSIVE_CONTAINER_ORG_EXPAND_AND_ADD = "expandAnsAdd"
+    const val CLEAR_INPUT = "clearInput"
 
 }

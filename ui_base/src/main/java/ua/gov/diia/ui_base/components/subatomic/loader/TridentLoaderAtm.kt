@@ -15,23 +15,29 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import ua.gov.diia.ui_base.R
 
 @Composable
-fun TridentLoaderAtm(modifier: Modifier = Modifier) {
+fun TridentLoaderAtm(
+    modifier: Modifier = Modifier
+) {
+    val composition by rememberLottieComposition(
+        LottieCompositionSpec.RawRes(R.raw.loader)
+    )
 
-    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.loader))
-    val progress by animateLottieCompositionAsState(composition, iterations = LottieConstants.IterateForever)
+    val progress by animateLottieCompositionAsState(
+        composition,
+        iterations = LottieConstants.IterateForever
+    )
 
     LottieAnimation(
         modifier = modifier
-            .size(width = 80.dp, height = 80.dp),
+            .size(80.dp),
         alignment = Alignment.Center,
         composition = composition,
-        progress = { progress },
-
+        progress = { progress }
     )
 }
 
 @Preview
 @Composable
-fun TridentLoaderAtmPreview(){
+fun TridentLoaderAtmPreview() {
     TridentLoaderAtm(modifier = Modifier)
 }

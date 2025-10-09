@@ -13,7 +13,6 @@ import ua.gov.diia.core.util.extensions.context.getColorCompat
  * fetches [ColorRes] value based on this resource link and assigns this value to the
  * card background color.
  */
-@BindingAdapter("cardBackgroundColorCompat")
 fun CardView.setCardBackgroundColorCompat(@ColorRes colorRes: Int?) {
     if (colorRes != null && colorRes != 0){
         setCardBackgroundColor(context.getColorCompat(colorRes))

@@ -1,105 +1,133 @@
 package ua.gov.diia.ui_base.components.molecule.tile
 
-import androidx.compose.foundation.layout.Arrangement
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyGridState
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import ua.gov.diia.core.models.common_compose.org.card.ServiceCardTileOrg
+import dagger.hilt.EntryPoints
 import ua.gov.diia.ui_base.components.infrastructure.UIElementData
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
-import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiIcon
+import ua.gov.diia.ui_base.components.infrastructure.utils.TopPaddingMode
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
+import ua.gov.diia.ui_base.components.infrastructure.utils.toDp
 import ua.gov.diia.ui_base.components.molecule.card.ServiceCardMlc
 import ua.gov.diia.ui_base.components.molecule.card.ServiceCardMlcData
-import ua.gov.diia.ui_base.components.molecule.card.toUIModel
+import ua.gov.diia.ui_base.components.molecule.card.ServiceChipCardMlc
+import ua.gov.diia.ui_base.components.molecule.card.ServiceChipCardMlcData
+import ua.gov.diia.ui_base.components.theme.WhiteAlpha40
+import ua.gov.diia.ui_base.di.ServiceCardResourceEntryPointModule
+
+private lateinit var serviceCardResourceEntryPoint: ServiceCardResourceEntryPointModule.ServiceCardResourceEntryPoint
 
 @Composable
-fun ServiceCardTileOrg(
-    modifier: Modifier = Modifier,
-    data: ServiceCardTileOrgData,
-    lazyGridState: LazyGridState = rememberLazyGridState(),
-    onUIAction: (UIAction) -> Unit,
-) {
-    LazyVerticalGrid(
-        modifier = modifier
-            .padding(start = 24.dp, top = 8.dp, end = 24.dp)
-            .fillMaxHeight()
-            .testTag(data.componentId?.asString() ?: ""),
-        columns = GridCells.Fixed(2),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        state = lazyGridState
-    ) {
-        items(data.items.size) { index ->
-            val item = data.items[index]
-            val lastIndex = data.items.size - 1
-            item.let {
-                ServiceCardMlc(
-                    data = item,
-                    onUIAction = onUIAction
-                )
-                if (index == lastIndex) {
-                    Spacer(modifier = Modifier.height(144.dp))
-                }
-            }
-        }
+fun requireServiceCardResourceEntryPoint(): ServiceCardResourceEntryPointModule.ServiceCardResourceEntryPoint {
+    if (!::serviceCardResourceEntryPoint.isInitialized) {
+        serviceCardResourceEntryPoint =
+            EntryPoints.get(
+                LocalContext.current.applicationContext,
+                ServiceCardResourceEntryPointModule.ServiceCardResourceEntryPoint::class.java,
+            )
     }
+    return serviceCardResourceEntryPoint
 }
 
+fun LazyListScope.loadItems(
+    serviceCardTileOrgData: ServiceCardTileOrgData,
+    onUIAction: (UIAction) -> Unit
+) {
+    val serviceCardMlcDataList =
+        serviceCardTileOrgData.items.filterIsInstance<ServiceCardMlcData>()
+    val serviceChipCardMlcDataList =
+        serviceCardTileOrgData.items.filterIsInstance<ServiceChipCardMlcData>()
+
+    createRow(
+        items = serviceCardMlcDataList,
+        startTopPadding = serviceCardTileOrgData.paddingMode.toDp(16.dp),
+        onUIAction = onUIAction
+    )
+
+    if (serviceChipCardMlcDataList.isEmpty()) return
+
+    if (serviceCardMlcDataList.isNotEmpty()) {
+        item {
+            HorizontalDivider(
+                modifier = Modifier
+                    .padding(
+                        horizontal = 24.dp,
+                        vertical = 16.dp
+                    ),
+                thickness = 1.dp,
+                color = WhiteAlpha40
+            )
+        }
+    }
+
+    createRow(
+        items = serviceChipCardMlcDataList,
+        startTopPadding = 0.dp,
+        onUIAction = onUIAction
+    )
+}
 
 data class ServiceCardTileOrgData(
-    val items: SnapshotStateList<ServiceCardMlcData>,
-    val componentId: UiText? = null
-) :
-    UIElementData
+    val items: SnapshotStateList<UIElementData>,
+    val componentId: UiText? = null,
+    val paddingMode: TopPaddingMode = TopPaddingMode.LARGE,
+) : UIElementData
 
-fun LazyListScope.loadItems(
-    item: ServiceCardTileOrgData,
-    onUIAction: (UIAction) -> Unit = {}
+private fun LazyListScope.createRow(
+    items: List<UIElementData>,
+    onUIAction: (UIAction) -> Unit,
+    startTopPadding: Dp
 ) {
-    val rowsCount: Int = if (item.items.size % 2 > 0) {
-        item.items.size / 2 + 1
-    } else {
-        item.items.size / 2
-    }
+    val rowsCount = (items.size + 1) / 2
     if (rowsCount > 0) {
         repeat(rowsCount) { rowIndex ->
-            item(contentType = item.javaClass.canonicalName) {
+            item {
                 Row(
-                    modifier = Modifier.padding(
-                        start = 24.dp, top = if (rowIndex == 0) 16.dp else 8.dp, end = 24.dp
-                    )
+                    modifier = Modifier
+                        .padding(
+                            start = 24.dp,
+                            top = if (rowIndex == 0) startTopPadding else 8.dp,
+                            end = 24.dp
+                        )
                 ) {
-                    ServiceCardMlc(
-                        modifier = Modifier.weight(1f),
-                        data = item.items[rowIndex * 2],
+                    val firstIndex = rowIndex * 2
+                    val secondIndex = firstIndex + 1
+
+                    createCardMlc(
+                        modifier = Modifier
+                            .weight(1f),
+                        item = items[firstIndex],
                         onUIAction = onUIAction
                     )
+
                     Spacer(
-                        modifier = Modifier.width(8.dp)
+                        modifier = Modifier
+                            .width(8.dp)
                     )
-                    if ((rowIndex + 1) * 2 - 1 < item.items.size) {
-                        ServiceCardMlc(
-                            modifier = Modifier.weight(1f),
-                            data = item.items[(rowIndex + 1) * 2 - 1],
+
+                    if (secondIndex < items.size) {
+                        createCardMlc(
+                            modifier = Modifier
+                                .weight(1f),
+                            item = items[secondIndex],
                             onUIAction = onUIAction
                         )
                     } else {
-                        Spacer(modifier = Modifier.weight(1f))
+                        Spacer(
+                            modifier = Modifier
+                                .weight(1f)
+                        )
                     }
                 }
             }
@@ -107,78 +135,27 @@ fun LazyListScope.loadItems(
     }
 }
 
-fun ServiceCardTileOrg?.toUIModel(): ServiceCardTileOrgData? {
-    if (this == null) return null
-    val itemList: SnapshotStateList<ServiceCardMlcData> = SnapshotStateList()
-    items.forEach { item ->
-        itemList.add(item.toUIModel())
-    }
-    return ServiceCardTileOrgData(itemList, UiText.DynamicString(this.componentId.orEmpty()))
-}
-
-@Preview
+@SuppressLint("ComposableNaming")
 @Composable
-fun ServiceCardTileOrgPreview() {
-    val exampleData = ServiceCardTileOrgData(
-        items = SnapshotStateList<ServiceCardMlcData>().apply {
-            add(
-                ServiceCardMlcData(
-                    id = "1",
-                    label = "Label",
-                    icon = UiIcon.DrawableResource(code = "certificates")
-                )
-            )
-            add(
-                ServiceCardMlcData(
-                    id = "2",
-                    label = "Label",
-                    icon = UiIcon.DrawableResource(code = "certificates")
-                )
-            )
-            add(
-                ServiceCardMlcData(
-                    id = "3",
-                    label = "Label",
-                    icon = UiIcon.DrawableResource(code = "certificates")
-                )
-            )
-            add(
-                ServiceCardMlcData(
-                    id = "4",
-                    label = "Label",
-                    icon = UiIcon.DrawableResource(code = "certificates")
-                )
-            )
-            add(
-                ServiceCardMlcData(
-                    id = "5",
-                    label = "Label",
-                    icon = UiIcon.DrawableResource(code = "certificates")
-                )
-            )
-            add(
-                ServiceCardMlcData(
-                    id = "6",
-                    label = "Label",
-                    icon = UiIcon.DrawableResource(code = "certificates")
-                )
-            )
-            add(
-                ServiceCardMlcData(
-                    id = "7",
-                    label = "Label",
-                    icon = UiIcon.DrawableResource(code = "certificates")
-                )
-            )
-            add(
-                ServiceCardMlcData(
-                    id = "8",
-                    label = "Label",
-                    icon = UiIcon.DrawableResource(code = "certificates")
-                )
-            )
-        }
-    )
-    ServiceCardTileOrg(modifier = Modifier, data = exampleData) {}
-
+private fun createCardMlc(
+    modifier: Modifier,
+    item: UIElementData,
+    onUIAction: (UIAction) -> Unit
+) {
+    (item as? ServiceCardMlcData)?.let { serviceCardMlcData ->
+        ServiceCardMlc(
+            modifier = modifier,
+            data = serviceCardMlcData,
+            onUIAction = onUIAction,
+            serviceCardResourceHelper = requireServiceCardResourceEntryPoint().serviceCardResourceHelper
+        )
+    }
+    (item as? ServiceChipCardMlcData)?.let { serviceChipCardMlcData ->
+        ServiceChipCardMlc(
+            modifier = modifier,
+            data = serviceChipCardMlcData,
+            onUIAction = onUIAction,
+            serviceCardResourceHelper = requireServiceCardResourceEntryPoint().serviceCardResourceHelper
+        )
+    }
 }

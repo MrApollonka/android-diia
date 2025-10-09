@@ -28,12 +28,8 @@ class PublicServiceCategoryDetailsComposeF : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         composeView = ComposeView(requireContext())
-        return composeView
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
         viewModel.doInit(args.category)
+        return composeView
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

@@ -22,5 +22,6 @@ dependencies {
     testImplementation(libs.turbine)
     testImplementation(libs.mockwebserver)
     testImplementation(libs.hamcrest)
+    testImplementation(libs.mockk.android)
     testImplementation(libs.androidx.lifecycle.livedata.ktx)
 }

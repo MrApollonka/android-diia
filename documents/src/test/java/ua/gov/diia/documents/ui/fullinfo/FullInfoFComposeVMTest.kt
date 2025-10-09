@@ -16,20 +16,18 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import ua.gov.diia.core.util.DispatcherProvider
-import ua.gov.diia.core.util.delegation.WithErrorHandlingOnFlow
-import ua.gov.diia.core.util.delegation.WithRetryLastAction
-import ua.gov.diia.documents.DocTest
+import ua.gov.diia.core.models.document.DiiaDocument
+import ua.gov.diia.core.models.document.LocalizationType
 import ua.gov.diia.core.models.document.barcode.DocumentBarcode
 import ua.gov.diia.core.models.document.barcode.DocumentBarcodeRepository
 import ua.gov.diia.core.models.document.barcode.DocumentBarcodeRepositoryResult
 import ua.gov.diia.core.models.document.barcode.DocumentBarcodeSuccessfulLoadResult
+import ua.gov.diia.core.util.DispatcherProvider
+import ua.gov.diia.core.util.delegation.WithErrorHandlingOnFlow
+import ua.gov.diia.core.util.delegation.WithRetryLastAction
+import ua.gov.diia.documents.DocTest
 import ua.gov.diia.documents.getOrAwaitValue
-import ua.gov.diia.core.models.document.DiiaDocument
-import ua.gov.diia.core.models.document.LocalizationType
 import ua.gov.diia.documents.rules.MainDispatcherRule
-import ua.gov.diia.ui_base.mappers.document.DocumentComposeMapper
-import ua.gov.diia.ui_base.mappers.document.ToggleId
 import ua.gov.diia.ui_base.components.infrastructure.UIElementData
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
@@ -37,6 +35,8 @@ import ua.gov.diia.ui_base.components.molecule.button.BtnToggleMlcData
 import ua.gov.diia.ui_base.components.organism.document.DocCodeOrgData
 import ua.gov.diia.ui_base.components.organism.document.Localization
 import ua.gov.diia.ui_base.components.organism.group.ToggleButtonGroupData
+import ua.gov.diia.ui_base.mappers.document.DocumentComposeMapper
+import ua.gov.diia.ui_base.mappers.document.ToggleId
 import java.util.concurrent.TimeoutException
 
 class FullInfoFComposeVMTest {
@@ -85,7 +85,7 @@ class FullInfoFComposeVMTest {
             errorHandling,
             withRetryLastAction,
             composeMapper,
-            barcodeRepository,
+            mock(),
             docFullComposeMapper
         )
     }
@@ -221,7 +221,7 @@ class FullInfoFComposeVMTest {
         val mockData = DocCodeOrgData(
             "",
             Localization.eng,
-            ToggleButtonGroupData(BtnToggleMlcData(), BtnToggleMlcData()),
+            ToggleButtonGroupData(BtnToggleMlcData(action = mock()), BtnToggleMlcData(action = mock())),
             null,
             null,
             null,
@@ -275,7 +275,7 @@ class FullInfoFComposeVMTest {
         val mockData = DocCodeOrgData(
             "",
             Localization.eng,
-            ToggleButtonGroupData(BtnToggleMlcData(), BtnToggleMlcData()),
+            ToggleButtonGroupData(BtnToggleMlcData(action = mock()), BtnToggleMlcData(action = mock())),
             null,
             null,
             null,
@@ -328,7 +328,7 @@ class FullInfoFComposeVMTest {
         val mockData = DocCodeOrgData(
             "",
             Localization.eng,
-            ToggleButtonGroupData(BtnToggleMlcData(), BtnToggleMlcData()),
+            ToggleButtonGroupData(BtnToggleMlcData(action = mock()), BtnToggleMlcData(action = mock())),
             null,
             null,
             null,
@@ -383,7 +383,7 @@ class FullInfoFComposeVMTest {
         val mockData = DocCodeOrgData(
             "",
             Localization.eng,
-            ToggleButtonGroupData(BtnToggleMlcData(), BtnToggleMlcData()),
+            ToggleButtonGroupData(BtnToggleMlcData(action = mock()), BtnToggleMlcData(action = mock())),
             null,
             null,
             null,
@@ -438,7 +438,7 @@ class FullInfoFComposeVMTest {
         val mockData = DocCodeOrgData(
             "",
             Localization.eng,
-            ToggleButtonGroupData(BtnToggleMlcData(), BtnToggleMlcData()),
+            ToggleButtonGroupData(BtnToggleMlcData(action = mock()), BtnToggleMlcData(action = mock())),
             null,
             null,
             null,

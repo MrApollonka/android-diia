@@ -1,10 +1,14 @@
 package ua.gov.diia.core.models.common_compose.atm.button
 
+import android.os.Parcelable
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+import kotlinx.parcelize.Parcelize
 import ua.gov.diia.core.models.common_compose.general.Action
 import ua.gov.diia.core.models.common_compose.general.ButtonStates
+import ua.gov.diia.core.models.common_compose.general.PaddingMode
 
+@Parcelize
 @JsonClass(generateAdapter = true)
 data class BtnLinkAtm(
     @Json(name = "componentId")
@@ -15,4 +19,6 @@ data class BtnLinkAtm(
     val state: ButtonStates?,
     @Json(name = "action")
     val action: Action?,
-)
+    @Json(name = "paddingMode")
+    val paddingMode: PaddingMode?
+) : Parcelable

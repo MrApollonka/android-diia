@@ -18,6 +18,10 @@ android {
     buildFeatures {
         dataBinding = true
     }
+
+    defaultConfig {
+        consumerProguardFiles("consumer-rules.pro")
+    }
 }
 
 dependencies {

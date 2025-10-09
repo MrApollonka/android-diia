@@ -44,6 +44,7 @@ import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.toDynamicString
 import ua.gov.diia.ui_base.components.theme.Black
 import ua.gov.diia.ui_base.components.theme.BlackAlpha30
+import ua.gov.diia.ui_base.components.theme.BlackAlpha54
 import ua.gov.diia.ui_base.components.theme.DiiaTextStyle
 import ua.gov.diia.ui_base.components.theme.White
 import java.util.Calendar
@@ -93,7 +94,7 @@ fun InputDateMlc(
             Text(
                 text = data.label.asString(),
                 style = DiiaTextStyle.t4TextSmallDescription,
-                color = if (data.isEnabled) Black else BlackAlpha30
+                color = if (data.isEnabled) Black else BlackAlpha54
             )
         }
         Spacer(modifier = Modifier.height(6.dp))
@@ -150,7 +151,7 @@ fun InputDateMlc(
                 modifier = Modifier.fillMaxWidth(),
                 style = DiiaTextStyle.t4TextSmallDescription,
                 text = it.asString(),
-                color = BlackAlpha30
+                color = BlackAlpha54
             )
         }
 

@@ -13,3 +13,7 @@ annotation class UnauthorizedClient
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
 annotation class ProlongClient
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class CoilClient

@@ -6,12 +6,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.text.BasicTextField
@@ -39,21 +41,30 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ua.gov.diia.core.models.common_compose.mlc.input.InputTextMlc
 import ua.gov.diia.core.util.phone.PHONE_NUMBER_VALIDATION_PATTERN
 import ua.gov.diia.core.util.phone.PHONE_NUMBER_VALIDATION_PATTERN_WITH_ALLOWED_PLUS
 import ua.gov.diia.ui_base.R
+import ua.gov.diia.ui_base.components.DiiaResourceIcon
 import ua.gov.diia.ui_base.components.atom.button.BtnPrimaryDefaultAtmData
+import ua.gov.diia.ui_base.components.atom.icon.IconAtm
+import ua.gov.diia.ui_base.components.atom.icon.IconAtmData
 import ua.gov.diia.ui_base.components.atom.text.textwithparameter.TextWithParametersData
+import ua.gov.diia.ui_base.components.infrastructure.DataActionWrapper
 import ua.gov.diia.ui_base.components.infrastructure.PublicServiceScreen
 import ua.gov.diia.ui_base.components.infrastructure.UIElementData
 import ua.gov.diia.ui_base.components.infrastructure.addAllIfNotNull
@@ -62,6 +73,7 @@ import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
 import ua.gov.diia.ui_base.components.infrastructure.findAndChangeFirstByInstance
 import ua.gov.diia.ui_base.components.infrastructure.state.UIState
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
+import ua.gov.diia.ui_base.components.infrastructure.utils.resource.toDynamicString
 import ua.gov.diia.ui_base.components.molecule.header.NavigationPanelMlcData
 import ua.gov.diia.ui_base.components.molecule.message.AttentionMessageMlcData
 import ua.gov.diia.ui_base.components.molecule.text.TitleLabelMlcData
@@ -70,14 +82,13 @@ import ua.gov.diia.ui_base.components.organism.header.TopGroupOrgData
 import ua.gov.diia.ui_base.components.organism.input.QuestionFormsOrgData
 import ua.gov.diia.ui_base.components.theme.Black
 import ua.gov.diia.ui_base.components.theme.BlackAlpha30
+import ua.gov.diia.ui_base.components.theme.BlackAlpha54
 import ua.gov.diia.ui_base.components.theme.DiiaTextStyle
 import ua.gov.diia.ui_base.components.theme.Red
 import ua.gov.diia.ui_base.components.theme.White
+import ua.gov.diia.ui_base.util.toUiModel
 
-@OptIn(
-    ExperimentalLayoutApi::class,
-    ExperimentalFoundationApi::class
-)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun TextInputMolecule(
     modifier: Modifier = Modifier,
@@ -87,11 +98,65 @@ fun TextInputMolecule(
     keyboardController: SoftwareKeyboardController? = LocalSoftwareKeyboardController.current,
     onUIAction: (UIAction) -> Unit
 ) {
-    var focusState by remember { mutableStateOf<UIState.Focus>(UIState.Focus.NeverBeenFocused) }
     val bringIntoErrorViewRequester = BringIntoViewRequester()
     val bringIntoHintViewRequester = BringIntoViewRequester()
     val bringIntoInputViewRequester = BringIntoViewRequester()
+    val inputCode: String? = data.inputCode
+    val mask: String? = data.mask?.asString()
+    val maskSymbolsCount: Int = mask?.count { c -> c == '#' } ?: (Int.MAX_VALUE - 1)
+    val dataValue = data.inputValue
+
+    var focusState by remember { mutableStateOf<UIState.Focus>(UIState.Focus.NeverBeenFocused) }
     val focusRequester = remember { FocusRequester() }
+    var justFocused by remember { mutableStateOf(false) }
+    var dataValidationState by remember { mutableStateOf(data.validation) }
+
+    LaunchedEffect(key1 = data.validation) {
+        dataValidationState = data.validation
+    }
+    LaunchedEffect(key1 = data.mask) {
+        if (justFocused) {
+            justFocused = false
+        }
+    }
+    LaunchedEffect(Unit) {
+        if (!dataValue.isNullOrEmpty()) {
+            onUIAction(
+                UIAction(
+                    actionKey = data.actionKey,
+                    action = DataActionWrapper(
+                        type = data.actionKey,
+                        subtype = inputCode,
+                        resource = dataValue
+                    ),
+                    states = listOf(focusState, data.validation),
+                )
+            )
+        }
+    }
+    LaunchedEffect(Unit) {
+        if (data.showKeyboardFromStart) {
+            focusRequester.requestFocus()
+            keyboardController?.show()
+        }
+    }
+
+    LaunchedEffect(focusState) {
+        if (focusState == UIState.Focus.OutOfFocus) {
+            onUIAction.invoke(
+                UIAction(
+                    actionKey = UIActionKeysCompose.ITEM_FOCUS_LOST,
+                    action = DataActionWrapper(
+                        type = UIActionKeysCompose.ITEM_FOCUS_LOST,
+                        subtype = inputCode,
+                        resource = dataValue
+                    ),
+                    optionalId = data.id,
+                    states = listOf(UIState.Focus.OutOfFocus)
+                )
+            )
+        }
+    }
 
     if (WindowInsets.isImeVisible) {
         LaunchedEffect(Unit) {
@@ -102,13 +167,6 @@ fun TextInputMolecule(
             } else {
                 bringIntoInputViewRequester.bringIntoView()
             }
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        if (data.showKeyboardFromStart) {
-            focusRequester.requestFocus()
-            keyboardController?.show()
         }
     }
 
@@ -141,14 +199,17 @@ fun TextInputMolecule(
         value = data.inputValue.orEmpty(),
         enabled = data.isEnabled,
         onValueChange = { newValue ->
-            onUIAction(
-                UIAction(
-                    actionKey = data.actionKey,
-                    data = newValue,
-                    states = listOf(focusState, data.validation),
-                    optionalId = data.id
+            justFocused = false
+            if (data.isEnabled && newValue.length < maskSymbolsCount + 1) {
+                onUIAction(
+                    UIAction(
+                        actionKey = data.actionKey,
+                        data = newValue,
+                        states = listOf(focusState, data.validation),
+                        optionalId = data.id
+                    )
                 )
-            )
+            }
         },
         textStyle = TextStyle(
             fontFamily = FontFamily(Font(R.font.e_ukraine_regular)),
@@ -174,11 +235,16 @@ fun TextInputMolecule(
         ),
         singleLine = true,
         cursorBrush = SolidColor(getColorForInput(data.isEnabled)),
+        visualTransformation = data.mask?.asString()?.let {
+            TextVisualTransformation(it, maskSymbol = '#')
+        } ?: VisualTransformation.None,
         decorationBox = @Composable { innerTextField ->
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .testTag(data.componentId?.asString().orEmpty()),
+                    .testTag(
+                        tag = data.componentId?.asString().orEmpty()
+                    ),
             ) {
                 data.label?.let {
                     Text(
@@ -189,20 +255,31 @@ fun TextInputMolecule(
                     Spacer(modifier = Modifier.height(4.dp))
                 }
 
-                Box(modifier = Modifier.fillMaxWidth()) {
-                    if (data.inputValue.isNullOrEmpty()) {
-                        Text(
-                            text = data.placeholder.orEmpty(),
-                            style = DiiaTextStyle.t1BigText,
-                            color = getColorForPlaceholder(
-                                focusState = focusState,
-                                validationState = data.validation
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        if (data.inputValue.isNullOrEmpty()) {
+                            Text(
+                                text = data.placeholder.orEmpty(),
+                                style = DiiaTextStyle.t1BigText,
+                                color = getColorForPlaceholder(
+                                    focusState = focusState,
+                                    validationState = data.validation
+                                )
                             )
+                        }
+
+                        innerTextField()
+                    }
+                    data.iconRight?.let { icon ->
+                        IconAtm(
+                            data = icon,
+                            modifier = Modifier
+                                .padding(start = 2.dp)
+                                .size(16.dp),
+                            onUIAction = onUIAction
                         )
                     }
-                    innerTextField()
                 }
-
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -218,7 +295,8 @@ fun TextInputMolecule(
                 )
 
                 AnimatedVisibility(
-                    data.validation == UIState.Validation.Failed && (focusState != UIState.Focus.NeverBeenFocused)
+                    visible = data.validation == UIState.Validation.Failed &&
+                            (focusState != UIState.Focus.NeverBeenFocused)
                 ) {
                     data.errorMessage?.let { errorMsg ->
                         Text(
@@ -232,9 +310,7 @@ fun TextInputMolecule(
                     }
                 }
 
-                AnimatedVisibility(
-                    data.validation != UIState.Validation.Failed
-                ) {
+                AnimatedVisibility(visible = data.validation != UIState.Validation.Failed) {
                     data.hintMessage?.let {
                         Text(
                             modifier = Modifier
@@ -242,7 +318,7 @@ fun TextInputMolecule(
                                 .bringIntoViewRequester(bringIntoHintViewRequester),
                             text = data.hintMessage,
                             style = DiiaTextStyle.t4TextSmallDescription,
-                            color = BlackAlpha30
+                            color = BlackAlpha54
                         )
                     }
                 }
@@ -303,7 +379,7 @@ private fun getColorForInput(isEnabled: Boolean): Color {
     return if (isEnabled) {
         Black
     } else {
-        BlackAlpha30
+        BlackAlpha54
     }
 }
 
@@ -314,21 +390,63 @@ private fun getColorForLabel(validationState: UIState.Validation): Color {
     }
 }
 
+class TextVisualTransformation(val mask: String, val maskSymbol: Char) : VisualTransformation {
+
+    private val maxLength = mask.count { it == maskSymbol }
+
+    override fun filter(text: AnnotatedString): TransformedText {
+        val trimmed = if (text.length > maxLength) text.take(maxLength) else text
+
+        val annotatedString = buildAnnotatedString {
+            if (trimmed.isEmpty()) return@buildAnnotatedString
+
+            var maskIndex = 0
+            var textIndex = 0
+            while (textIndex < trimmed.length && maskIndex < mask.length) {
+                if (mask[maskIndex] != maskSymbol) {
+                    val nextDigitIndex = mask.indexOf(maskSymbol, maskIndex)
+                    append(mask.substring(maskIndex, nextDigitIndex))
+                    maskIndex = nextDigitIndex
+                }
+                append(trimmed[textIndex++])
+                maskIndex++
+            }
+        }
+
+        return TransformedText(annotatedString, PhoneOffsetMapper(mask, maskSymbol))
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is PhoneVisualTransformation) return false
+        if (mask != other.mask) return false
+        if (maskSymbol != other.maskSymbol) return false
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return mask.hashCode()
+    }
+}
+
 data class TextInputMoleculeData(
     val actionKey: String = UIActionKeysCompose.TEXT_INPUT,
     val componentId: UiText? = null,
     val id: String? = null,
-    val label: String? = null,
-    val inputValue: String? = null,
-    val placeholder: String? = null,
-    val hintMessage: String? = null,
-    var errorMessage: String? = null,
     var inputCode: String? = null,
+    val label: String? = null,
+    val placeholder: String? = null,
+    val mask: UiText? = null,
+    val inputValue: String? = null,
+    val hintMessage: String? = null,
     val validationData: List<ValidationTextItem>? = null,
-    val keyboardType: KeyboardType = KeyboardType.Text,
     val validation: UIState.Validation = UIState.Validation.NeverBeenPerformed,
+    var errorMessage: String? = null,
     val isEnabled: Boolean = true,
-    val showKeyboardFromStart: Boolean = false
+    val keyboardType: KeyboardType = KeyboardType.Text,
+    val showKeyboardFromStart: Boolean = false,
+    val mandatory: Boolean? = null,
+    val iconRight: IconAtmData? = null
 ) : InputFormItem() {
 
     data class ValidationTextItem(
@@ -337,7 +455,7 @@ data class TextInputMoleculeData(
         val errorMessage: String
     )
 
-    fun onInputChanged(newValue: String?): TextInputMoleculeData {
+    fun onInputChanged(newValue: String?, focusState: UIState.Focus? = null): TextInputMoleculeData {
         if (newValue == null) return this
 
         val numRegex = "^[+,0-9]"
@@ -355,7 +473,7 @@ data class TextInputMoleculeData(
                 }
 
                 "email" -> {
-                    dataValidationEmail(newValue)
+                    dataValidationEmail(newValue, focusState)
                 }
 
                 else -> {
@@ -367,7 +485,6 @@ data class TextInputMoleculeData(
 
     private fun dataValidation(value: String): UIState.Validation {
         var isMatches: Boolean? = null
-        //in case no validation data, we assume it is passed
         if (validationData.isNullOrEmpty()) {
             return UIState.Validation.Passed
         }
@@ -389,30 +506,90 @@ data class TextInputMoleculeData(
         }
     }
 
-    private fun dataValidationEmail(value: String): UIState.Validation {
-        val regex1 = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
-        val regex2 = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.(ru|su)\$"
-        var isMatches: Boolean? = null
+    fun dataValidationEmail(value: String, focusState: UIState.Focus?): UIState.Validation {
 
-        if (value.matches(Regex(regex1))) {
-            if (value.matches(Regex(regex2))) {
-                isMatches = false
-                this.errorMessage = validationData!![1].errorMessage
-            } else {
-                isMatches = true
+        var isMatches: Boolean? = null
+        if (!validationData.isNullOrEmpty()) {
+            for (validationTextItem in validationData) {
+                if (value.matches(Regex(validationTextItem.regex))) {
+                    isMatches = true
+                } else {
+                    isMatches = false
+                    this.errorMessage = validationTextItem.errorMessage
+                    break
+                }
             }
-        } else {
-            isMatches = false
-            this.errorMessage = validationData!![0].errorMessage
         }
 
         return if (value.isEmpty()) {
             UIState.Validation.NeverBeenPerformed
         } else if (isMatches == true) {
             UIState.Validation.Passed
+        } else if (focusState != UIState.Focus.OutOfFocus) {
+            UIState.Validation.InProgress
         } else {
             UIState.Validation.Failed
         }
+    }
+}
+
+fun InputTextMlc.toUIModel(): TextInputMoleculeData {
+    this.let { inputText ->
+        val predefinedValue = inputText.value ?: ""
+        val validationList = mutableListOf<TextInputMoleculeData.ValidationTextItem>()
+        inputText.validation?.forEach {
+            validationList.add(
+                TextInputMoleculeData.ValidationTextItem(
+                    regex = it.regexp,
+                    flags = it.flags,
+                    errorMessage = it.errorMessage
+                )
+            )
+        }
+
+        //parse list of validation and check whether all of them match regex
+        //in case some is not passed, all validation is considered as Failed and errorMsg used
+        var errorMsg: String? = null
+        val validationState = if (predefinedValue.isEmpty()) {
+            UIState.Validation.NeverBeenPerformed
+        } else {
+            inputText.validation?.firstOrNull {
+                getValidationState(
+                    regex = it.regexp,
+                    input = predefinedValue
+                ) == UIState.Validation.Failed
+            }?.let { e ->
+                errorMsg = e.errorMessage
+                UIState.Validation.Failed
+            } ?: UIState.Validation.Passed
+        }
+
+        return TextInputMoleculeData(
+            componentId = inputText.componentId?.let { UiText.DynamicString(it) },
+            id = inputText.id ?: inputText.componentId?: "phoneNumber", //PHONE_NUMBER_VALIDATION_PATTERN
+            label = inputText.label,
+            inputValue = inputText.value ?: "",
+            placeholder = inputText.placeholder,
+            validationData = validationList,
+            keyboardType = when (inputText.id) {
+                "phoneNumber" -> KeyboardType.Phone
+                "email" -> KeyboardType.Email
+                else -> KeyboardType.Text
+            },
+            iconRight = inputText.iconRight?.toUiModel(),
+            mask = inputText.maskCode?.let { UiText.DynamicString(it) },
+            validation = validationState,
+            errorMessage = errorMsg,
+            mandatory = this.mandatory
+        )
+    }
+}
+
+private fun getValidationState(regex: String?, input: String): UIState.Validation {
+    return if (input.matches(Regex(regex ?: ".*"))) {
+        UIState.Validation.Passed
+    } else {
+        UIState.Validation.Failed
     }
 }
 
@@ -424,7 +601,7 @@ fun TextInputMoleculePreview() {
         label = LoremIpsum(6).values.joinToString(),
         inputValue = "",
         placeholder = "Placeholder",
-        hintMessage = LoremIpsum(50).values.joinToString(),
+        hintMessage = LoremIpsum(6).values.joinToString(),
         validationData = listOf(
             TextInputMoleculeData.ValidationTextItem(
                 regex = PHONE_NUMBER_VALIDATION_PATTERN,
@@ -432,7 +609,8 @@ fun TextInputMoleculePreview() {
                 errorMessage = LoremIpsum(40).values.joinToString()
             )
         ),
-        validation = UIState.Validation.NeverBeenPerformed
+        validation = UIState.Validation.NeverBeenPerformed,
+        iconRight = IconAtmData(code = DiiaResourceIcon.SCANNER.code)
     )
 
     val focusRequester = remember { FocusRequester() }
@@ -448,12 +626,13 @@ fun TextInputMoleculePreview() {
             .background(White), horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        TextInputMolecule(modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth()
-            .focusRequester(focusRequester), data = state.value, onUIAction = {
-            state.value = state.value.onInputChanged(it.data)
-        })
+        TextInputMolecule(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth()
+                .focusRequester(focusRequester), data = state.value, onUIAction = {
+                state.value = state.value.onInputChanged(it.data)
+            })
 
         Button(modifier = Modifier.padding(bottom = 16.dp), onClick = {
             focusManager.clearFocus()
@@ -496,12 +675,13 @@ fun TextInputMoleculePreview_Prefilled() {
             .background(White), horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        TextInputMolecule(modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth()
-            .focusRequester(focusRequester), data = state.value, onUIAction = {
-            state.value = state.value.onInputChanged(it.data)
-        })
+        TextInputMolecule(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth()
+                .focusRequester(focusRequester), data = state.value, onUIAction = {
+                state.value = state.value.onInputChanged(it.data)
+            })
 
         Button(modifier = Modifier.padding(bottom = 16.dp), onClick = {
             focusManager.clearFocus()
@@ -515,12 +695,12 @@ fun TextInputMoleculePreview_Prefilled() {
 @Composable
 fun InputWithScroll_Preview() {
     val EMAIL_VALIDATION_PATTERN = "[a-zA-Z0-9\\+\\.\\_\\%\\-\\+]{1,256}" +
-        "\\@" +
-        "[a-zA-Z0-9][a-zA-Z0-9\\-]{0,64}" +
-        "(" +
-        "\\." +
-        "[a-zA-Z0-9][a-zA-Z0-9\\-]{0,25}" +
-        ")+"
+            "\\@" +
+            "[a-zA-Z0-9][a-zA-Z0-9\\-]{0,64}" +
+            "(" +
+            "\\." +
+            "[a-zA-Z0-9][a-zA-Z0-9\\-]{0,25}" +
+            ")+"
 
     val toolbarData: SnapshotStateList<UIElementData> =
         SnapshotStateList<UIElementData>().addAllIfNotNull(
@@ -576,6 +756,24 @@ fun InputWithScroll_Preview() {
                                 )
                             ),
                             keyboardType = KeyboardType.Text
+                        )
+                    )
+                    add(
+                        TextInputMoleculeData(
+                            id = "other",
+                            label = "label3",
+                            placeholder = "# ##### #### #",
+                            inputValue = "12345678911",
+                            mask = "# ##### #### #".toDynamicString(),
+                            validationData = listOf(
+                                TextInputMoleculeData.ValidationTextItem(
+                                    regex = "^\\d{10,11}$",
+                                    flags = listOf("i"),
+                                    errorMessage = "error",
+                                )
+                            ),
+                            keyboardType = KeyboardType.Text,
+                            mandatory = true
                         )
                     )
                 }

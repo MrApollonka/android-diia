@@ -16,6 +16,7 @@ import ua.gov.diia.ui_base.components.infrastructure.screen.TabBodyRootContainer
 import ua.gov.diia.ui_base.components.infrastructure.screen.TabBodyRootLazyContainer
 import ua.gov.diia.ui_base.components.infrastructure.screen.TopBarRootContainer
 import ua.gov.diia.ui_base.components.provideTestTagsAsResourceId
+import ua.gov.diia.ui_base.mappers.loader.mapToLoader
 
 @Composable
 fun HomeScreenTab(
@@ -36,7 +37,7 @@ fun HomeScreenTab(
         modifier = modifier
             .background(Color.Transparent)
             .provideTestTagsAsResourceId(),
-        contentLoaded = contentLoaded,
+        loader = mapToLoader(progress = progressIndicator, content = contentLoaded),
         topBar = {
             if (topBar != null) {
                 TopBarRootContainer(
@@ -75,7 +76,7 @@ fun HomeScreenTab(
             if (bottom != null) {
                 BottomBarRootContainer(
                     bottomViews = bottom,
-                    progressIndicator = progressIndicator,
+                    loader = mapToLoader(progressIndicator, contentLoaded),
                     onUIAction = onEvent
                 )
             }

@@ -28,8 +28,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
+import coil.compose.AsyncImage
 import ua.gov.diia.ui_base.R
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
@@ -38,8 +37,7 @@ import ua.gov.diia.ui_base.components.theme.BlackAlpha80
 import ua.gov.diia.ui_base.components.theme.White
 import ua.gov.diia.ui_base.components.theme.WhiteAlpha20
 
-
-@OptIn(ExperimentalGlideComposeApi::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun FullScreenGalleryScreen(
     modifier: Modifier = Modifier,
@@ -63,7 +61,7 @@ fun FullScreenGalleryScreen(
                 state = pagerState,
             ) { page ->
                 val url = images.getOrNull(page)
-                GlideImage(
+                AsyncImage(
                     modifier = Modifier
                         .fillMaxSize()
                         .clip(RoundedCornerShape(8.dp)),

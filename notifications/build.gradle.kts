@@ -11,13 +11,16 @@ android {
         buildConfig = true
         dataBinding = true
     }
+
+    defaultConfig {
+        consumerProguardFiles("consumer-rules.pro")
+    }
 }
 
 dependencies {
-
     implementation(projects.libs.diiaStorage)
     implementation(projects.libs.analytics)
-
+    implementation(projects.diia.features.home)
     implementation(libs.androidx.constraint.layout)
     implementation(libs.androidx.recyclerview)
     implementation(libs.androidx.localbroadcast)
@@ -28,6 +31,8 @@ dependencies {
     implementation(libs.bundles.moshi)
     implementation(libs.bundles.exoplayer)
 
+    implementation(libs.coil.kt)
+
     //hilt
     implementation(libs.hilt.ext.work)
     implementation(libs.hilt.android)
@@ -36,8 +41,6 @@ dependencies {
     ksp(libs.hilt.ext.compiler)
 
     ksp(libs.moshi.codegen)
-    implementation(libs.glide)
-    ksp(libs.glide.ksp)
     implementation(libs.shortcut.badger)
 
     gplayImplementation(platform(libs.firebase.bom))
@@ -50,6 +53,7 @@ dependencies {
     testImplementation(libs.turbine)
     testImplementation(libs.mockwebserver)
     testImplementation(libs.hamcrest)
+    testImplementation(libs.mockk.android)
     androidTestImplementation(libs.androidx.test.ext)
     androidTestImplementation(libs.androidx.test.espresso.core)
 }

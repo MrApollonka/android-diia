@@ -50,7 +50,7 @@ fun WhiteMenuCardMlc(
         ) {
             data.icon?.let {
                 IconWithBadge(
-                    modifier = modifier
+                    modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 32.dp)
                         .align(alignment = Alignment.CenterHorizontally)

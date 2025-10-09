@@ -18,6 +18,7 @@ import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
 import ua.gov.diia.ui_base.components.infrastructure.state.UIState
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
+import ua.gov.diia.ui_base.components.noRippleClickable
 import ua.gov.diia.ui_base.components.theme.Black
 import ua.gov.diia.ui_base.components.theme.DiiaTextStyle
 import ua.gov.diia.ui_base.components.theme.White
@@ -41,7 +42,7 @@ fun ChipTimeMlc(
     Box(
         modifier = modifier
             .background(colorBg, shape = RoundedCornerShape(40.dp))
-            .clickable {
+            .noRippleClickable {
                 onUIAction(
                     UIAction(
                         data.actionKey,

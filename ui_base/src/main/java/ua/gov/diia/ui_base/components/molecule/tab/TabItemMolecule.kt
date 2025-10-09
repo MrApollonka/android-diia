@@ -1,6 +1,5 @@
 package ua.gov.diia.ui_base.components.molecule.tab
 
-import androidx.compose.animation.slideOut
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size

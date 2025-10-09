@@ -11,10 +11,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
 import androidx.compose.ui.unit.dp
@@ -142,13 +142,14 @@ data class QuestionFormsOrgData(
     fun onInputChanged(
         id: String?,
         newValue: String?,
-        newCountryCode: String? = null
+        newCountryCode: String? = null,
+        focusState: UIState.Focus? = null
     ): QuestionFormsOrgData {
         val data = this
         return this.copy(items = SnapshotStateList<InputFormItem>().apply {
             data.items.forEach { item ->
                 when (item) {
-                    is InputGroupMoleculeData ->
+                    is InputGroupMoleculeData -> {
                         item.items.forEach {
                             if (it.id == id) {
                                 add(it.onInputChanged(newValue))
@@ -156,10 +157,11 @@ data class QuestionFormsOrgData(
                                 add(it)
                             }
                         }
+                    }
 
                     is TextInputMoleculeData -> {
                         if (item.id == id) {
-                            add(item.onInputChanged(newValue))
+                            add(item.onInputChanged(newValue, focusState))
                         } else {
                             add(item)
                         }
@@ -249,14 +251,14 @@ data class QuestionFormsOrgData(
         if (fieldType == "phoneNumberInput") {
             val phoneField = this.items.first()
             result = phoneField is TextInputMoleculeData &&
-                (phoneField.validation == UIState.Validation.Passed ||
-                    phoneField.validation == UIState.Validation.NeverBeenPerformed)
+                    (phoneField.validation == UIState.Validation.Passed ||
+                            phoneField.validation == UIState.Validation.NeverBeenPerformed)
 
         } else if (fieldType == "emailInput") {
             val emailField = this.items.last()
             result = emailField is TextInputMoleculeData &&
-                (emailField.validation == UIState.Validation.Passed ||
-                    emailField.validation == UIState.Validation.NeverBeenPerformed)
+                    (emailField.validation == UIState.Validation.Passed ||
+                            emailField.validation == UIState.Validation.NeverBeenPerformed)
         }
         return result
     }
@@ -284,48 +286,8 @@ private fun generateInputField(entity: QuestionFormsOrgItem): InputFormItem {
 }
 
 private fun questionFormInputFields(entity: QuestionFormsOrgItem): InputFormItem {
-    entity.inputTextMlc?.let { inputText ->
-        val regexp = inputText.validation?.first()?.regexp
-        val predefinedValue = inputText.value ?: ""
-        val validationList = mutableListOf<TextInputMoleculeData.ValidationTextItem>()
-        inputText.validation?.forEach {
-            validationList.add(
-                TextInputMoleculeData.ValidationTextItem(
-                    regex = it.regexp,
-                    flags = it.flags,
-                    errorMessage = it.errorMessage
-                )
-            )
-        }
-        return TextInputMoleculeData(
-            componentId = inputText.componentId?.let { UiText.DynamicString(it) },
-            id = inputText.id ?: "phoneNumber", //PHONE_NUMBER_VALIDATION_PATTERN
-            label = inputText.label,
-            inputValue = inputText.value ?: "",
-            placeholder = inputText.placeholder,
-            validationData = validationList,
-            keyboardType = when (inputText.id) {
-                "phoneNumber" -> KeyboardType.Phone
-                "email" -> KeyboardType.Email
-                else -> KeyboardType.Text
-            },
-            validation = getValidationState(regexp, predefinedValue)
-        )
-    }
-    return TextInputMoleculeData() //default
-}
-
-private fun getValidationState(regex: String?, input: String?): UIState.Validation {
-    var result: UIState.Validation = UIState.Validation.NeverBeenPerformed
-    if (input.isNullOrEmpty()) {
-        return result
-    }
-    result = if (input.matches(Regex(regex ?: ".*"))) {
-        UIState.Validation.Passed
-    } else {
-        UIState.Validation.Failed
-    }
-    return result
+    val inputTextMlcData = entity.inputTextMlc?.toUIModel()
+    return inputTextMlcData ?: TextInputMoleculeData()//default
 }
 
 @Composable

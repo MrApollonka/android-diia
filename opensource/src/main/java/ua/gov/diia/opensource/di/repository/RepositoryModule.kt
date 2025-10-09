@@ -8,8 +8,11 @@ import ua.gov.diia.core.data.repository.SystemRepository
 import ua.gov.diia.diia_storage.store.repository.authorization.AuthorizationRepository
 import ua.gov.diia.diia_storage.store.repository.authorization.AuthorizationRepositoryImpl
 import ua.gov.diia.diia_storage.store.repository.system.SystemRepositoryImpl
+import ua.gov.diia.faq.repository.FaqRepository
+import ua.gov.diia.faq.repository.FaqRepositoryImpl
 import ua.gov.diia.opensource.data.repository.settings.AppSettingsRepository
 import ua.gov.diia.opensource.data.repository.settings.AppSettingsRepositoryImpl
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -23,4 +26,8 @@ interface RepositoryModule {
 
     @Binds
     fun bindAppSettingsRepository(impl: AppSettingsRepositoryImpl): AppSettingsRepository
+
+    @Binds
+    @Singleton
+    fun bindFaqRepository(impl: FaqRepositoryImpl): FaqRepository
 }

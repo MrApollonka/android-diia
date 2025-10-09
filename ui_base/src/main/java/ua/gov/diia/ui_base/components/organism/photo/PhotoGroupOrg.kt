@@ -45,12 +45,13 @@ fun PhotoGroupOrg(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .aspectRatio(130f / 175f)
+                .aspectRatio(3f / 4f)
         ) {
             ArticlePicAtm(
                 data = data.photos[0],
                 inCarousel = true,
                 clickable = false,
+                isPortrait = true,
                 onUIAction = onUIAction
             )
         }
@@ -61,12 +62,13 @@ fun PhotoGroupOrg(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .aspectRatio(130f / 175f)
+                .aspectRatio(3f / 4f)
         ) {
             ArticlePicAtm(
                 data = data.photos[1],
                 inCarousel = true,
                 clickable = false,
+                isPortrait = true,
                 onUIAction = onUIAction
             )
         }

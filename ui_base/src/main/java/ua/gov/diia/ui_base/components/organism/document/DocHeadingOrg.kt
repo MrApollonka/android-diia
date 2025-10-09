@@ -27,6 +27,7 @@ import ua.gov.diia.ui_base.components.molecule.text.HeadingWithSubtitlesMlcData
 import ua.gov.diia.ui_base.components.molecule.text.HeadingWithSubtitlesWhiteMlc
 import ua.gov.diia.ui_base.components.molecule.text.HeadingWithSubtitlesWhiteMlcData
 import ua.gov.diia.ui_base.components.molecule.text.toUIModel
+import ua.gov.diia.ui_base.components.molecule.text.toUiModel
 import ua.gov.diia.ui_base.util.toUiModel
 
 @Composable
@@ -93,7 +94,7 @@ fun generateDocHeadingOrgMockData(): DocHeadingOrgData {
 }
 
 @Composable
-@Preview
+@Preview(showBackground = true)
 fun DocHeadingOrgPreview() {
     DocHeadingOrg(data = generateDocHeadingOrgMockData()) {}
 }

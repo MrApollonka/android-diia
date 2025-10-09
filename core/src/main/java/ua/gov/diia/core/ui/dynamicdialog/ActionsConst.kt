@@ -23,13 +23,19 @@ object ActionsConst {
     const val DIALOG_ACTION_SIGN_AGAIN = "signing"
     const val DIALOG_ACTION_SHARING = "sharing"
     const val DIALOG_ACTION_CANCEL = "cancel"
+    const val DIALOG_ACTION_REJECT_APPLICATION = "reject_application"
     const val DIALOG_ACTION_CODE_LOGOUT = "logout"
     const val DIALOG_ACTION_CODE_REPEAT = "repeat"
     const val DIALOG_ACTION_RESUME = "resume"
     const val DIALOG_ACTION_CODE_DELETE = "delete"
     const val DIALOG_ACTION_BACK = "back"
-
+    const val DIALOG_ACTION_WEB_VIEW = "webView"
+    
+    @Deprecated("DIALOG_ACTION_PUBLIC_SERVICES is kept only for old services, for new must be used DIALOG_ACTION_TO_PUBLIC_SERVICES")
     const val DIALOG_ACTION_PUBLIC_SERVICES = "publicServices"
+
+    const val DIALOG_ACTION_TO_PUBLIC_SERVICES = "public_services"
+
     const val DIALOG_ACTION_PREV_SCREEN = "previousScreen"
     const val DIALOG_ACTION_OPEN_EXTERNAL_LINK = "externalLink"
 
@@ -46,8 +52,10 @@ object ActionsConst {
     //system dialog actions
     const val SYSTEM_DIALOG_POSITIVE = "SYSTEM_DIALOG_POSITIVE"
     const val SYSTEM_DIALOG_NEGATIVE = "SYSTEM_DIALOG_NEGATIVE"
+
     //action item selection
     const val ACTION_ITEM_SELECTED = "SELECTED_ACTION_ITEM"
+
     //context menu
     const val FAQ_CATEGORY = "faqCategory"
     const val SUPPORT_SERVICE = "supportServiceScreen"
@@ -59,15 +67,18 @@ object ActionsConst {
     const val DOCUMENTS_CODE = "document"
 
     const val CONTEXT_MENU_CLOSE = "close"
+
     //nav const
     const val RESULT_KEY_NAVIGATION = "RESULT_KEY_NAVIGATION"
     const val RESULT_KEY_RATING_SERVICE = "rating"
     const val ACTION_AUTH_FLOW = "authorization flow"
+
     //menu
     const val ACTION_MENU_FEED = "feed"
     const val ACTION_MENU_SERVICES = "services"
     const val ACTION_MENU_DOCUMENTS = "documents"
     const val ACTION_MENU_MENU = "menu"
+
     //payment
     const val PAYMENT_SDK_ERROR = "sdkError"
 }

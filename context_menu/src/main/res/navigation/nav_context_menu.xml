@@ -7,9 +7,11 @@
     <dialog
         android:id="@+id/destination_contextMenu"
         android:name="ua.gov.diia.context_menu.ui.ContextMenuDF">
+
         <argument
             android:name="items"
             app:argType="ua.gov.diia.core.models.ContextMenuField[]" />
+
     </dialog>
 
 </navigation>

@@ -67,7 +67,6 @@
             android:layout_marginTop="@dimen/large"
             android:layout_marginEnd="@dimen/xlarge"
             android:layout_marginBottom="@dimen/xlarge"
-            data="@{viewModel.data}"
             android:checkedButton="@={viewModel.selectedBulletId}"
             app:layout_constraintBottom_toTopOf="@+id/diiaProgressButton"
             app:layout_constraintEnd_toEndOf="parent"

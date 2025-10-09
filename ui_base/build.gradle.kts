@@ -4,25 +4,12 @@ plugins {
     alias(libs.plugins.diia.android.library.compose)
     alias(libs.plugins.diia.hilt)
     alias(libs.plugins.ksp)
-    alias(libs.plugins.kotlin.kapt) // need kapt for @BindingAdapter
     alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.navigation.safeargs)
 }
 
 android {
     namespace = "ua.gov.diia.ui_base"
-    packaging {
-        resources {
-            excludes.addAll(listOf("META-INF/ASL-2.0.txt", "META-INF/LGPL-3.0.txt"))
-            pickFirsts.addAll(listOf("draftv4/schema", "draftv3/schema"))
-        }
-    }
-
-    sourceSets {
-        getByName("main") {
-            jniLibs.srcDirs("libs/native")
-        }
-    }
 
     buildFeatures {
         dataBinding = true
@@ -37,11 +24,8 @@ dependencies {
     implementation(platform(libs.androidx.compose.bom))
 
     implementation(libs.accompanist.pager)
-
-
     //retrofit
     implementation(libs.retrofit.core)
-
     //compose
     implementation(libs.androidx.constraint.layout.compose)
     implementation(libs.lottie.compose)
@@ -54,6 +38,9 @@ dependencies {
     implementation(libs.exoplayer.ui)
     implementation(libs.exoplayer.hls)
 
+    gplayImplementation(libs.play.services.location)
+    huaweiImplementation(libs.huawei.location)
+    
     //Paging
     implementation(libs.androidx.paging.ktx)
 
@@ -66,11 +53,6 @@ dependencies {
         }
     }
 
-    //Glide
-    implementation(libs.glide)
-    implementation(libs.glide.compose)
-    ksp(libs.glide.ksp)
-
     // Moshi
     implementation(libs.bundles.moshi)
     ksp(libs.moshi.codegen)
@@ -79,8 +61,11 @@ dependencies {
 
     implementation(libs.zxing)
 
-    //diia
     implementation(libs.reorderable)
+
+    implementation(libs.cameraview)
+
+    implementation(libs.coil.kt.compose)
 
     //test
     testImplementation(libs.androidx.arch.core.testing)
@@ -89,6 +74,7 @@ dependencies {
     testImplementation(libs.turbine)
     testImplementation(libs.mockwebserver)
     testImplementation(libs.hamcrest)
+    testImplementation(libs.mockk.android)
     testImplementation(libs.androidx.lifecycle.livedata.ktx)
     androidTestImplementation(libs.androidx.test.ext)
     androidTestImplementation(libs.androidx.test.espresso.core)

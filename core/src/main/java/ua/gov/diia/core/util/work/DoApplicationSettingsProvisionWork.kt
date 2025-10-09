@@ -15,6 +15,7 @@ import dagger.assisted.AssistedInject
 import ua.gov.diia.core.data.data_source.network.api.ApiSettings
 import ua.gov.diia.core.di.data_source.http.UnauthorizedClient
 import ua.gov.diia.core.util.extensions.context.isDiiaAppRunning
+import ua.gov.diia.core.util.extensions.context.serviceNfc
 import ua.gov.diia.core.util.settings_action.SettingsActionExecutor
 import java.util.concurrent.TimeUnit
 
@@ -33,7 +34,21 @@ class DoApplicationSettingsProvisionWork @AssistedInject constructor(
         if (!appContext.isDiiaAppRunning()) {
             Result.failure()
         } else {
-            val settings = apiSettings.appSettingsInfo()
+            val settings = apiSettings.appSettingsInfo(
+                deviceFeatures = mutableListOf<String>()
+                    .apply {
+                        if (appContext.serviceNfc?.defaultAdapter != null) {
+                            add("nfc")
+                        }
+                    }
+                    .mapIndexed { index, value ->
+                        "deviceFeatures[$index]" to value
+                    }
+                    .ifEmpty {
+                        listOf("deviceFeatures[]" to "")
+                    }
+                    .toMap()
+            )
             processActions(settings.actions)
             Result.success()
         }

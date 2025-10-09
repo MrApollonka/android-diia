@@ -16,6 +16,7 @@ import ua.gov.diia.core.util.extensions.isResourceValid
 import ua.gov.diia.core.util.extensions.isStringValid
 import ua.gov.diia.core.util.extensions.validateResource
 import ua.gov.diia.core.util.extensions.validateString
+import androidx.core.view.isVisible
 
 class DiiaStatusMessage @JvmOverloads constructor(
     context: Context,
@@ -57,35 +58,41 @@ class DiiaStatusMessage @JvmOverloads constructor(
     fun setMsgText(message: String?) {
         statusText.text = message
         statusText.visibility = if (message.isStringValid()) View.VISIBLE else View.GONE
+        updateCombinedContentDescription()
     }
 
     fun setMsgText(@StringRes res: Int?) {
         statusText.visibility = if (res.isResourceValid()) View.VISIBLE else View.GONE
         res.validateResource { stringRes -> statusText.setText(stringRes) }
+        updateCombinedContentDescription()
     }
 
     fun setMsgTitle(message: String?) {
         statusTitle.text = message
         statusTitle.visibility = if (message.isStringValid()) View.VISIBLE else View.GONE
         adjustConstraints()
+        updateCombinedContentDescription()
     }
 
     fun setMsgTitle(@StringRes res: Int?) {
         res.validateResource { stringRes -> statusTitle.setText(stringRes) }
         statusTitle.visibility = if (res.isResourceValid()) View.VISIBLE else View.GONE
         adjustConstraints()
+        updateCombinedContentDescription()
     }
 
     fun setMsgSubtitle(message: String?) {
         statusSubtitle.text = message
         statusSubtitle.visibility = if (message.isStringValid()) View.VISIBLE else View.GONE
         adjustConstraints()
+        updateCombinedContentDescription()
     }
 
     fun setMsgSubtitle(@StringRes res: Int?) {
         statusSubtitle.visibility = if (res.isResourceValid()) View.VISIBLE else View.GONE
         res.validateResource { stringRes -> statusSubtitle.setText(stringRes) }
         adjustConstraints()
+        updateCombinedContentDescription()
     }
 
     fun setMsgEmoji(emoji: String?) {
@@ -110,9 +117,21 @@ class DiiaStatusMessage @JvmOverloads constructor(
             constraintSet.applyTo(this)
         }
     }
+
+    private fun updateCombinedContentDescription() {
+        val parts = listOfNotNull(
+            statusTitle.text?.takeIf { statusTitle.isVisible },
+            statusSubtitle.text?.takeIf { statusSubtitle.isVisible },
+            statusText.text?.takeIf { statusText.isVisible }
+        )
+
+        contentDescription = parts.joinToString(separator = ". ")
+        isFocusable = true
+        isFocusableInTouchMode = true
+        importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
+    }
 }
 
-@BindingAdapter("text", "htmlMetadata", "linkActionListener", requireAll = true)
 fun DiiaStatusMessage.setupHtmlParameters(
     displayText: String?,
     metadata: List<TextParameter>?,

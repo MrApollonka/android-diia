@@ -10,7 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
@@ -39,16 +39,12 @@ fun TimerMlc(
     style: TextStyle = DiiaTextStyle.t3TextBody,
     onUIAction: (UIAction) -> Unit
 ) {
-
     Column {
         if (data.timer != 0 && data.isExpired == false) {
-            Column(
-                modifier = Modifier
-                    .padding(top = 24.dp),
-            ) {
+            Column(modifier = modifier.padding(top = 24.dp)) {
                 TimerText(
                     style = style,
-                    expired = data.isExpired ?: true,
+                    expired = data.isExpired,
                     timer = data.timer,
                     labelFirst = data.expireLabelFirst.asString(),
                     labelLast = data.expireLabelLast?.asString(),
@@ -76,13 +72,11 @@ data class TimerMlcData(
     val timer: Int,
     val btnLink: BtnLinkAtmData? = null,
     val parameters: List<TextParameter>? = null,
-    var isExpired: Boolean? = false,
+    val isExpired: Boolean? = false,
 ) : UIElementData {
 
     fun timeExpired(newValue: Boolean): TimerMlcData {
-        return this.copy(
-            isExpired = newValue,
-        )
+        return this.copy(isExpired = newValue)
     }
 
 }
@@ -97,8 +91,8 @@ fun TimerText(
     id: String?,
     onUIAction: (UIAction) -> Unit
 ) {
-    var minutes by remember { mutableIntStateOf(timer / 60) }
-    var seconds by remember { mutableIntStateOf(timer % 60) }
+    var minutes by rememberSaveable { mutableIntStateOf(timer / 60) }
+    var seconds by rememberSaveable { mutableIntStateOf(timer % 60) }
 
     LaunchedEffect(expired) {
         if (!expired) {
@@ -125,7 +119,9 @@ fun TimerText(
     }
     if (!expired) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
         ) {
             Text(
                 text = labelFirst,
@@ -164,7 +160,7 @@ fun TimerMlc?.toUIModel(): TimerMlcData? {
 }
 
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun TimerMlcPreview() {
     val timerMlcData = TimerMlcData(
@@ -178,7 +174,7 @@ fun TimerMlcPreview() {
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun TimerMlc_Expired_Preview() {
     val timerMlcData = TimerMlcData(

@@ -2,8 +2,10 @@ package ua.gov.diia.core.models.common_compose.org.list
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+import ua.gov.diia.core.models.common.message.AttentionIconMessageMlc
 import ua.gov.diia.core.models.common_compose.atm.media.ArticlePicAtm
 import ua.gov.diia.core.models.common_compose.atm.text.GreyTitleAtm
+import ua.gov.diia.core.models.common_compose.general.PaddingMode
 import ua.gov.diia.core.models.common_compose.mlc.card.CardMlc
 import ua.gov.diia.core.models.common_compose.mlc.card.CardMlcV2
 import ua.gov.diia.core.models.common_compose.mlc.card.HalvedCardMlc
@@ -22,6 +24,8 @@ data class PaginationListOrg(
     val limit: Int?,
     @Json(name = "stubMessageMlc")
     val stubMessage: StubMessageMlc?,
+    @Json(name = "paddingMode")
+    val paddingMode: PaddingMode? = null,
 )
 
 @JsonClass(generateAdapter = true)
@@ -44,4 +48,6 @@ data class PaginationItem(
     val halvedCardMlc: HalvedCardMlc?,
     @Json(name = "stubMessageMlc")
     val stubMessageMlc: StubMessageMlc?,
+    @Json(name = "attentionIconMessageMlc")
+    val attentionIconMessageMlc: AttentionIconMessageMlc?
 )

@@ -3,6 +3,7 @@ package ua.gov.diia.ui_base.components.organism.header
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
@@ -22,33 +23,43 @@ import ua.gov.diia.ui_base.components.infrastructure.utils.resource.toDynamicStr
 import ua.gov.diia.ui_base.components.molecule.chip.ChipMlcData
 import ua.gov.diia.ui_base.components.molecule.header.NavigationPanelMlc
 import ua.gov.diia.ui_base.components.molecule.header.NavigationPanelMlcData
+import ua.gov.diia.ui_base.components.molecule.header.NavigationPanelMlcV2
+import ua.gov.diia.ui_base.components.molecule.header.NavigationPanelMlcV2Data
 import ua.gov.diia.ui_base.components.molecule.header.TitleGroupMlc
 import ua.gov.diia.ui_base.components.molecule.header.TitleGroupMlcData
-import ua.gov.diia.ui_base.components.molecule.header.chiptabbar.ChipTabMoleculeDataV2
-import ua.gov.diia.ui_base.components.molecule.header.chiptabbar.ChipTabsOrgData
 import ua.gov.diia.ui_base.components.molecule.input.SearchInputMlcData
 import ua.gov.diia.ui_base.components.organism.input.SearchBarOrg
 import ua.gov.diia.ui_base.components.organism.input.SearchBarOrgData
-import ua.gov.diia.ui_base.components.organism.input.toUiModel
 import ua.gov.diia.ui_base.components.theme.Primary
 
 @Composable
 fun TopGroupOrg(
     modifier: Modifier = Modifier,
     data: TopGroupOrgData,
+    contentLoaded: Pair<String, Boolean> = Pair("", false),
     onUIAction: (UIAction) -> Unit
 ) {
-    Column(modifier = modifier
-        .fillMaxWidth()
-        .testTag(data.componentId?.asString() ?: "")) {
-        data.titleGroupMlcData?.let {
-            TitleGroupMlc(
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .testTag(data.componentId?.asString().orEmpty())
+    ) {
+        data.navigationPanelMlcData?.let {
+            NavigationPanelMlc(
                 data = it,
+                contentLoaded = contentLoaded,
                 onUIAction = onUIAction
             )
         }
-        data.navigationPanelMlcData?.let {
-            NavigationPanelMlc(
+        data.navigationPanelMlcV2Data?.let {
+            NavigationPanelMlcV2(
+                data = it,
+                onUIAction = onUIAction,
+                lazyListState = rememberLazyListState()
+            )
+        }
+        data.titleGroupMlcData?.let {
+            TitleGroupMlc(
                 data = it,
                 onUIAction = onUIAction
             )
@@ -81,8 +92,9 @@ data class TopGroupOrgData(
     val chipTabsOrgData: ua.gov.diia.ui_base.components.organism.chip.ChipTabsOrgData? = null,
     val searchInputMlcData: SearchInputMlcData? = null,
     val searchBarOrgData: SearchBarOrgData? = null,
-    val titleGroupMlcData: TitleGroupMlcData? = null
-) : UIElementData
+    val titleGroupMlcData: TitleGroupMlcData? = null,
+    val navigationPanelMlcV2Data: NavigationPanelMlcV2Data? = null,
+    ) : UIElementData
 
 @Preview
 @Composable
@@ -133,9 +145,11 @@ fun TopGroupOrgPreview_NavigationPanel_and_SearchInputMlcData() {
     )
     TopGroupOrg(
         modifier = Modifier.background(color = Primary),
-        data = data) {
-
-    }
+        data = data,
+        onUIAction = {
+            /* no-op */
+        }
+    )
 }
 
 @Preview
@@ -147,7 +161,24 @@ fun TopGroupOrgPreview_navigationPanel() {
             isContextMenuExist = true
         )
     )
-    TopGroupOrg(data = data) {
+    TopGroupOrg(
+        data = data,
+        onUIAction = {
+            /* no-op */
+        }
+    )
+}
+
+
+@Preview
+@Composable
+fun TopGroupOrgPreview_navigationPanelV2() {
+    val data = TopGroupOrgData(
+        navigationPanelMlcV2Data = NavigationPanelMlcV2Data(
+            title = UiText.DynamicString("Title"),
+        )
+    )
+    TopGroupOrg(modifier = Modifier.background(color = Primary), data = data) {
 
     }
 }
@@ -186,31 +217,16 @@ fun TopGroupOrgPreview_NavigationPanel_and_ChipTabBarMoleculeData() {
     )
     TopGroupOrg(
         modifier = Modifier.background(color = Primary),
-        data = data) {
-
-    }
+        data = data,
+        onUIAction = {
+            /* no-op */
+        }
+    )
 }
 
 @Preview
 @Composable
 fun TopGroupOrgPreview_TitleGroupMlc() {
-    val tabs = ChipTabsOrgData(tabs = SnapshotStateList<ChipTabMoleculeDataV2>().apply {
-        add(
-            ChipTabMoleculeDataV2(
-                id = "1",
-                title = "Label 1",
-                selectionState = UIState.Selection.Selected
-            )
-        )
-        add(
-            ChipTabMoleculeDataV2(
-                id = "2",
-                title = "Label 2",
-                selectionState = UIState.Selection.Unselected
-            )
-        )
-
-    })
     val data = TopGroupOrgData(
         navigationPanelMlcData = null,
         chipTabsOrgData = null,
@@ -236,8 +252,10 @@ fun TopGroupOrgPreview_TitleGroupMlc() {
             label = UiText.DynamicString("label"),
         )
     )
-    TopGroupOrg(data = data) {
-
-    }
+    TopGroupOrg(
+        data = data,
+        onUIAction = {
+            /* no-op */
+        }
+    )
 }
-

@@ -1,12 +1,9 @@
 package ua.gov.diia.core.models.common_compose.atm.input
 
-import android.os.Parcelable
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import kotlinx.parcelize.Parcelize
 
 
-@Parcelize
 @JsonClass(generateAdapter = true)
 data class InputNumberLargeAtm(
     @Json(name = "componentId")
@@ -16,5 +13,9 @@ data class InputNumberLargeAtm(
     @Json(name = "value")
     val value: String?,
     @Json(name = "state")
-    val state: String?
-) : Parcelable
+    val state: String?,
+    @Json(name = "mandatory")
+    val mandatory: Boolean?,
+    @Json(name = "inputCode")
+    val inputCode: String?,
+)

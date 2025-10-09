@@ -1,15 +1,17 @@
 package ua.gov.diia.documents.ui
 
-import androidx.lifecycle.LiveData
-import ua.gov.diia.core.util.event.UiDataEvent
+import kotlinx.coroutines.flow.MutableSharedFlow
 import ua.gov.diia.core.models.document.DiiaDocument
 import ua.gov.diia.documents.models.GeneratePdfFromDoc
 
 interface WithPdfCertificate {
-    val certificatePdf: LiveData<UiDataEvent<GeneratePdfFromDoc>>
+
+    val shareCertificatePdfEventFlow: MutableSharedFlow<GeneratePdfFromDoc>
+
     /**
      * loads pdf certificate and provides it into certificatePdf LiveData
      * Leave as empty if you do not need to load pdf
      */
     suspend fun loadCertificatePdf(cert: DiiaDocument)
+
 }

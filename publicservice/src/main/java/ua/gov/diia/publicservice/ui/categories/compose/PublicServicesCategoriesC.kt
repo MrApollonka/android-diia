@@ -18,6 +18,7 @@ import ua.gov.diia.core.util.extensions.activity.getActivity
 import ua.gov.diia.core.util.extensions.fragment.collapseApp
 import ua.gov.diia.core.util.extensions.fragment.openLink
 import ua.gov.diia.core.util.navigation.HomeNavigation
+import ua.gov.diia.publicservice.PublicServiceConst
 import ua.gov.diia.publicservice.navigation.PublicServiceHomeNavigation
 import ua.gov.diia.ui_base.components.infrastructure.collectAsEffect
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
@@ -56,7 +57,17 @@ fun PublicServicesCategoriesC(
             }
 
             is PublicServicesCategoriesNavigation.NavigateToService -> {
-                homeNavigationActionFlow.tryEmit(PublicServiceHomeNavigation.ToService(navigation.service))
+                if (navigation.service.code in PublicServiceConst.PORTAL_SERVICES) {
+                    viewModel.getPublicServicePortalUrl(
+                        serviceCode = navigation.service.code
+                    )
+                } else {
+                    homeNavigationActionFlow.tryEmit(
+                        PublicServiceHomeNavigation.ToService(
+                            service = navigation.service
+                        )
+                    )
+                }
             }
 
             is PublicServicesCategoriesNavigation.NavigateToServiceSearch -> {
@@ -68,8 +79,17 @@ fun PublicServicesCategoriesC(
             is PublicServicesCategoriesNavigation.OpenEnemyTrackLink -> {
                 context.openLink(link = navigation.link, withCrashlytics = navigation.crashlytics)
             }
+
+            is PublicServicesCategoriesNavigation.OpenWebView -> {
+                homeNavigationActionFlow.tryEmit(PublicServiceHomeNavigation.OpenWebView(navigation.link))
+            }
+
+            is PublicServicesCategoriesNavigation.StartNewFlow -> {
+                homeNavigationActionFlow.tryEmit(PublicServiceHomeNavigation.StartNewFlow(navigation.deeplink))
+            }
         }
     }
+
     viewModel.showTemplateDialog.collectAsEffect { template ->
         homeNavigationActionFlow.tryEmit(PublicServiceHomeNavigation.ToTemplateDialog(template.peekContent()))
     }
@@ -87,7 +107,7 @@ fun PublicServicesCategoriesC(
         topBar = topBar,
         body = body,
         contentLoaded = contentLoaded.value,
-        onEvent = { viewModel.onUIAction(it) }
+        onEvent = viewModel::onUIAction
     )
 }
 
@@ -100,6 +120,7 @@ fun handleNavigationResultEvent(
             event.data.consumeEvent { action ->
                 when (action) {
                     ActionsConst.GENERAL_RETRY -> viewModel.retryLastAction()
+                    ActionsConst.DIALOG_ACTION_WEB_VIEW -> viewModel.openWebView()
                 }
             }
         }

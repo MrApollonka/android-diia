@@ -9,10 +9,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.intl.LocaleList
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.isUnspecified
 import ua.gov.diia.ui_base.components.theme.Black
 import ua.gov.diia.ui_base.components.theme.DiiaTextStyle
+import ua.gov.diia.ui_base.util.extensions.language.detectLanguageCode
 
 @Composable
 fun AutoSizeLimitedText(
@@ -32,7 +37,13 @@ fun AutoSizeLimitedText(
     val defStyle = DiiaTextStyle.h2MediumHeading.fontSize
 
     Text(
-        text = text,
+        text = buildAnnotatedString {
+            val textContent = text
+            val languageCode = textContent.detectLanguageCode()
+            withStyle(style = SpanStyle(localeList = LocaleList(languageCode))) {
+                append(textContent)
+            }
+        },
         color = color,
         maxLines = maxLines,
         modifier = modifier.drawWithContent {

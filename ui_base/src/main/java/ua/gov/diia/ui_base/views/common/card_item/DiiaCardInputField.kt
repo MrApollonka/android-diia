@@ -1,6 +1,7 @@
 package ua.gov.diia.ui_base.views.common.card_item
 
 import android.content.Context
+import android.content.ContextWrapper
 import android.text.Editable
 import android.text.InputFilter
 import android.text.InputFilter.LengthFilter
@@ -11,6 +12,7 @@ import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
+import android.view.accessibility.AccessibilityEvent
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.TextView
@@ -26,6 +28,8 @@ import androidx.core.widget.doOnTextChanged
 import androidx.databinding.BindingAdapter
 import androidx.databinding.InverseBindingAdapter
 import androidx.databinding.InverseBindingListener
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.MutableLiveData
 import ua.gov.diia.core.util.event.UiEvent
 import ua.gov.diia.core.util.extensions.context.getColorCompat
 import ua.gov.diia.core.util.extensions.context.serviceInput
@@ -207,6 +211,11 @@ class DiiaCardInputField @JvmOverloads constructor(
             }
             false
         }
+    }
+
+    fun focusTitleForAccessibility() {
+        title.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED)
+        title.announceForAccessibility(title.text)
     }
 
     fun setSaveStateEnabled(isEnabled: Boolean?) {
@@ -556,7 +565,16 @@ class DiiaCardInputField @JvmOverloads constructor(
     }
 
     fun setInputTextAllCaps(allCaps: Boolean) {
-        inputField.filters = arrayOf<InputFilter>(InputFilter.AllCaps())
+        inputField.filters = if (allCaps) arrayOf<InputFilter>(InputFilter.AllCaps()) else emptyArray()
+    }
+
+    fun fieldCleanUp(event: UiEvent?) {
+        event?.notHandedYet?.let { notHandled ->
+            if (notHandled) {
+                event.handle()
+                setFieldText(string = null)
+            }
+        }
     }
 
     fun setInputPaddingBottom() {
@@ -693,35 +711,55 @@ class DiiaCardInputField @JvmOverloads constructor(
             )
         }
     }
-}
 
-@BindingAdapter("fieldCleanUp")
-fun DiiaCardInputField.cleanUpText(event: UiEvent?) {
-    event?.notHandedYet?.let { notHandled ->
-        if (notHandled) {
-            event.handle()
-            setFieldText(string = null)
+
+    fun setFieldTextData(liveData: MutableLiveData<String?>) {
+        liveData.value?.let { setFieldTextTwoWay(it) }
+
+        liveData.observe(context.getLifecycleOwner()) { value ->
+            val currentValue = getFieldTextTwoWay()
+            if (value != currentValue) {
+                setFieldTextTwoWay(value)
+            }
+        }
+
+        setTextWatcher {
+            val newValue = getFieldTextTwoWay()
+            if (liveData.value != newValue) {
+                liveData.value = newValue
+            }
         }
     }
 }
 
-@BindingAdapter("isEnabledField")
-fun DiiaCardInputField.setEnabledField(enabled: Boolean?) {
-    setIsSelectionEnabled(enabled ?: true)
+fun Context.getLifecycleOwner(): LifecycleOwner {
+    return try {
+        this as LifecycleOwner
+    } catch (e: ClassCastException) {
+        (this as ContextWrapper).baseContext as LifecycleOwner
+    }
 }
 
-@BindingAdapter("arrowButtonVisible")
-fun DiiaCardInputField.setArrowButtonVisible(visible: Boolean?) {
-    setArrowButtonVisible(visible)
+fun DiiaCardInputField.setupFieldTextBinding(lifecycleOwner: LifecycleOwner, liveData: MutableLiveData<String?>) {
+    liveData.value?.let { setFieldTextTwoWay(it) }
+
+    liveData.observe(lifecycleOwner) { value ->
+        val currentValue = getFieldTextTwoWay()
+        if (value != currentValue) {
+            setFieldTextTwoWay(value)
+        }
+    }
+
+    setTextWatcher {
+        val newValue = getFieldTextTwoWay()
+        if (liveData.value != newValue) {
+            liveData.value = newValue
+        }
+    }
 }
 
-@BindingAdapter("setInputTextAllCaps")
-fun DiiaCardInputField.setInputTextCaps(allCaps: Boolean) {
-    setInputTextAllCaps(allCaps)
-}
 
-@BindingAdapter("fieldTextTwoWay")
-fun DiiaCardInputField.setFieldTextTwoWay(string: String?) {
+private fun DiiaCardInputField.setFieldTextTwoWay(string: String?) {
     when (getCurrentFieldMode()) {
         DiiaCardInputField.FieldMode.EDITABLE_PHONE_NUMBER -> {
             val inputField = findViewById<MaskedEditText>(R.id.inputFieldPhone)
@@ -752,27 +790,7 @@ fun DiiaCardInputField.setFieldTextTwoWay(string: String?) {
     }
 }
 
-@BindingAdapter("fieldTextPriceWithSpaces")
-fun DiiaCardInputField.setFieldTextPriceWithSpaces(string: String?) {
-    val inputField = findViewById<EditText>(R.id.inputField)
-    val oldValue = inputField.text?.toString()
-    if (!string.isNullOrBlank() && oldValue != string) {
-        inputField.setText(string.toPrice().formatWithSpaces())
-        inputField.setSelection(inputField.length())
-    }
-}
-
-@InverseBindingAdapter(attribute = "fieldTextPriceWithSpaces")
-fun DiiaCardInputField.getFieldTextPriceWithSpaces(): String? {
-
-    val value = findViewById<EditText>(R.id.inputField).text?.toString()
-    val formattedValue = value?.toPrice().formatWithSpaces()
-
-    return if (value.isNullOrBlank()) null else formattedValue
-}
-
-@InverseBindingAdapter(attribute = "fieldTextTwoWay")
-fun DiiaCardInputField.getFieldTextTwoWay(): String? {
+private fun DiiaCardInputField.getFieldTextTwoWay(): String? {
 
     val value = when (getCurrentFieldMode()) {
         DiiaCardInputField.FieldMode.EDITABLE_PHONE_NUMBER -> findViewById<MaskedEditText>(R.id.inputFieldPhone)?.getRawText()
@@ -783,8 +801,7 @@ fun DiiaCardInputField.getFieldTextTwoWay(): String? {
     return if (value.isNullOrBlank()) null else value
 }
 
-@BindingAdapter(value = ["fieldTextTwoWayAttrChanged"])
-fun DiiaCardInputField.setTextWatcher(textAttrChanged: InverseBindingListener?) {
+private fun DiiaCardInputField.setTextWatcher(textAttrChanged: InverseBindingListener?) {
 
     val inputFiled = when (getCurrentFieldMode()) {
         DiiaCardInputField.FieldMode.EDITABLE_PHONE_NUMBER -> findViewById<MaskedEditText>(R.id.inputFieldPhone)
@@ -831,8 +848,42 @@ fun DiiaCardInputField.setTextWatcher(textAttrChanged: InverseBindingListener?) 
     if (newValue != null) inputFiled.addTextChangedListener(newValue)
 }
 
-@BindingAdapter(value = ["fieldTextPriceWithSpacesAttrChanged"])
-fun DiiaCardInputField.setTextPriceWithSpacesWatcher(textAttrChanged: InverseBindingListener?) {
+fun DiiaCardInputField.setupFieldPriceBinding(lifecycleOwner: LifecycleOwner, liveData: MutableLiveData<String?>) {
+    liveData.value?.let { setFieldTextPriceWithSpaces(it) }
+
+    liveData.observe(lifecycleOwner) { value ->
+        val currentValue = getFieldTextPriceWithSpaces()
+        if (value != currentValue) {
+            setFieldTextPriceWithSpaces(value)
+        }
+    }
+
+    setTextPriceWithSpacesWatcher {
+        val newValue = getFieldTextPriceWithSpaces()
+        if (liveData.value != newValue) {
+            liveData.value = newValue
+        }
+    }
+}
+
+private fun DiiaCardInputField.setFieldTextPriceWithSpaces(string: String?) {
+    val inputField = findViewById<EditText>(R.id.inputField)
+    val oldValue = inputField.text?.toString()
+    if (!string.isNullOrBlank() && oldValue != string) {
+        inputField.setText(string.toPrice().formatWithSpaces())
+        inputField.setSelection(inputField.length())
+    }
+}
+
+private fun DiiaCardInputField.getFieldTextPriceWithSpaces(): String? {
+
+    val value = findViewById<EditText>(R.id.inputField).text?.toString()
+    val formattedValue = value?.toPrice().formatWithSpaces()
+
+    return if (value.isNullOrBlank()) null else formattedValue
+}
+
+private fun DiiaCardInputField.setTextPriceWithSpacesWatcher(textAttrChanged: InverseBindingListener?) {
 
     val inputFiled = findViewById<EditText>(R.id.inputField)
 

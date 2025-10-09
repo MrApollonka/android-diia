@@ -13,10 +13,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ua.gov.diia.core.models.common_compose.atm.button.BtnWhiteAdditionalIconAtm
 import ua.gov.diia.core.models.common_compose.general.ButtonStates
+import ua.gov.diia.ui_base.R
 import ua.gov.diia.ui_base.components.DiiaResourceIcon
 import ua.gov.diia.ui_base.components.atom.icon.BadgeCounterAtm
 import ua.gov.diia.ui_base.components.atom.icon.BadgeCounterAtmData
@@ -62,16 +67,30 @@ fun BtnWhiteAdditionalIconAtm(
                     )
                 }
             }
-            .testTag(data.componentId?.asString() ?: ""),
+            .testTag(data.componentId?.asString() ?: "")
+            .semantics {
+                role = Role.Button
+            },
         verticalAlignment = Alignment.CenterVertically
     ) {
+        val baseFilterDescription = stringResource(DiiaResourceIcon.FILTER.contentDescriptionResourceId)
+        val filterAppliedSuffix = stringResource(R.string.accessibility_filter_applied_suffix)
+        val contentDescription = data.accessibilityDescription ?: data.badge?.count?.let { count ->
+            if (count > 0) {
+                "$baseFilterDescription, $filterAppliedSuffix"
+            } else {
+                baseFilterDescription
+            }.toDynamicString()
+        }
+
         UiIconWrapperSubatomic(
             modifier = Modifier
                 .size(24.dp)
                 .alpha(
                     if (data.interactionState == UIState.Interaction.Enabled) 1.0f else 0.3f
                 ),
-            icon = UiIcon.DrawableResource(DiiaResourceIcon.FILTER.code)
+            icon = UiIcon.DrawableResource(DiiaResourceIcon.FILTER.code),
+            contentDescription = contentDescription
         )
         data.label?.let {
             Text(
@@ -106,6 +125,7 @@ data class BtnWhiteAdditionalIconAtmData(
     val actionKey: String = UIActionKeysCompose.BUTTON_WHITE_ADDITIONAL,
     val label: UiText? = null,
     val icon: UiIcon,
+    val accessibilityDescription: UiText? = null,
     val interactionState: UIState.Interaction,
     val badge: BadgeCounterAtmData? = null,
     val action: DataActionWrapper? = null,
@@ -122,6 +142,7 @@ fun BtnWhiteAdditionalIconAtm.toUIModel(id: String = ""): BtnWhiteAdditionalIcon
         componentId = UiText.DynamicString(this.componentId.orEmpty()),
         label = label.toDynamicStringOrNull(),
         icon = UiIcon.DrawableResource(icon),
+        accessibilityDescription = accessibilityDescription.toDynamicStringOrNull(),
         interactionState = state?.let {
             when (state) {
                 ButtonStates.enabled -> UIState.Interaction.Enabled

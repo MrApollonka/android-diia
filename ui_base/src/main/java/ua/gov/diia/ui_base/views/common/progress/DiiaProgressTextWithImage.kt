@@ -68,7 +68,7 @@ class DiiaProgressTextWithImage @JvmOverloads constructor(
     }
 
     fun setIconBase64(base64: String?) {
-        bindBase64(imageIcon, base64)
+        imageIcon.bindBase64(base64)
     }
 
     fun setTitleTextSize(@DimenRes res: Int?) {
@@ -111,7 +111,7 @@ class DiiaProgressTextWithImage @JvmOverloads constructor(
     }
 
     fun setIconStartBase64(imgBase64: String?) {
-        bindBase64(imageIcon, imgBase64)
+        imageIcon.bindBase64(imgBase64)
     }
 
     fun setIconSize(size: Float) {

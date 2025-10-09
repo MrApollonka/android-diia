@@ -22,6 +22,7 @@ import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiIcon
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
 import ua.gov.diia.ui_base.components.theme.BlackAlpha10
 import ua.gov.diia.ui_base.components.theme.BlackAlpha50
+import ua.gov.diia.ui_base.components.theme.BlackAlpha60
 import ua.gov.diia.ui_base.components.theme.DiiaTextStyle
 
 @Composable
@@ -42,7 +43,7 @@ fun MediaTitleOrg(
                     .weight(1f),
                 text = data.secondaryLabel.asString(),
                 style = DiiaTextStyle.t2TextDescription,
-                color = BlackAlpha50
+                color = BlackAlpha60
             )
             BtnPlainIconAtm(data = data.button) {
                 onUIAction(

@@ -26,8 +26,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
+import coil.compose.AsyncImage
 import ua.gov.diia.ui_base.R
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
@@ -35,7 +34,6 @@ import ua.gov.diia.ui_base.components.noRippleClickable
 import ua.gov.diia.ui_base.components.theme.White
 import ua.gov.diia.ui_base.components.theme.WhiteAlpha20
 
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun FullScreenMediaOrg(
     modifier: Modifier = Modifier,
@@ -63,7 +61,7 @@ fun FullScreenMediaOrg(
             ) { page ->
                 when (val mediaItem = mediaItems.getOrNull(page)) {
                     is MediaItem.Photo -> {
-                        GlideImage(
+                        AsyncImage(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .clip(RoundedCornerShape(8.dp)),

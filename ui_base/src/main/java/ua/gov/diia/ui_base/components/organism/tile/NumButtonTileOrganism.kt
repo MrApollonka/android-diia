@@ -30,14 +30,17 @@ import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose.PIN_CLEARED_NUM_BUTTON_ORGANISM
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose.PIN_CREATED_NUM_BUTTON_ORGANISM
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
-import ua.gov.diia.ui_base.components.molecule.input.tile.NumButtonTileMlc
+import ua.gov.diia.ui_base.components.molecule.input.NumButtonTileMlc
+import ua.gov.diia.ui_base.components.molecule.input.NumButtonTileMlcLandscape
 import ua.gov.diia.ui_base.components.molecule.progress.EllipseStepperMolecule
 import ua.gov.diia.ui_base.components.molecule.progress.EllipseStepperMoleculeData
+import ua.gov.diia.ui_base.models.orientation.Orientation
 
 @Composable
 fun NumButtonTileOrganism(
     modifier: Modifier = Modifier,
     data: NumButtonTileOrganismData,
+    orientation: Orientation = Orientation.Portrait,
     onUIAction: (UIAction) -> Unit
 ) {
     val userPinInput = remember { mutableStateOf("") }
@@ -72,32 +75,63 @@ fun NumButtonTileOrganism(
                 .testTag(data.componentIdEllipse?.asString() ?: ""),
             data = EllipseStepperMoleculeData(data.pinLength, userPinInput.value.length)
         )
-        Spacer(modifier = Modifier.size(32.dp))
-        NumButtonTileMlc(
-            hasBiometric = data.hasBiometric,
-            onUIAction = {
-                when (it.actionKey) {
-                    UIActionKeysCompose.NUM_BUTTON -> {
-                        val number = it.data ?: return@NumButtonTileMlc
-                        val currentPin = userPinInput.value
-                        if (currentPin.length >= data.pinLength) return@NumButtonTileMlc
-                        userPinInput.value = (currentPin + number)
-                    }
 
-                    UIActionKeysCompose.NUM_BUTTON_REMOVE -> {
-                        val currentPin = userPinInput.value
-                        if (currentPin.isEmpty()) return@NumButtonTileMlc
-                        userPinInput.value = currentPin.dropLast(1)
-                    }
+        Spacer(
+            modifier = Modifier
+                .size(24.dp)
+        )
 
-                    else -> {
-                        onUIAction.invoke(it)
+        when (orientation) {
+            Orientation.Portrait -> NumButtonTileMlc(
+                hasBiometric = data.hasBiometric,
+                onUIAction = {
+                    when (it.actionKey) {
+                        UIActionKeysCompose.NUM_BUTTON -> {
+                            val number = it.data ?: return@NumButtonTileMlc
+                            val currentPin = userPinInput.value
+                            if (currentPin.length >= data.pinLength) return@NumButtonTileMlc
+                            userPinInput.value = (currentPin + number)
+                        }
+
+                        UIActionKeysCompose.NUM_BUTTON_REMOVE -> {
+                            val currentPin = userPinInput.value
+                            if (currentPin.isEmpty()) return@NumButtonTileMlc
+                            userPinInput.value = currentPin.dropLast(1)
+                        }
+
+                        else -> {
+                            onUIAction.invoke(it)
+                        }
                     }
                 }
-            })
+            )
+
+            Orientation.Landscape -> NumButtonTileMlcLandscape(
+                hasBiometric = data.hasBiometric,
+                onUIAction = {
+                    when (it.actionKey) {
+                        UIActionKeysCompose.NUM_BUTTON -> {
+                            val number = it.data ?: return@NumButtonTileMlcLandscape
+                            val currentPin = userPinInput.value
+                            if (currentPin.length >= data.pinLength) return@NumButtonTileMlcLandscape
+                            userPinInput.value = (currentPin + number)
+                        }
+
+                        UIActionKeysCompose.NUM_BUTTON_REMOVE -> {
+                            val currentPin = userPinInput.value
+                            if (currentPin.isEmpty()) return@NumButtonTileMlcLandscape
+                            userPinInput.value = currentPin.dropLast(1)
+                        }
+
+                        else -> {
+                            onUIAction.invoke(it)
+                        }
+                    }
+                }
+            )
+        }
     }
 }
-
 
 fun Modifier.shake(enabled: Boolean, finishedListener: ((Float) -> Unit)) = composed(
     factory = {
@@ -130,7 +164,7 @@ data class NumButtonTileOrganismData(
     val clearWithShake: Boolean = false,
     val componentId: UiText? = null,
     val componentIdEllipse: UiText? = null,
-    ) : UIElementData
+) : UIElementData
 
 @Composable
 @Preview
@@ -143,7 +177,21 @@ fun NumButtonTileOrganismPreview() {
         )
     }
     Box(modifier = Modifier.fillMaxSize()) {
-        NumButtonTileOrganism(data = data) {}
+        NumButtonTileOrganism(data = data, orientation = Orientation.Portrait) {}
     }
 }
 
+@Composable
+@Preview
+fun NumButtonTileOrganismLandscapePreview() {
+    val data = remember {
+        NumButtonTileOrganismData(
+            pinLength = 4,
+            clearWithShake = false,
+            hasBiometric = true
+        )
+    }
+    Box(modifier = Modifier.fillMaxSize()) {
+        NumButtonTileOrganism(data = data, orientation = Orientation.Landscape) {}
+    }
+}

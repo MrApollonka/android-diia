@@ -35,4 +35,9 @@ class SplashHelperImpl @Inject constructor(
             )
         )
     }
+
+    override fun navigateToQrScan(fragment: Fragment) {
+        /* no-op */
+    }
+
 }

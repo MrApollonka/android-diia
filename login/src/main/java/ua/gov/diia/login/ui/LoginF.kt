@@ -9,6 +9,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import dagger.hilt.android.AndroidEntryPoint
+import ua.gov.diia.core.models.ConsumableEvent
 import ua.gov.diia.core.models.ConsumableString
 import ua.gov.diia.core.ui.dynamicdialog.ActionsConst
 import ua.gov.diia.core.util.delegation.WithAppConfig
@@ -22,7 +23,7 @@ import ua.gov.diia.ui_base.components.infrastructure.collectAsEffect
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
 import ua.gov.diia.ui_base.util.navigation.openTemplateDialog
 import ua.gov.diia.verification.ui.controller.VerificationControllerOnFlowF
-import ua.gov.diia.web.util.extensions.fragment.navigateToWebView
+import ua.gov.diia.web.util.navigateToWebView
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -46,6 +47,26 @@ class LoginF : VerificationControllerOnFlowF() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         registerForNavigationResultOnce(RESULT_KEY_CREATE_PIN, verificationVM::setPinCode)
+
+        registerForNavigationResultOnce<ConsumableString>(ActionsConst.DIALOG_ACTION_REFRESH) { event ->
+            event.consumeEvent { action ->
+                when (action) {
+                    ACTION_LOAD_AUTH_METHODS -> {
+                        verificationVM.cleanUpAllData()
+                        verificationVM.loadAuthMethodData()
+                    }
+
+                    ACTION_LOAD_VERIFICATION_METHODS -> verificationVM.getVerificationMethods()
+                    ACTION_LOGIN_COMPLETE -> verificationVM.completeVerification()
+                }
+            }
+        }
+
+        registerForNavigationResultOnce<ConsumableEvent>(ActionsConst.ACTION_ITEM_SELECTED) { action ->
+            action.consumeEvent {
+                verificationVM.navigateToNfc()
+            }
+        }
 
         registerForTemplateDialogNavResult { action ->
             findNavController().popBackStack()

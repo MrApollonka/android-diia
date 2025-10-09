@@ -1,11 +1,15 @@
 package ua.gov.diia.ui_base.components.molecule.text
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import ua.gov.diia.core.models.common_compose.mlc.text.TextLabelMlc
 import ua.gov.diia.ui_base.components.atom.text.textwithparameter.TextParameter
@@ -15,6 +19,7 @@ import ua.gov.diia.ui_base.components.atom.text.textwithparameter.TextWithParame
 import ua.gov.diia.ui_base.components.infrastructure.UIElementData
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
+import ua.gov.diia.ui_base.components.infrastructure.utils.isTalkBackEnabled
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.toDynamicString
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.toDynamicStringOrNull
@@ -27,19 +32,55 @@ fun TextLabelMlc(
     style: TextStyle = DiiaTextStyle.t3TextBody,
     onUIAction: (UIAction) -> Unit
 ) {
-    TextWithParametersAtom(
-        modifier = modifier
-            .padding(horizontal = 24.dp)
-            .padding(top = 24.dp)
-            .testTag(data.componentId?.asString() ?: ""),
-        data = TextWithParametersData(
-            actionKey = UIActionKeysCompose.TEXT_WITH_PARAMETERS,
-            text = data.text,
-            parameters = data.parameters
-        ),
-        style = style,
-        onUIAction = onUIAction
-    )
+    val context = LocalContext.current
+    val isTalkBackEnabled = context.isTalkBackEnabled()
+    val param = data.parameters?.firstOrNull { it.type == "link" }
+    val placeholderName = param?.data?.name?.asString()
+    val placeholder = placeholderName?.let { "{$it}" }
+
+    if (isTalkBackEnabled && param != null && placeholder != null) {
+        val textWithoutLink = data.text.asString().replace(placeholder, "")
+        val linkText = param.data.alt?.asString()
+        val linkUrl = param.data.resource?.asString()
+
+        Column(
+            modifier = modifier
+                .padding(horizontal = 24.dp)
+                .padding(top = data.linkTopPadding ?: 24.dp)
+                .testTag(data.componentId?.asString() ?: "")
+        ) {
+            Text(
+                text = textWithoutLink,
+                style = style
+            )
+            if (linkText != null && linkUrl != null) {
+                TextWithParametersAtom(
+                    modifier = modifier.padding(top = 0.dp),
+                    data = TextWithParametersData(
+                        actionKey = UIActionKeysCompose.TEXT_WITH_PARAMETERS,
+                        text = placeholder.toDynamicString(),
+                        parameters = data.parameters
+                    ),
+                    style = style,
+                    onUIAction = onUIAction
+                )
+            }
+        }
+    } else {
+        TextWithParametersAtom(
+            modifier = modifier
+                .padding(horizontal = 24.dp)
+                .padding(top = data.linkTopPadding ?: 24.dp)
+                .testTag(data.componentId?.asString() ?: ""),
+            data = TextWithParametersData(
+                actionKey = UIActionKeysCompose.TEXT_WITH_PARAMETERS,
+                text = data.text,
+                parameters = data.parameters
+            ),
+            style = style,
+            onUIAction = onUIAction
+        )
+    }
 }
 
 data class TextLabelMlcData(
@@ -47,6 +88,7 @@ data class TextLabelMlcData(
     val text: UiText,
     val parameters: List<TextParameter>? = null,
     val componentId: UiText? = null,
+    val linkTopPadding: Dp? = null,
 ) : UIElementData
 
 fun TextLabelMlc?.toUIModel(): TextLabelMlcData? {

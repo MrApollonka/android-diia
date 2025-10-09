@@ -25,7 +25,8 @@ interface ApiFeed {
     @GET("api/v1/feed/news")
     suspend fun getNews(
         @Query("skip") offset: Int,
-        @Query("limit") size: Int
+        @Query("limit") size: Int,
+        @Query("type") type: String?
     ): News
 
     @Analytics("getNewsById")

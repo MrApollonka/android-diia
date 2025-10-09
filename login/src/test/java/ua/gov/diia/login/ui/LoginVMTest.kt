@@ -19,18 +19,17 @@ import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito.times
 import org.mockito.junit.MockitoJUnitRunner
-import ua.gov.diia.diia_storage.store.repository.authorization.AuthorizationRepository
 import ua.gov.diia.core.models.ActionDataLazy
 import ua.gov.diia.core.models.Token
 import ua.gov.diia.core.models.dialogs.TemplateDialogModelWithProcessCode
 import ua.gov.diia.core.network.apis.ApiAuth
 import ua.gov.diia.core.util.CommonConst
-import ua.gov.diia.core.util.alert.ClientAlertDialogsFactory
 import ua.gov.diia.core.util.delegation.WithBuildConfig
 import ua.gov.diia.core.util.delegation.WithCrashlytics
 import ua.gov.diia.core.util.delegation.WithErrorHandlingOnFlow
 import ua.gov.diia.core.util.delegation.WithRetryLastAction
 import ua.gov.diia.core.util.event.UiDataEvent
+import ua.gov.diia.core.util.event.UiEvent
 import ua.gov.diia.core.util.system.application.ApplicationLauncher
 import ua.gov.diia.core.util.system.application.InstalledApplicationInfoProvider
 import ua.gov.diia.core.util.system.service.SystemServiceProvider
@@ -38,6 +37,7 @@ import ua.gov.diia.login.model.LoginToken
 import ua.gov.diia.login.network.ApiLogin
 import ua.gov.diia.login.rules.MainDispatcherRule
 import ua.gov.diia.pin.repository.LoginPinRepository
+import ua.gov.diia.pin.util.AndroidClientAlertDialogsFactory
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
 import ua.gov.diia.ui_base.components.infrastructure.state.UIState
@@ -74,7 +74,7 @@ class LoginVMTest {
     lateinit var authorizationRepository: ua.gov.diia.diia_storage.store.repository.authorization.AuthorizationRepository
 
     @Mock
-    lateinit var clientAlertDialogsFactory: ClientAlertDialogsFactory
+    lateinit var clientAlertDialogsFactory: AndroidClientAlertDialogsFactory
 
     @Mock
     lateinit var retryErrorBehavior: WithRetryLastAction
@@ -123,7 +123,7 @@ class LoginVMTest {
             loginPinRepository = loginPinRepository,
             authorizationRepository = authorizationRepository,
             postLoginActions = emptySet(),
-            clientAlertDialogsFactory = clientAlertDialogsFactory,
+            clientAlertDialogsFactory = ua.gov.diia.verification.util.AndroidClientAlertDialogsFactory(),
             retryErrorBehavior = retryErrorBehavior,
             errorHandlingBehaviour = errorHandlingBehaviour,
             applicationInfoProvider = applicationInfoProvider,
@@ -135,6 +135,7 @@ class LoginVMTest {
             ),
             withCrashlytics = withCrashlytics,
             withBuildConfig = withBuildConfig,
+            actionAppStart = MutableSharedFlow<UiEvent>()
         )
     }
 
@@ -198,7 +199,12 @@ class LoginVMTest {
             hard = "senectus",
             hardMap = mapOf("name" to "lkfore")
         )
-        val buildTypes = listOf(CommonConst.BUILD_TYPE_DEBUG, CommonConst.BUILD_TYPE_STAGE, CommonConst.BUILD_TYPE_RELEASE)
+        val buildTypes = listOf(
+            CommonConst.BUILD_TYPE_DEBUG,
+            CommonConst.BUILD_TYPE_STAGE,
+            CommonConst.BUILD_TYPE_RELEASE,
+            CommonConst.BUILD_TYPE_AUTOMATION
+        )
         for (type in buildTypes) {
             whenever(withBuildConfig.getBuildType()).thenReturn(type)
             clearInvocations(apiAuth)
@@ -211,7 +217,7 @@ class LoginVMTest {
                 loginPinRepository = loginPinRepository,
                 authorizationRepository = authorizationRepository,
                 postLoginActions = emptySet(),
-                clientAlertDialogsFactory = clientAlertDialogsFactory,
+                clientAlertDialogsFactory = ua.gov.diia.verification.util.AndroidClientAlertDialogsFactory(),
                 retryErrorBehavior = retryErrorBehavior,
                 errorHandlingBehaviour = errorHandlingBehaviour,
                 applicationInfoProvider = applicationInfoProvider,
@@ -222,7 +228,8 @@ class LoginVMTest {
                     unavailableVerificationMethod.name to unavailableVerificationMethod,
                 ),
                 withCrashlytics = withCrashlytics,
-                withBuildConfig = withBuildConfig
+                withBuildConfig = withBuildConfig,
+                actionAppStart = MutableSharedFlow()
             )
             vm.isLoading.first { !it.second }
             vm.navigation.test {
@@ -271,14 +278,16 @@ class LoginVMTest {
 
         override suspend fun getVerificationMethods(
             schema: String,
-            processId: String?
-        ) = VerificationMethodsData(
+            processId: String?,
+            selectedMethod: String?
+        ): VerificationMethodsData = VerificationMethodsData(
             title = "Test",
             methods = listOf("test", "unavailable"),
             actionButton = null,
             processId = "dl4lee",
             skipAuthMethods = null,
             template = null,
+            disabledMethods = null
         )
 
         override suspend fun getAuthUrl(
@@ -295,7 +304,8 @@ class LoginVMTest {
             verificationMethodCode: String,
             requestId: String,
             processId: String,
-            bankCode: String?
+            bankCode: String?,
+            otpCode: String?
         ): TemplateDialogModelWithProcessCode = mock()
     }
 }

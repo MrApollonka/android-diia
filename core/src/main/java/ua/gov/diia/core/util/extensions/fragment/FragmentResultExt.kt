@@ -12,6 +12,7 @@ import androidx.navigation.NavGraph
 import androidx.navigation.fragment.findNavController
 import ua.gov.diia.core.models.ConsumableString
 import ua.gov.diia.core.ui.dynamicdialog.ActionsConst
+import ua.gov.diia.core.util.CommonConst
 import ua.gov.diia.core.util.throwExceptionInDebug
 import java.io.Serializable
 
@@ -26,14 +27,20 @@ inline fun <T : Any> Fragment.registerForNavigationResult(
     lifecycleOwner: LifecycleOwner = viewLifecycleOwner,
     crossinline resultEvent: (T) -> Unit
 ) {
-    findNavController()
-        .currentBackStackEntry
-        ?.savedStateHandle
-        ?.getLiveData<T>(key)
-        ?.observe(lifecycleOwner) {
-            validateClassType(it)
-            resultEvent.invoke(it)
-        }
+
+    with(findNavController()) {
+        val hasTemplateAtTop = previousBackStackEntry != null
+                && currentBackStackEntry?.destination?.displayName == CommonConst.TEMPLATE_DIALOG_ID
+        val navBackStack = if (hasTemplateAtTop) previousBackStackEntry else currentBackStackEntry
+
+        navBackStack
+            ?.savedStateHandle
+            ?.getLiveData<T>(key)
+            ?.observe(lifecycleOwner) {
+                validateClassType(it)
+                resultEvent.invoke(it)
+            }
+    }
 }
 
 inline fun <T : Any> Fragment.registerForNavigationResultOnce(

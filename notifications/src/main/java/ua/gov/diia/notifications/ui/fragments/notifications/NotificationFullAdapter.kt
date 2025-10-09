@@ -12,9 +12,8 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners
-import com.bumptech.glide.request.RequestOptions
+import coil.load
+import coil.transform.RoundedCornersTransformation
 import ua.gov.diia.core.models.notification.pull.message.MessageActions
 import ua.gov.diia.core.models.notification.pull.message.MessageTypes
 import ua.gov.diia.core.models.notification.pull.message.NotificationMessagesBody
@@ -25,6 +24,8 @@ import ua.gov.diia.notifications.databinding.ItemNotificationImageBinding
 import ua.gov.diia.notifications.databinding.ItemNotificationInternalArrowedLinkBinding
 import ua.gov.diia.notifications.databinding.ItemNotificationTextBinding
 import ua.gov.diia.notifications.databinding.ItemNotificationVideoBinding
+import ua.gov.diia.ui_base.adapters.binding.bindBase64
+import ua.gov.diia.ui_base.adapters.binding.setupHtmlParameters
 
 class NotificationFullAdapter(private val linkSelected: (MessageActions, String) -> Unit) :
     ListAdapter<NotificationMessagesBody, NotificationFullAdapter.ViewHolder>(DiffCallback) {
@@ -111,6 +112,11 @@ class NotificationFullAdapter(private val linkSelected: (MessageActions, String)
 
         override fun bind(notificationMessageBody: NotificationMessagesBody) {
             binding.message = notificationMessageBody
+            binding.tvMessageTextParam.setupHtmlParameters(
+                displayText = notificationMessageBody.data?.text,
+                metadata = notificationMessageBody.data?.parameters,
+                onLinkClicked = onLinkClicked
+            )
             binding.adapter = this
         }
     }
@@ -134,6 +140,7 @@ class NotificationFullAdapter(private val linkSelected: (MessageActions, String)
 
         override fun bind(notificationMessageBody: NotificationMessagesBody) {
             binding.message = notificationMessageBody
+            binding.ivActionImg.bindBase64(notificationMessageBody.data?.image)
         }
     }
 
@@ -150,18 +157,15 @@ class NotificationFullAdapter(private val linkSelected: (MessageActions, String)
 
         override fun bind(notificationMessageBody: NotificationMessagesBody) {
             binding.message = notificationMessageBody
+            binding.ivArrowLink.bindBase64(notificationMessageBody.data?.image)
         }
     }
 
     inner class NotificationImageVH( private val binding: ItemNotificationImageBinding ) : ViewHolder(binding) {
         override fun bind(notificationMessageBody: NotificationMessagesBody) {
             val image = notificationMessageBody.data?.link ?: ""
-            val requestOption = RequestOptions.bitmapTransform(RoundedCorners(32))
-            with(binding) {
-                Glide.with(binding.root.context)
-                    .load(image)
-                    .apply(requestOption)
-                    .into(ivMessagesImage)
+            binding.ivMessagesImage.load(image) {
+                transformations(RoundedCornersTransformation(32F))
             }
         }
     }

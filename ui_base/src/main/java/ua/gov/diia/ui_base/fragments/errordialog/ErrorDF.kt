@@ -36,7 +36,7 @@ class ErrorDF : DialogFragment() {
         shareVm.constructDialog(args.error)
         composeView?.setContent {
             TemplateDialogScreen(
-                dataState = shareVm.uiData,
+                data = shareVm.uiData.value,
                 onUIAction = { shareVm.onUIAction(it) }
             )
         }

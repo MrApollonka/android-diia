@@ -25,6 +25,8 @@ data class SelectorOrg(
     val value: String?,
     @Json(name = "valueId")
     val valueId: String?,
+    @Json(name = "isEnabled")
+    val isEnabled: Boolean?,
     @Json(name = "selectorListWidgetOrg")
     val selectorListWidgetOrg: SelectorListWidgetOrg?
 )

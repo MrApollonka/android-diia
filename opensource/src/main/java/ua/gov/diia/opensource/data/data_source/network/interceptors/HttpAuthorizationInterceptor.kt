@@ -45,7 +45,7 @@ class HttpAuthorizationInterceptor @Inject constructor(
 
     private fun Interceptor.Chain.proceedAuth(request: Request): Response {
         val response = proceed(request)
-        if (response.code() == 401) {
+        if (response.code == 401) {
             val oldToken = request.header(AUTH)
             if (oldToken != null) {
                 proceed(getRefreshedToken(this))

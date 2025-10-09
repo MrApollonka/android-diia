@@ -11,5 +11,7 @@ data class DiiaPostResponse(
     @Json(name = "template")
     val template: TemplateDialogModel?,
     @Json(name = "applicationId")
-    val applicationId: String?
+    val applicationId: String?,
+    @Json(name = "code")
+    val code: String?
 )

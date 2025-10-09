@@ -85,13 +85,6 @@ implementation project(':features:menu')
         app:argType="boolean" />
 </action>
 <action
-    android:id="@+id/action_homeF_to_sign_history"
-    app:destination="@+id/nav_signe_history"
-    app:enterAnim="@anim/slide_in_right"
-    app:exitAnim="@anim/slide_out_left"
-    app:popEnterAnim="@anim/slide_in_left"
-    app:popExitAnim="@anim/slide_out_right" />
-<action
     android:id="@+id/action_homeF_to_nav_app_sessions"
     app:destination="@id/nav_app_sessions"
     app:enterAnim="@anim/slide_in_right"
@@ -108,4 +101,3 @@ implementation project(':features:menu')
     android:id="@+id/action_global_notificationFCompose"
     app:destination="@id/nav_notifications" />
 ```
-

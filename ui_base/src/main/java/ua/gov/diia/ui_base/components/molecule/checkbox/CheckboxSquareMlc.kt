@@ -16,11 +16,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ua.gov.diia.ui_base.R
@@ -61,18 +62,13 @@ fun CheckboxSquareMlc(
                             }?.id
                         )
                     )
-                }.composed {
-                    val contentDescription = data.contentDescription?.asString()
-                    if (contentDescription != null) {
-                        this.semantics(mergeDescendants = true) {
-                            val state =
-                                if (data.selectionState == UIState.Selection.Selected) "Active: " else "Inactive: "
-                            stateDescription = state + contentDescription
-                        }
-                    }
-                    this
                 }
-            }, verticalAlignment = Alignment.Top
+            }
+            .semantics(mergeDescendants = true) {
+                role = Role.Checkbox
+                selected = data.selectionState == UIState.Selection.Selected
+            },
+        verticalAlignment = Alignment.Top
     ) {
         Box(
             modifier = Modifier
@@ -145,7 +141,7 @@ data class CheckboxSquareMlcData(
         return super.clone() as CheckboxSquareMlcData
     }
 
-    public fun onCheckboxClick(): CheckboxSquareMlcData {
+    fun onCheckboxClick(): CheckboxSquareMlcData {
         return this.copy(selectionState = this.selectionState.reverse())
     }
 

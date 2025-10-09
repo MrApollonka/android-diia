@@ -13,6 +13,7 @@ import ua.gov.diia.verification.model.VerificationMethodsData
 import ua.gov.diia.verification.model.VerificationResult
 import ua.gov.diia.verification.network.ApiVerification
 import ua.gov.diia.verification.ui.methods.VerificationMethod
+import ua.gov.diia.verification.util.AndroidClientAlertDialogsFactory
 
 class TestVerificationControllerOnFlowVM(
     apiVerification: ApiVerification,
@@ -26,7 +27,7 @@ class TestVerificationControllerOnFlowVM(
     private val onVerificationCompleted: MutableSharedFlow<VerificationResult>,
 ) : VerificationControllerOnFlowVM(
     apiVerification,
-    clientAlertDialogsFactory,
+    AndroidClientAlertDialogsFactory(),
     applicationInfoProvider,
     systemServiceProvider,
     applicationLauncher,

@@ -39,6 +39,7 @@ import ua.gov.diia.ui_base.components.noRippleClickable
 import ua.gov.diia.ui_base.components.subatomic.icon.UiIconWrapperSubatomic
 import ua.gov.diia.ui_base.components.theme.Black
 import ua.gov.diia.ui_base.components.theme.BlackAlpha50
+import ua.gov.diia.ui_base.components.theme.BlackAlpha60
 import ua.gov.diia.ui_base.components.theme.DiiaTextStyle
 import ua.gov.diia.ui_base.components.theme.DodgerBlue
 import ua.gov.diia.ui_base.components.theme.GrannySmithApple
@@ -102,7 +103,8 @@ fun DashboardCardMlc(
                 Row {
                     UiIconWrapperSubatomic(
                         modifier = Modifier.size(20.dp),
-                        icon = data.icon
+                        icon = data.icon,
+                        useContentDescription = false
                     )
                     Box(modifier = Modifier.align(Alignment.CenterVertically)) {
                         Text(
@@ -138,7 +140,7 @@ fun DashboardCardMlc(
                         modifier = Modifier.padding(top = 16.dp),
                         text = descriptionText,
                         style = DiiaTextStyle.t3TextBody,
-                        color = BlackAlpha50
+                        color = BlackAlpha60
                     )
                 }
             }

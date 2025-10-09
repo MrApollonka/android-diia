@@ -53,12 +53,16 @@ fun Fragment.navigateToPullNotificationDirection(item: PullNotificationItemSelec
     navigate(navDir ?: NavHomeChildrenDirections.globalToDocGalleryFCompose())
 }
 
-fun Fragment.navigateToPublicService(service: PublicService) {
+fun Fragment.navigateToPublicService(service: PublicService, arg: String? = null) {
     when (service.code) {
         PublicServicesHomeConst.PS_SERVICE_CRIME_CERTIFICATE -> navigate(
             NavMainDirections.actionHomeFToCriminalCert(
                 contextMenu = service.menu
             )
         )
+
+        PublicServicesHomeConst.PS_LIFECELL_MNP -> {
+            // TODO: Navigate to lifecell feature
+        }
     }
 }

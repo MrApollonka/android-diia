@@ -20,6 +20,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
@@ -40,13 +43,16 @@ import ua.gov.diia.ui_base.components.infrastructure.UIElementData
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
 import ua.gov.diia.ui_base.components.infrastructure.state.UIState
+import ua.gov.diia.ui_base.components.infrastructure.utils.SidePaddingMode
+import ua.gov.diia.ui_base.components.infrastructure.utils.TopPaddingMode
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
+import ua.gov.diia.ui_base.components.infrastructure.utils.toDp
 import ua.gov.diia.ui_base.components.molecule.card.CardMlcV2
 import ua.gov.diia.ui_base.components.molecule.card.CardMlcV2Data
 import ua.gov.diia.ui_base.components.molecule.list.ListItemMlc
 import ua.gov.diia.ui_base.components.molecule.list.ListItemMlcData
 import ua.gov.diia.ui_base.components.molecule.message.PaginationMessageMlc
-import ua.gov.diia.ui_base.components.molecule.message.generatePaginationMessageMlcMockData
+import ua.gov.diia.ui_base.components.molecule.message.PaginationMessageMlcData
 import ua.gov.diia.ui_base.components.subatomic.loader.LoaderSpinnerLoaderAtm
 import ua.gov.diia.ui_base.components.theme.BlackSqueeze
 
@@ -64,13 +70,22 @@ fun PaginationListWhiteOrg(
         state = lazyListState,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        loadPaginationListWhiteOrg(modifier, items, lazyListState, withDividers, onUIAction)
+        loadPaginationListWhiteOrg(
+            modifier = modifier,
+            items = items,
+            state = lazyListState,
+            withDividers = withDividers,
+            paddingTop = data.paddingTop,
+            paddingHorizontal = data.paddingHorizontal,
+            onUIAction = onUIAction)
     }
 }
 
 data class PaginationListWhiteOrgData(
     val items: Flow<PagingData<SimplePagination>>,
-    val withDividers: Boolean? = null
+    val withDividers: Boolean? = null,
+    val paddingTop: TopPaddingMode? = null,
+    val paddingHorizontal: SidePaddingMode? = null
 ) : UIElementData
 
 fun LazyListScope.loadPaginationListWhiteOrg(
@@ -78,6 +93,8 @@ fun LazyListScope.loadPaginationListWhiteOrg(
     items: LazyPagingItems<SimplePagination>,
     state: LazyListState,
     withDividers: Boolean? = null,
+    paddingTop: TopPaddingMode? = null,
+    paddingHorizontal: SidePaddingMode? = null,
     onUIAction: (UIAction) -> Unit = {}
 ) {
 
@@ -85,7 +102,7 @@ fun LazyListScope.loadPaginationListWhiteOrg(
 
     if (isDataLoaded) {
         item {
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(paddingTop.toDp(defaultPadding = 24.dp)))
         }
     }
     items(
@@ -98,7 +115,10 @@ fun LazyListScope.loadPaginationListWhiteOrg(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
+                    .padding(
+                        start = paddingHorizontal.toDp(defaultPadding = 24.dp),
+                        end = paddingHorizontal.toDp(defaultPadding = 24.dp)
+                    )
                     .background(
                         color = Color.White,
                         shape = when (index) {
@@ -150,15 +170,26 @@ fun LazyListScope.loadPaginationListWhiteOrg(
                         )
                     }
 
+                    is PaginationMessageMlcData -> {
+                        PaginationMessageMlc(
+                            data = it,
+                            onUIAction = { items.retry() }
+                        )
+                    }
+
                     is ListItemMlcData -> {
                         ListItemMlc(
+                            modifier = Modifier
+                                .semantics {
+                                    role = Role.Button
+                                },
                             data = it,
                             onUIAction = onUIAction
                         )
                         if (withDividers != null && withDividers == true) {
                             if (index > 0) {
                                 DividerSlimAtom(
-                                    modifier = Modifier.fillMaxWidth(),
+                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                                     color = BlackSqueeze
                                 )
                             }
@@ -185,7 +216,16 @@ fun LazyListScope.loadPaginationListWhiteOrg(
         is LoadState.Error -> {
             item {
                 PaginationMessageMlc(
-                    data = generatePaginationMessageMlcMockData(),
+                    data = PaginationMessageMlcData(
+                        title = UiText.DynamicString("Не вдалось завантажити дані, спробуйте повторити ще раз"),
+                        button = ButtonStrokeAdditionalAtomData(
+                            actionKey = UIActionKeysCompose.BUTTON_REGULAR,
+                            title = UiText.DynamicString("Оновити"),
+                            interactionState = UIState.Interaction.Enabled,
+                        ),
+                        id = "",
+                        description = UiText.DynamicString("Опис")
+                    ),
                     onUIAction = {
                         items.retry()
                     }

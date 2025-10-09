@@ -15,6 +15,8 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
+import ua.gov.diia.core.util.state.Loader
+import ua.gov.diia.core.util.state.getLegacyProgress
 import ua.gov.diia.ui_base.R
 import ua.gov.diia.ui_base.components.infrastructure.UIElementData
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
@@ -30,8 +32,7 @@ import ua.gov.diia.ui_base.components.provideTestTagsAsResourceId
 @Composable
 fun StackScreen(
     modifier: Modifier = Modifier,
-    contentLoaded: Pair<String, Boolean> = Pair("", true),
-    progressIndicator: Pair<String, Boolean> = Pair("", true),
+    loader: Loader =  Loader.create(),
     toolbar: SnapshotStateList<UIElementData>,
     body: State<DocCarouselOrgData?>,
     bottom: SnapshotStateList<UIElementData>? = null,
@@ -45,7 +46,9 @@ fun StackScreen(
     )
 
     Box(
-        modifier = Modifier.fillMaxSize().provideTestTagsAsResourceId(),
+        modifier = Modifier
+            .fillMaxSize()
+            .provideTestTagsAsResourceId(),
         contentAlignment = Alignment.Center
     ) {
         LottieAnimation(
@@ -66,7 +69,7 @@ fun StackScreen(
         }
         ComposeRootScreen(
             modifier = modifier,
-            contentLoaded = contentLoaded,
+            loader = loader,
             toolbar = {
                 ToolbarRootContainer(
                     toolbarViews = toolbar,
@@ -81,7 +84,7 @@ fun StackScreen(
                     ) {
                         DocCarouselOrg(
                             data = it,
-                            progressIndicator = progressIndicator,
+                            progressIndicator = loader.getLegacyProgress(),
                             onUIAction = onEvent
                         )
                     }
@@ -91,7 +94,7 @@ fun StackScreen(
                 if (bottom != null) {
                     BottomBarRootContainer(
                         bottomViews = bottom,
-                        progressIndicator = progressIndicator,
+                        loader = loader,
                         onUIAction = onEvent
                     )
                 }

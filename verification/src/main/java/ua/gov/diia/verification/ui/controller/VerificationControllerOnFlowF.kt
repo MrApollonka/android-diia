@@ -1,6 +1,5 @@
 package ua.gov.diia.verification.ui.controller
 
-
 import android.os.Bundle
 import android.view.View
 import androidx.annotation.CallSuper
@@ -10,13 +9,15 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.launch
+import ua.gov.diia.core.models.ConsumableItem
 import ua.gov.diia.core.ui.dynamicdialog.ActionsConst
 import ua.gov.diia.core.util.extensions.fragment.currentDestinationId
 import ua.gov.diia.core.util.extensions.fragment.navigate
-import ua.gov.diia.ui_base.util.navigation.openTemplateDialog
 import ua.gov.diia.core.util.extensions.fragment.registerForDialogNavigationResultOnce
 import ua.gov.diia.core.util.extensions.fragment.registerForTemplateDialogNavResult
+import ua.gov.diia.ui_base.util.navigation.openTemplateDialog
 import ua.gov.diia.verification.R
+import ua.gov.diia.verification.model.VerificationFlowResult
 import ua.gov.diia.verification.model.VerificationMethodsView
 import ua.gov.diia.verification.ui.controller.VerificationControllerConst.VERIFICATION_ALERT_DIALOG_ACTION
 import ua.gov.diia.verification.ui.method_selection.VerificationMethodSelectionDFArgs
@@ -24,11 +25,12 @@ import ua.gov.diia.verification.ui.methods.VerificationNavRequest
 
 abstract class VerificationControllerOnFlowF : Fragment() {
 
-    private companion object {
+    companion object {
         const val RESULT_KEY_VERIFICATION_STEP =
             "VerificationControllerF.RESULT_KEY_VERIFICATION_STEP"
 
         const val ACTION_LOAD_VERIFICATION_METHODS = "getMethods"
+        const val ACTION_LOAD_AUTH_METHODS = "authMethods"
         const val ACTION_LAUNCH_VERIFICATION = "showMethods"
 
         //complete flow actions
@@ -79,15 +81,26 @@ abstract class VerificationControllerOnFlowF : Fragment() {
                 ActionsConst.GENERAL_RETRY -> verificationVM.retryLastAction()
                 ActionsConst.DIALOG_DEAL_WITH_IT -> verificationVM.completedVerifyResidentPermit()
                 ACTION_LOAD_VERIFICATION_METHODS -> verificationVM.getVerificationMethods()
+                ACTION_LOAD_AUTH_METHODS -> {
+                    verificationVM.cleanUpAllData()
+                    verificationVM.loadAuthMethodData()
+                }
+
                 ACTION_LAUNCH_VERIFICATION -> verificationVM.processVerificationMethods()
                 in featureCompleteList -> verificationVM.completeVerification()
+                else -> verificationVM.returnTemplateAction(action)
             }
         }
 
-        registerForDialogNavigationResultOnce(
-            RESULT_KEY_VERIFICATION_STEP,
-            verificationVM::handleVerificationResult
-        )
+        registerForDialogNavigationResultOnce<ConsumableItem>(RESULT_KEY_VERIFICATION_STEP) {
+            handleVerificationResult(it)
+        }
+    }
+
+    private fun handleVerificationResult(item: ConsumableItem) {
+        item.consumeEvent<VerificationFlowResult> { result ->
+            verificationVM.handleVerificationResult(result)
+        }
     }
 
     @CallSuper

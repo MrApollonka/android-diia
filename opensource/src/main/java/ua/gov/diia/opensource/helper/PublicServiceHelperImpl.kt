@@ -12,6 +12,7 @@ import ua.gov.diia.publicservice.models.PublicService
 import ua.gov.diia.publicservice.models.PublicServiceCategory
 
 class PublicServiceHelperImpl : PublicServiceHelper {
+
     override fun navigateToCategoryServices(fragment: Fragment, category: PublicServiceCategory) {
         fragment.apply {
             navigate(
@@ -24,7 +25,7 @@ class PublicServiceHelperImpl : PublicServiceHelper {
         }
     }
 
-    override  fun navigateToServiceSearch(fragment: Fragment, data: Array<PublicServiceCategory>) {
+    override fun navigateToServiceSearch(fragment: Fragment, data: Array<PublicServiceCategory>) {
         fragment.apply {
             navigate(
                 NavMainDirections.actionGlobalDestinationPsSearchCompose(
@@ -36,9 +37,14 @@ class PublicServiceHelperImpl : PublicServiceHelper {
         }
     }
 
-    override  fun navigateToService(fragment: Fragment, service: PublicService) {
+    override fun navigateToService(fragment: Fragment, service: PublicService, arg: String?) {
         fragment.apply {
-            navigateToPublicService(service)
+            navigateToPublicService(service, arg)
         }
     }
+
+    override fun navigateToWebView(fragment: Fragment, link: String) {
+        /* no-op */
+    }
+
 }

@@ -10,10 +10,13 @@ import kotlinx.parcelize.Parcelize
 data class RatingItem(
     @Json(name = "chip")
     val chip: Chip?,
+    @Json(name = "chipBlocks")
+    val chipBlocks: List<Chip>?,
     @Json(name = "emoji")
     val emoji: String?,
     @Json(name = "rate")
     val rate: String?,
-
-    val isChecked: Boolean = false
+    val isChecked: Boolean = false,
+    @Json(name = "accessibilityDescription")
+    val accessibilityDescription: String?,
 ) : Parcelable

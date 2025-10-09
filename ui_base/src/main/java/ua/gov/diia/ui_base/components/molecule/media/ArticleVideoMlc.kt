@@ -1,10 +1,12 @@
 package ua.gov.diia.ui_base.components.molecule.media
 
-import android.graphics.drawable.Drawable
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
@@ -16,19 +18,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
-import com.bumptech.glide.integration.compose.placeholder
-import com.bumptech.glide.load.DataSource
-import com.bumptech.glide.load.engine.GlideException
-import com.bumptech.glide.request.RequestListener
-import com.bumptech.glide.request.target.Target
+import coil.compose.AsyncImage
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 import ua.gov.diia.core.models.common_compose.mlc.media.ArticleVideoMlc
 import ua.gov.diia.ui_base.R
 import ua.gov.diia.ui_base.components.conditional
@@ -36,14 +39,15 @@ import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.toDynamicStringOrNull
-import ua.gov.diia.ui_base.components.molecule.loading.FullScreenLoadingMolecule
 import ua.gov.diia.ui_base.components.molecule.media.player.ExoPlayerPortraitComposeView
 import ua.gov.diia.ui_base.components.noRippleClickable
 import ua.gov.diia.ui_base.components.organism.FullScreenVideoOrgData
 import ua.gov.diia.ui_base.components.organism.carousel.SimpleCarouselCard
 import ua.gov.diia.ui_base.components.organism.toUIModel
+import ua.gov.diia.ui_base.components.subatomic.loader.LoaderCircularEclipse23Subatomic
+import ua.gov.diia.ui_base.components.theme.BlackAlpha50
+import ua.gov.diia.ui_base.components.theme.EggshellAlpha80
 
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun ArticleVideoMlc(
     modifier: Modifier = Modifier,
@@ -53,8 +57,16 @@ fun ArticleVideoMlc(
     connectivityState: Boolean,
     onUIAction: (UIAction) -> Unit
 ) {
+    val context = LocalContext.current
     if (data.fullScreenVideoOrg != null) {
         var isLoading by remember { mutableStateOf(true) }
+
+        val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.card_viewholder_dots_black))
+        val progress by animateLottieCompositionAsState(
+            composition,
+            iterations = LottieConstants.IterateForever
+        )
+
         Box(
             modifier = modifier
                 .fillMaxWidth()
@@ -66,51 +78,69 @@ fun ArticleVideoMlc(
                 },
             contentAlignment = Alignment.Center
         ) {
-            GlideImage(
-                model = data.thumbnail.orEmpty(),
-                contentDescription = "",
+            AsyncImage(
                 modifier = Modifier
                     .wrapContentSize()
                     .clip(RoundedCornerShape(16.dp)),
+                model = data.thumbnail.orEmpty(),
+                contentDescription = context.getString(R.string.accessibility_video_container),
                 contentScale = ContentScale.FillBounds,
-                loading = placeholder(R.drawable.diia_article_placeholder),
-                failure = placeholder(R.drawable.diia_article_placeholder),
-                requestBuilderTransform = { requestBuilder ->
-                    requestBuilder.load(data.thumbnail.orEmpty())
-                    requestBuilder.listener(object : RequestListener<Drawable> {
-
-                        override fun onResourceReady(
-                            resource: Drawable,
-                            model: Any,
-                            target: Target<Drawable>?,
-                            dataSource: DataSource,
-                            isFirstResource: Boolean
-                        ): Boolean {
-                            isLoading = false
-                            return false
-                        }
-
-                        override fun onLoadFailed(
-                            e: GlideException?,
-                            model: Any?,
-                            target: Target<Drawable>,
-                            isFirstResource: Boolean
-                        ): Boolean {
-                            isLoading = false
-                            return false
-                        }
-                    })
+                placeholder = painterResource(R.drawable.diia_article_placeholder),
+                error = painterResource(R.drawable.diia_article_placeholder),
+                onSuccess = {
+                    isLoading = false
+                },
+                onError = {
+                    isLoading = false
                 }
             )
             if (isLoading) {
-                FullScreenLoadingMolecule()
+                if (data.thumbnail != null) {
+                    Box(
+                        modifier = Modifier
+                            .height(112.dp)
+                            .fillMaxWidth()
+                            .clip(shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        LottieAnimation(
+                            modifier = Modifier
+                                .size(width = 60.dp, height = 60.dp)
+                                .alpha(0.2f),
+                            alignment = Alignment.Center,
+                            contentScale = ContentScale.Inside,
+                            composition = composition,
+                            progress = { progress },
+                        )
+                    }
+                } else {
+                    Box(
+                        modifier = modifier
+                            .fillMaxSize()
+                            .background(EggshellAlpha80, shape = RoundedCornerShape(18.dp))
+                            .noRippleClickable {},
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(64.dp)
+                                .background(
+                                    color = BlackAlpha50,
+                                    shape = RoundedCornerShape(18.dp)
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            LoaderCircularEclipse23Subatomic(modifier = Modifier.size(24.dp))
+                        }
+                    }
+                }
+            } else {
+                Image(
+                    modifier = modifier.size(64.dp),
+                    painter = painterResource(id = R.drawable.ic_player_btn_atm_play),
+                    contentDescription = null
+                )
             }
-
-            Image(
-                modifier = modifier.size(64.dp),
-                painter = painterResource(id = R.drawable.ic_player_btn_atm_play),
-                contentDescription = null
-            )
         }
     } else {
         ExoPlayerPortraitComposeView(
@@ -126,10 +156,11 @@ fun ArticleVideoMlc(
 
 data class ArticleVideoMlcData(
     val actionKey: String = UIActionKeysCompose.ARTICLE_VIDEO_MLC,
+    override val id: String? = null,
     val url: String? = null,
     val thumbnail: String? = null,
     val componentId: UiText? = null,
-    val fullScreenVideoOrg: FullScreenVideoOrgData? = null
+    val fullScreenVideoOrg: FullScreenVideoOrgData? = null,
 ) : SimpleCarouselCard
 
 fun ArticleVideoMlc.toUiModel(): ArticleVideoMlcData {

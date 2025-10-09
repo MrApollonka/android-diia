@@ -43,6 +43,7 @@ abstract class VerificationControllerVM(
 
 
     private var flowProcessId: String? = null
+    private var selectedMethod: String? = null
     private var verificationSchema: String? = null
     protected var preferredVerificationMethodCode: String? = null
     private var preferredVerificationMethodUrl: String? = null
@@ -98,7 +99,7 @@ abstract class VerificationControllerVM(
             templateKey = VERIFICATION_ALERT_DIALOG_ACTION
         ) {
             val response = withContext(Dispatchers.Default) {
-                apiVerification.getVerificationMethods(schema, flowProcessId).also {
+                apiVerification.getVerificationMethods(schema, flowProcessId, selectedMethod).also {
                     flowProcessId = it.processId
                     verificationRequestData = it
                 }
@@ -128,24 +129,14 @@ abstract class VerificationControllerVM(
     private fun VerificationMethodsData.doOnVerificationMethodsApproved(
         launchVerification: (methods: List<String>, data: VerificationMethodsData) -> Unit
     ) {
-        if (methods != null) {
+        if (!methods.isNullOrEmpty()) {
             viewModelScope.launch {
                 val availableMethods =
                     methods.filter { x -> verificationMethods[x]?.isAvailable == true }
-
-                //Shows the template dialog if there are no methods after filtering
-                if (availableMethods.isEmpty()) {
-                    val template = methods.singleOrNull()?.let {
-                        verificationMethods[it]?.getUnavailabilityDialog()
-                    } ?: clientAlertDialogsFactory.showCustomAlert(NO_VERIFICATION_METHODS)
-
-                    showTemplateDialog(template, VERIFICATION_ALERT_DIALOG_ACTION)
-                } else {
-                    launchVerification.invoke(
-                        availableMethods,
-                        this@doOnVerificationMethodsApproved
-                    )
-                }
+                launchVerification.invoke(
+                    availableMethods,
+                    this@doOnVerificationMethodsApproved
+                )
             }
         } else {
             if (skipAuthMethods == true) {
@@ -179,7 +170,8 @@ abstract class VerificationControllerVM(
     private fun String.toVerificationMethod() = verificationMethods[this]?.let {
         VerificationMethodView(
             code = this,
-            iconRes = it.iconResId,
+            titleRes = it.titleResId,
+            iconRes = it.iconResId
         )
     }
 

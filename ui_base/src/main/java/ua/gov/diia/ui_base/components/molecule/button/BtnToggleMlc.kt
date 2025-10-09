@@ -12,11 +12,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ua.gov.diia.core.models.common_compose.mlc.button.BtnToggleMlc
+import ua.gov.diia.ui_base.R
 import ua.gov.diia.ui_base.components.DiiaResourceIcon
 import ua.gov.diia.ui_base.components.infrastructure.DataActionWrapper
 import ua.gov.diia.ui_base.components.infrastructure.UIElementData
@@ -38,6 +45,9 @@ fun BtnToggleMlc(
     data: BtnToggleMlcData,
     onUIAction: (UIAction) -> Unit
 ) {
+    val context = LocalContext.current
+    val contentDescription = data.label?.asString() ?: ""
+
     Column(
         modifier = modifier
             .noRippleClickable {
@@ -49,7 +59,17 @@ fun BtnToggleMlc(
                         states = listOf(UIState.Selection.Selected)
                     )
                 )
-            }.testTag(data.componentId?.asString() ?: ""),
+            }
+            .testTag(data.componentId?.asString() ?: "")
+            .clearAndSetSemantics {
+                this.contentDescription = contentDescription
+                stateDescription = if (data.selectionState == UIState.Selection.Selected) {
+                    context.getString(R.string.accessibility_button_state_selected)
+                } else {
+                    context.getString(R.string.accessibility_button_state_unselected)
+                }
+                role = Role.Button
+            },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(

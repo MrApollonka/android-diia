@@ -144,6 +144,7 @@ class MenuComposeVM @Inject constructor(
                     _navigation.tryEmit(BaseNavigation.Back)
                 }
 
+                UIActionKeysCompose.LIST_ITEM_MLC,
                 UIActionKeysCompose.LIST_ITEM_GROUP_ORG -> {
                     event.action?.type?.let {
                         when (it) {

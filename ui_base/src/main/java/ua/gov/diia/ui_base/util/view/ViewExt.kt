@@ -19,13 +19,18 @@ import ua.gov.diia.core.util.extensions.context.dpToPx
 import ua.gov.diia.core.util.extensions.context.getColorCompat
 import ua.gov.diia.core.util.extensions.context.serviceClipboard
 
-fun View.showCopyDeviceUuidClipedSnackBar(uuid: String, topPadding: Float = 24f, bottomPadding: Float = 16f) {
-    val clip = ClipData.newPlainText("androidId", uuid)
+fun View.showCopyClippedSnackBar(
+    value: String,
+    topPadding: Float = 24f,
+    bottomPadding: Float = 16f,
+    messageResId: Int = R.string.num_device_copied
+) {
+    val clip = ClipData.newPlainText("androidId", value)
 
     context.serviceClipboard?.setPrimaryClip(clip)
 
     showTopSnackBar(
-        R.string.num_device_copied,
+        messageResId,
         Snackbar.LENGTH_LONG,
         topPadding,
         bottomPadding,
@@ -55,7 +60,13 @@ fun View.showTopSnackBar(@StringRes res: Int, length: Int, topPadding: Float) {
 fun View.showTopSnackBar(@StringRes res: Int, length: Int, topPadding: Boolean = false) {
     showTopSnackBar(res, length, if (topPadding) 24f else 0f)
 }
-fun View.showTopSnackBar(@StringRes res: Int, length: Int, topPadding: Float, bottomPadding: Float) {
+
+fun View.showTopSnackBar(
+    @StringRes res: Int,
+    length: Int,
+    topPadding: Float,
+    bottomPadding: Float
+) {
     with(Snackbar.make(this, res, length)) {
         animationMode = BaseTransientBottomBar.ANIMATION_MODE_FADE
         textAlignment = TextView.TEXT_ALIGNMENT_CENTER
@@ -76,15 +87,17 @@ fun View.showTopSnackBar(@StringRes res: Int, length: Int, topPadding: Float, bo
 }
 
 fun View.updateGravity(gravity: Int) {
-    when(val params = layoutParams) {
+    when (val params = layoutParams) {
         is FrameLayout.LayoutParams -> {
             params.gravity = gravity
             layoutParams = params
         }
+
         is CoordinatorLayout.LayoutParams -> {
             params.gravity = gravity
             layoutParams = params
         }
+
         is LinearLayout.LayoutParams -> {
             params.gravity = gravity
             layoutParams = params

@@ -14,14 +14,18 @@ sealed class UIState {
         object FirstTimeInFocus : Focus()
         object InFocus : Focus()
         object OutOfFocus : Focus()
+
+        fun isFocused(): Boolean {
+            return this == FirstTimeInFocus || this == InFocus
+        }
     }
 
     sealed class Interaction : UIState() {
         object Enabled : Interaction()
         object Disabled : Interaction()
 
-        fun reverse(): Interaction{
-            return when (this){
+        fun reverse(): Interaction {
+            return when (this) {
                 Disabled -> Enabled
                 Enabled -> Disabled
             }
@@ -32,8 +36,8 @@ sealed class UIState {
         object Selected : Selection()
         object Unselected : Selection()
 
-        fun reverse(): Selection{
-            return when (this){
+        fun reverse(): Selection {
+            return when (this) {
                 Selected -> Unselected
                 Unselected -> Selected
             }
@@ -45,7 +49,7 @@ sealed class UIState {
         object Collapsed : Expand()
 
         fun reverse(): Expand {
-            return when (this){
+            return when (this) {
                 Collapsed -> Expanded
                 Expanded -> Collapsed
             }
@@ -66,9 +70,4 @@ sealed class UIState {
         object InProgress : MediaUploadState()
         object FailedLoading : MediaUploadState()
     }
-}
-
-fun UIState.Selection.reverse() = when (this) {
-    UIState.Selection.Selected -> UIState.Selection.Unselected
-    UIState.Selection.Unselected -> UIState.Selection.Selected
 }

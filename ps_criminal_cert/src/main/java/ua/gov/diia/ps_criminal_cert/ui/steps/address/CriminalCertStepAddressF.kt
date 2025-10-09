@@ -8,22 +8,25 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import dagger.hilt.android.AndroidEntryPoint
-import ua.gov.diia.ps_criminal_cert.R
-import ua.gov.diia.ps_criminal_cert.databinding.FragmentCriminalCertStepAddressBinding
-import ua.gov.diia.core.models.ConsumableItem
 import ua.gov.diia.address_search.models.AddressIdentifier
-import ua.gov.diia.core.models.rating_service.RatingRequest
-import ua.gov.diia.search.models.SearchableBullet
-import ua.gov.diia.search.models.SearchableItem
 import ua.gov.diia.address_search.ui.AddressSearchControllerF
+import ua.gov.diia.core.models.ConsumableItem
+import ua.gov.diia.core.models.rating_service.RatingRequest
 import ua.gov.diia.core.ui.dynamicdialog.ActionsConst
-import ua.gov.diia.ps_criminal_cert.ui.CriminalCertConst
 import ua.gov.diia.core.util.event.observeUiDataEvent
+import ua.gov.diia.core.util.extensions.fragment.doOnSystemBackPressed
 import ua.gov.diia.core.util.extensions.fragment.navigate
-import ua.gov.diia.ui_base.util.navigation.openTemplateDialog
 import ua.gov.diia.core.util.extensions.fragment.registerForNavigationResult
 import ua.gov.diia.core.util.extensions.fragment.registerForTemplateDialogNavResult
+import ua.gov.diia.ps_criminal_cert.R
+import ua.gov.diia.ps_criminal_cert.databinding.FragmentCriminalCertStepAddressBinding
+import ua.gov.diia.ps_criminal_cert.ui.CriminalCertConst
+import ua.gov.diia.ps_criminal_cert.ui.CriminalCertConst.ACTION_CODE_STATUS
+import ua.gov.diia.ps_criminal_cert.ui.CriminalCertConst.TEMPLATE_ACTION_REFILL
 import ua.gov.diia.ps_criminal_cert.ui.CriminalCertRatingScreenCodes
+import ua.gov.diia.search.models.SearchableBullet
+import ua.gov.diia.search.models.SearchableItem
+import ua.gov.diia.ui_base.util.navigation.openTemplateDialog
 
 @AndroidEntryPoint
 class CriminalCertStepAddressF : AddressSearchControllerF() {
@@ -35,6 +38,8 @@ class CriminalCertStepAddressF : AddressSearchControllerF() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         with(viewModel) {
+            doInit(args.contextMenu, args.applicationId, args.navBarTitle)
+            loadScreenContent(args.addressScheme)
             setContextMenu(args.contextMenu)
         }
     }
@@ -48,14 +53,16 @@ class CriminalCertStepAddressF : AddressSearchControllerF() {
             .apply {
                 lifecycleOwner = viewLifecycleOwner
                 vm = viewModel
-                backBtn.setOnClickListener { findNavController().popBackStack() }
+                btnBack.setOnClickListener { navigateToStatus(args.applicationId) }
             }
+        doOnSystemBackPressed { navigateToStatus(args.applicationId) }
         return binding?.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         with(viewModel) {
+            template.observeUiDataEvent(viewLifecycleOwner, ::openTemplateDialog)
             showTemplateDialog.observeUiDataEvent(viewLifecycleOwner, ::openTemplateDialog)
             openContextMenu.observeUiDataEvent(viewLifecycleOwner) { menu ->
                 viewModel.navigateToContextMenu(
@@ -63,17 +70,16 @@ class CriminalCertStepAddressF : AddressSearchControllerF() {
                     menu
                 )
             }
-
-            addressResult.observeUiDataEvent(viewLifecycleOwner, ::navigateNext)
-
+            addressResult.observeUiDataEvent(viewLifecycleOwner, ::continueWithAddress)
+            navigateToContacts.observeUiDataEvent(viewLifecycleOwner, ::navigateToContacts)
             showRatingDialogByUserInitiative.observeUiDataEvent(viewLifecycleOwner) { ratingModel ->
                 viewModel.navigateToRatingService(
                     fragment = this@CriminalCertStepAddressF,
                     ratingFormModel = ratingModel,
-                    id = null,
+                    id = args.applicationId,
                     destinationId = R.id.criminalCertStepAddressF,
                     resultKey = ActionsConst.RESULT_KEY_RATING_SERVICE,
-                    screenCode = CriminalCertRatingScreenCodes.SC_REGISTRATION_PLACE_SELECTION,
+                    screenCode = CriminalCertRatingScreenCodes.SC_DELIVERY_ADDRESS_SELECTION,
                     ratingType = ActionsConst.TYPE_USER_INITIATIVE,
                     formCode = ratingModel.formCode
                 )
@@ -83,23 +89,38 @@ class CriminalCertStepAddressF : AddressSearchControllerF() {
             findNavController().popBackStack()
             when (action) {
                 ActionsConst.GENERAL_RETRY -> viewModel.retryLastAction()
-                ActionsConst.FAQ_CATEGORY -> viewModel.navigateToFaq(this@CriminalCertStepAddressF, CriminalCertConst.FEATURE_CODE)
+                ActionsConst.FAQ_CATEGORY -> viewModel.navigateToFaq(
+                    this@CriminalCertStepAddressF,
+                    CriminalCertConst.FEATURE_CODE
+                )
+
                 ActionsConst.SUPPORT_SERVICE -> viewModel.navigateToSupport(this@CriminalCertStepAddressF)
                 ActionsConst.RATING -> viewModel.getRatingForm()
+                ACTION_CODE_STATUS -> navigateToStatus(args.applicationId)
+                TEMPLATE_ACTION_REFILL -> viewModel.refreshAddressScheme(args.addressScheme)
             }
         }
         registerForNavigationResult<ConsumableItem>(ActionsConst.RESULT_KEY_RATING_SERVICE) { event ->
-            event.consumeEvent<RatingRequest> { rating ->   viewModel.sendRatingRequest(rating) }
+            event.consumeEvent<RatingRequest> { rating -> viewModel.sendRatingRequest(rating) }
         }
     }
 
     override fun navigateToListSearch(data: Array<SearchableItem>, resultKey: String) {
+        val searchData = viewModel.getCurrentSearchData()
         navigate(
             CriminalCertStepAddressFDirections.actionCriminalCertStepAddressFToSearchF(
                 key = resultKey,
+                navBarTitle = searchData?.title,
+                searchPlaceholder = searchData?.searchPlaceholder,
                 searchableList = data
             )
         )
+//        navigate(
+//            CriminalCertStepAddressFDirections.actionCriminalCertStepAddressFToSearchF(
+//                key = resultKey,
+//                searchableList = data
+//            )
+//        )
     }
 
     override fun navigateToBulletSearch(data: Array<SearchableBullet>, resultKey: String) {
@@ -113,13 +134,34 @@ class CriminalCertStepAddressF : AddressSearchControllerF() {
         )
     }
 
-    private fun navigateNext(addressIdentifier: AddressIdentifier) {
+    private fun continueWithAddress(result: AddressIdentifier) {
+        if (args.repeatedDelivery) {
+            result.resourceId?.let { viewModel.getRepeatedDeliveryNextStep(it) }
+        } else {
+            result.resourceId?.let { viewModel.saveDeliveryAddress(it) }
+
+        }
+    }
+
+    private fun navigateToContacts(addressId: String?) {
         navigate(
             CriminalCertStepAddressFDirections.actionCriminalCertStepAddressFToCriminalCertStepContactsF(
                 contextMenu = args.contextMenu,
-                dataUser = args.dataUser.copy(
-                    registrationAddressId = addressIdentifier.resourceId
-                )
+                navBarTitle = args.navBarTitle,
+                applicationId = args.applicationId,
+                repeatedDelivery = args.repeatedDelivery,
+                deliveryType = args.deliveryType,
+                addressId = addressId
+            )
+        )
+    }
+
+    private fun navigateToStatus(id: String) {
+        navigate(
+            CriminalCertStepAddressFDirections.actionCriminalCertStepAddressFToCriminalCertDetailsF(
+                contextMenu = args.contextMenu,
+                navBarTitle = args.navBarTitle,
+                certId = id
             )
         )
     }

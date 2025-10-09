@@ -30,14 +30,19 @@ import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.toDynamicStringOrNull
 import ua.gov.diia.ui_base.components.theme.Black
 import ua.gov.diia.ui_base.components.theme.BlackAlpha30
+import ua.gov.diia.ui_base.components.theme.GrayBlueLight
 import ua.gov.diia.ui_base.components.theme.Green
 import ua.gov.diia.ui_base.components.theme.Grey
 import ua.gov.diia.ui_base.components.theme.Red
+import ua.gov.diia.ui_base.components.theme.TropicalBlue
 import ua.gov.diia.ui_base.components.theme.White
 import ua.gov.diia.ui_base.components.theme.Yellow
 
 @Composable
-fun ChipStatusAtm(modifier: Modifier = Modifier, data: ChipStatusAtmData) {
+fun ChipStatusAtm(
+    modifier: Modifier = Modifier,
+    data: ChipStatusAtmData
+) {
     Box(
         modifier = modifier
             .height(18.dp)
@@ -48,13 +53,18 @@ fun ChipStatusAtm(modifier: Modifier = Modifier, data: ChipStatusAtmData) {
                     StatusChipType.POSITIVE -> Green
                     StatusChipType.PENDING -> Yellow
                     StatusChipType.WHITE -> White
+                    StatusChipType.BLUE -> GrayBlueLight
                 }, shape = RoundedCornerShape(10.dp)
             )
             .conditional(condition = data.type == StatusChipType.WHITE) {
-                border(1.dp, color = BlackAlpha30, shape = RoundedCornerShape(10.dp))
+                border(
+                    width = 1.dp,
+                    color = BlackAlpha30,
+                    shape = RoundedCornerShape(10.dp)
+                )
             }
             .padding(horizontal = 8.dp)
-            .testTag(data.componentId?.asString() ?: ""),
+            .testTag(data.componentId?.asString().orEmpty()),
         contentAlignment = Alignment.Center
     ) {
         data.title?.let {
@@ -62,10 +72,15 @@ fun ChipStatusAtm(modifier: Modifier = Modifier, data: ChipStatusAtmData) {
                 textAlign = TextAlign.Center,
                 text = it,
                 color = when (data.type) {
-                    StatusChipType.NEUTRAL, StatusChipType.PENDING -> Black
-                    StatusChipType.NEGATIVE, StatusChipType.POSITIVE -> White
-                    StatusChipType.WHITE -> Black
-                }, style = TextStyle(
+                    StatusChipType.NEUTRAL,
+                    StatusChipType.PENDING,
+                    StatusChipType.WHITE,
+                    StatusChipType.BLUE -> Black
+
+                    StatusChipType.NEGATIVE,
+                    StatusChipType.POSITIVE -> White
+                },
+                style = TextStyle(
                     fontFamily = FontFamily(Font(R.font.e_ukraine_regular)),
                     fontWeight = FontWeight.Normal,
                     fontSize = 11.sp,
@@ -85,7 +100,7 @@ data class ChipStatusAtmData(
 ) : UIElementData
 
 enum class StatusChipType {
-    NEUTRAL, NEGATIVE, POSITIVE, PENDING, WHITE
+    NEUTRAL, NEGATIVE, POSITIVE, PENDING, WHITE, BLUE
 }
 
 fun ChipStatusAtm.toUiModel(): ChipStatusAtmData {
@@ -97,6 +112,7 @@ fun ChipStatusAtm.toUiModel(): ChipStatusAtmData {
             Type.FAIL.id -> StatusChipType.NEGATIVE
             Type.NEUTRAL.id -> StatusChipType.NEUTRAL
             Type.WHITE.id -> StatusChipType.WHITE
+            Type.BLUE.id -> StatusChipType.BLUE
             else -> StatusChipType.NEUTRAL
         },
         componentId = this.componentId.toDynamicStringOrNull()
@@ -151,6 +167,15 @@ fun StatusChipAtomState_Pending() {
 @Composable
 fun StatusChipAtomState_white() {
     val data = ChipStatusAtmData(type = StatusChipType.WHITE, title = "WHITE")
+    ChipStatusAtm(
+        modifier = Modifier.padding(16.dp), data = data
+    )
+}
+
+@Preview
+@Composable
+fun StatusChipAtomState_Blue() {
+    val data = ChipStatusAtmData(type = StatusChipType.BLUE, title = "STATUS")
     ChipStatusAtm(
         modifier = Modifier.padding(16.dp), data = data
     )

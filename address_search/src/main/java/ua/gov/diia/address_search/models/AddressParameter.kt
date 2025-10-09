@@ -14,6 +14,8 @@ data class AddressParameter(
     val label: String?,
     @Json(name = "hint")
     val hint: String?,
+    @Json(name = "searchPlaceholder")
+    val searchPlaceholder: String?,
     @Json(name = "comment")
     val comment: String?,
     @Json(name = "mask")

@@ -10,9 +10,6 @@
 
     <string name="login_screen_checkbox_text">Я ознайомився зі змістом Повідомлення про обробку персональних даних.</string>
     <string name="login_screen_bank_list_title">Авторизуватися через:</string>
-    <string name="login_screen_bank_list_item2">NFC</string>
-    <string name="login_screen_bank_list_item3">Приват24</string>
-    <string name="login_screen_bank_list_item4">monobank</string>
 
     <string name="login_screen_loading_test_tag">trident_loader_splash</string>
     <string name="login_screen_title_test_tag">title_auth</string>
@@ -21,5 +18,4 @@
     <string name="login_screen_checkbox_square_test_tag">checkbox_conditions_auth</string>
     <string name="login_screen_bottom_group_test_tag">bottom_group_auth</string>
     <string name="login_screen_list_items_test_tag">methods_list_auth</string>
-
 </resources>

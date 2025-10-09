@@ -7,10 +7,10 @@ import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import ua.gov.diia.core.ui.dynamicdialog.ActionsConst
-import ua.gov.diia.ui_base.navigation.BaseNavigation
-import ua.gov.diia.core.util.alert.ClientAlertDialogsFactory
 import ua.gov.diia.core.util.delegation.WithErrorHandlingOnFlow
 import ua.gov.diia.core.util.delegation.WithRetryLastAction
 import ua.gov.diia.pin.R
@@ -30,6 +30,7 @@ import ua.gov.diia.ui_base.components.molecule.header.TitleGroupMlcData
 import ua.gov.diia.ui_base.components.molecule.text.TextLabelMlcData
 import ua.gov.diia.ui_base.components.organism.header.TopGroupOrgData
 import ua.gov.diia.ui_base.components.organism.tile.NumButtonTileOrganismData
+import ua.gov.diia.ui_base.navigation.BaseNavigation
 import javax.inject.Inject
 
 @HiltViewModel
@@ -58,6 +59,9 @@ class ConfirmPinVM @Inject constructor(
     )
     val navigation = _navigation.asSharedFlow()
 
+    private val _accessibilityMessage = MutableStateFlow<Int?>(null)
+    val accessibilityMessage: StateFlow<Int?> = _accessibilityMessage
+
     fun doInit(flowType: CreatePinFlowType, pin: String) {
         newPin = pin
         this.flowType.value = flowType
@@ -79,6 +83,7 @@ class ConfirmPinVM @Inject constructor(
             else -> {
             }
         }
+        _uiData.clear()
         _uiData.add(
             TopGroupOrgData(
                 titleGroupMlcData = TitleGroupMlcData(
@@ -142,6 +147,7 @@ class ConfirmPinVM @Inject constructor(
             if (matched) {
                 continueWithMatchedPin(pin)
             } else {
+                _accessibilityMessage.value = R.string.accessibility_wrong_pin_try_again
                 _uiData.findAndChangeFirstByInstance<NumButtonTileOrganismData> {
                     it.copy(clearWithShake = true)
                 }
@@ -149,6 +155,10 @@ class ConfirmPinVM @Inject constructor(
         } else {
             _navigation.tryEmit(BaseNavigation.Back)
         }
+    }
+
+    fun clearAccessibilityMessage() {
+        _accessibilityMessage.value = null
     }
 
     private fun continueWithMatchedPin(pin: String) {

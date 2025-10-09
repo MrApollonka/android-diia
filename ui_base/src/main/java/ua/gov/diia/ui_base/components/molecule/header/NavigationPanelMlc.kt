@@ -2,24 +2,30 @@ package ua.gov.diia.ui_base.components.molecule.header
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.ripple.rememberRipple
+import androidx.compose.material3.ripple
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
+import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 import ua.gov.diia.core.models.common_compose.mlc.header.NavigationPanelMlc
 import ua.gov.diia.ui_base.components.DiiaResourceIcon
 import ua.gov.diia.ui_base.components.atom.icon.IconAtmData
@@ -40,8 +46,18 @@ import ua.gov.diia.ui_base.util.toUiModel
 fun NavigationPanelMlc(
     modifier: Modifier = Modifier,
     data: NavigationPanelMlcData,
+    contentLoaded: Pair<String, Boolean> = Pair("", false),
     onUIAction: (UIAction) -> Unit,
 ) {
+    val backButtonFocusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(contentLoaded.second) {
+        if (contentLoaded.second) {
+            delay(300)
+            backButtonFocusRequester.requestFocus()
+        }
+    }
+
     Row(
         modifier = modifier
             .padding(start = 24.dp, top = 32.dp, end = 24.dp, bottom = 16.dp)
@@ -50,6 +66,8 @@ fun NavigationPanelMlc(
         data.iconAtm?.let {
             Image(
                 modifier = modifier
+                    .focusRequester(backButtonFocusRequester)
+                    .focusable()
                     .size(28.dp)
                     .noRippleClickable {
                         onUIAction(
@@ -62,6 +80,7 @@ fun NavigationPanelMlc(
                     }
                     .semantics {
                         testTag = it.componentId
+                        traversalIndex = -7f
                     },
                 painter = painterResource(
                     id = DiiaResourceIcon.getResourceId(it.code)
@@ -71,12 +90,17 @@ fun NavigationPanelMlc(
         } ?: kotlin.run {
             IconBackArrowAtom(
                 modifier = Modifier
+                    .focusRequester(backButtonFocusRequester)
+                    .focusable()
                     .size(28.dp)
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
-                        indication = rememberRipple(bounded = false, radius = 28.dp)
+                        indication = ripple(bounded = false, radius = 28.dp)
                     ) {
                         onUIAction(UIAction(actionKey = data.backAction))
+                    }
+                    .semantics {
+                        traversalIndex = -7f
                     },
                 tintColor = data.tintColor
             )
@@ -87,7 +111,11 @@ fun NavigationPanelMlc(
                 modifier = Modifier
                     .weight(1f)
                     .padding(horizontal = 16.dp)
-                    .align(alignment = Alignment.CenterVertically),
+                    .align(alignment = Alignment.CenterVertically)
+                    .semantics {
+                        traversalIndex = -6f
+                    }
+                    .focusable(),
                 text = data.title.asString(),
                 style = DiiaTextStyle.h4ExtraSmallHeading,
                 color = data.tintColor
@@ -99,6 +127,9 @@ fun NavigationPanelMlc(
                 .size(28.dp)
                 .noRippleClickable {
                     onUIAction(UIAction(actionKey = data.contextMenuAction))
+                }
+                .semantics {
+                    traversalIndex = -5f
                 }
             )
         }

@@ -40,6 +40,7 @@ fun BtnIconCircledWhiteAtm(
                 modifier = Modifier
                     .size(40.dp),
                 image = it,
+                contentDescription = "",
             )
         }
     }

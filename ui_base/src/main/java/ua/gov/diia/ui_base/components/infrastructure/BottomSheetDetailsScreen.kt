@@ -22,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
 import androidx.compose.ui.unit.dp
@@ -40,6 +41,7 @@ import ua.gov.diia.ui_base.components.molecule.text.TextLabelMlcData
 import ua.gov.diia.ui_base.components.organism.bottom.BottomGroupOrgData
 import ua.gov.diia.ui_base.components.theme.BlackSqueeze
 import ua.gov.diia.ui_base.components.theme.Gray
+import ua.gov.diia.ui_base.mappers.loader.mapToLoader
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -85,6 +87,7 @@ fun BottomSheetDetailsScreen(
                             .background(
                                 Gray, RoundedCornerShape(4.dp)
                             )
+                            .clearAndSetSemantics { }
                     )
                 },
                 sheetContent = {
@@ -97,12 +100,12 @@ fun BottomSheetDetailsScreen(
                         onUIAction = onEvent
                     )
                     if (bottom != null && bottom.size != 0) {
-                            BottomBarRootContainer(
-                                modifier = Modifier.wrapContentSize(),
-                                bottomViews = bottom,
-                                progressIndicator = progressIndicator,
-                                onUIAction = onEvent
-                            )
+                        BottomBarRootContainer(
+                            modifier = Modifier.wrapContentSize(),
+                            bottomViews = bottom,
+                            loader = mapToLoader(progressIndicator, contentLoaded),
+                            onUIAction = onEvent
+                        )
                     }
                 },
                 content = {

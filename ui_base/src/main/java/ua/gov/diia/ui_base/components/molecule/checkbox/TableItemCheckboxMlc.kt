@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import ua.gov.diia.core.models.common_compose.atm.text.TextLabelAtm
 import ua.gov.diia.core.models.common_compose.mlc.checkbox.TableItemCheckboxMlc
 import ua.gov.diia.ui_base.R
+import ua.gov.diia.ui_base.components.atom.text.TextLabelAtm
 import ua.gov.diia.ui_base.components.atom.text.TextLabelAtmData
 import ua.gov.diia.ui_base.components.atom.text.TextLabelAtmMode
 import ua.gov.diia.ui_base.components.atom.text.toUIModel
@@ -33,9 +34,15 @@ import ua.gov.diia.ui_base.components.infrastructure.DataActionWrapper
 import ua.gov.diia.ui_base.components.infrastructure.UIElementData
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
+import ua.gov.diia.ui_base.components.infrastructure.event.pushBundle
 import ua.gov.diia.ui_base.components.infrastructure.state.UIState
+import ua.gov.diia.ui_base.components.infrastructure.utils.SidePaddingMode
+import ua.gov.diia.ui_base.components.infrastructure.utils.TopPaddingMode
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.toDynamicString
+import ua.gov.diia.ui_base.components.infrastructure.utils.toDp
+import ua.gov.diia.ui_base.components.infrastructure.utils.toSidePaddingMode
+import ua.gov.diia.ui_base.components.infrastructure.utils.toTopPaddingMode
 import ua.gov.diia.ui_base.components.noRippleClickable
 import ua.gov.diia.ui_base.components.theme.Black
 import ua.gov.diia.ui_base.components.theme.BlackAlpha30
@@ -52,22 +59,33 @@ fun TableItemCheckboxMlc(
     val id: String = data.componentId?.asString() ?: UUID.randomUUID().toString()
     val inputCode: String? = data.inputCode?.asString()
     Row(
-        modifier = modifier.conditional(data.interactionState == UIState.Interaction.Enabled) {
-            noRippleClickable {
-                onUIAction(
-                    UIAction(
-                        actionKey = data.actionKey,
-                        data = id,
-                        action = DataActionWrapper(
-                            type = data.actionKey,
-                            subtype = inputCode,
-                            resource = id
-                        ),
-                        states = listOf(data.selectionState)
+        modifier = modifier
+            .padding(
+                start = data.sidePaddingMode.toDp(defaultPadding = 0.dp),
+                top = data.topPaddingMode.toDp(defaultPadding = 0.dp),
+                end = data.sidePaddingMode.toDp(defaultPadding = 0.dp)
+            )
+            .conditional(data.interactionState == UIState.Interaction.Enabled) {
+                noRippleClickable {
+                    val action = DataActionWrapper(
+                        type = data.actionKey,
+                        subtype = inputCode,
+                        resource = id
                     )
-                )
-            }
-        }, verticalAlignment = Alignment.Top
+                    onUIAction(
+                        UIAction(
+                            actionKey = data.actionKey,
+                            data = id,
+                            action = action,
+                            states = listOf(data.selectionState)
+                        ).pushBundle(
+                            componentId = id,
+                            action = action
+                        )
+                    )
+                }
+            },
+        verticalAlignment = Alignment.Top
     ) {
         Box(
             modifier = Modifier
@@ -86,35 +104,51 @@ fun TableItemCheckboxMlc(
                                 UIState.Selection.Unselected -> Transparent
                             }
                         }
-                    }, shape = RoundedCornerShape(4.dp)
+                    },
+                    shape = RoundedCornerShape(4.dp)
                 )
                 .conditional(data.selectionState == UIState.Selection.Unselected) {
                     border(
                         color = when (data.interactionState) {
                             UIState.Interaction.Disabled -> BlackAlpha30
                             UIState.Interaction.Enabled -> Black
-                        }, width = 2.dp, shape = RoundedCornerShape(4.dp)
+                        },
+                        width = 2.dp,
+                        shape = RoundedCornerShape(4.dp)
                     )
                 }
                 .size(20.dp)
                 .testTag(data.componentId?.asString() ?: ""),
             contentAlignment = Alignment.Center
         ) {
-            if (data.selectionState == UIState.Selection.Selected) {
+            if (data.selectionState == UIState.Selection.Selected && data.isNotFullSelected != true) {
                 Icon(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(5.dp),
-                    painter = painterResource(id = R.drawable.diia_check),
+                    painter = painterResource(R.drawable.diia_check),
+                    contentDescription = null,
+                    tint = White
+                )
+            }
+            if (data.selectionState == UIState.Selection.Selected && data.isNotFullSelected == true) {
+                Icon(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(5.dp),
+                    painter = painterResource(R.drawable.diia_partially_selected),
                     contentDescription = null,
                     tint = White
                 )
             }
         }
 
-        Column(modifier = Modifier.padding(start = 12.dp)) {
+        Column(
+            modifier = Modifier
+                .padding(start = 12.dp, top = 2.dp)
+        ) {
             data.rows.forEach { textLabelAtmData ->
-                ua.gov.diia.ui_base.components.atom.text.TextLabelAtm(
+                TextLabelAtm(
                     data = textLabelAtmData.copy(
                         isEnabled = data.interactionState != UIState.Interaction.Disabled
                     )
@@ -132,11 +166,22 @@ data class TableItemCheckboxMlcData(
     val interactionState: UIState.Interaction,
     val selectionState: UIState.Selection,
     val mandatory: Boolean?,
+    val isNotFullSelected: Boolean? = null,
+    val dataJson: String? = null,
+    val topPaddingMode: TopPaddingMode? = null,
+    val sidePaddingMode: SidePaddingMode? = null
 ) : UIElementData {
+
+    fun getId() = (componentId as? UiText.DynamicString)?.value
+
+    fun getInputCode() = (componentId as? UiText.DynamicString)?.value
+
+    fun getLabel() = (rows.firstOrNull()?.label as? UiText.DynamicString)?.value
 
     fun onCheckboxClick(): TableItemCheckboxMlcData {
         return this.copy(selectionState = this.selectionState.reverse())
     }
+
 }
 
 fun TableItemCheckboxMlc?.toUIModel(
@@ -150,9 +195,13 @@ fun TableItemCheckboxMlc?.toUIModel(
         actionKey = actionKey,
         componentId = this.componentId?.toDynamicString(),
         rows = mutableListOf<TextLabelAtmData>().apply {
-            data?.items?.forEach {
-                add(it.toUIModel(data.isEnabled != false))
-            }
+            data?.items
+                ?.mapNotNull { item ->
+                    item.textLabelAtm?.toUIModel(data.isEnabled != false)
+                }
+                ?.forEach { item ->
+                    add(item)
+                }
         },
         interactionState = interactionState ?: when (data?.isEnabled) {
             false -> UIState.Interaction.Disabled
@@ -163,7 +212,11 @@ fun TableItemCheckboxMlc?.toUIModel(
         } else {
             UIState.Selection.Unselected
         },
-        mandatory = this.mandatory
+        mandatory = this.mandatory,
+        isNotFullSelected = isNotFullSelected,
+        dataJson = dataJson,
+        topPaddingMode = paddingMode?.top?.toTopPaddingMode(),
+        sidePaddingMode = paddingMode?.side?.toSidePaddingMode()
     )
 }
 
@@ -177,9 +230,10 @@ fun TableItemCheckboxMlc_Enabled() {
             .fillMaxSize()
             .background(color = Color.Gray)
     ) {
-        TableItemCheckboxMlc(modifier = Modifier
-            .padding(24.dp)
-            .background(Color.White),
+        TableItemCheckboxMlc(
+            modifier = Modifier
+                .padding(24.dp)
+                .background(Color.White),
             data = state,
             onUIAction = { action ->
                 state = state.onCheckboxClick()
@@ -191,16 +245,18 @@ fun TableItemCheckboxMlc_Enabled() {
 @Preview
 @Composable
 fun TableItemCheckboxMlc_DisabledSelected() {
-    val data = generateTableItemCheckboxMlcMockData(TableItemCheckboxMlcMockType.disabled_selected)
+    val data =
+        generateTableItemCheckboxMlcMockData(TableItemCheckboxMlcMockType.disabled_selected)
     var state by remember { mutableStateOf(data) }
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(color = Color.Gray)
     ) {
-        TableItemCheckboxMlc(modifier = Modifier
-            .padding(24.dp)
-            .background(Color.White),
+        TableItemCheckboxMlc(
+            modifier = Modifier
+                .padding(24.dp)
+                .background(Color.White),
             data = state,
             onUIAction = { action ->
                 state = state.onCheckboxClick()
@@ -220,9 +276,10 @@ fun TableItemCheckboxMlc_DisabledUnselected() {
             .fillMaxSize()
             .background(color = Color.Gray)
     ) {
-        TableItemCheckboxMlc(modifier = Modifier
-            .padding(24.dp)
-            .background(Color.White),
+        TableItemCheckboxMlc(
+            modifier = Modifier
+                .padding(24.dp)
+                .background(Color.White),
             data = state,
             onUIAction = { action ->
                 state = state.onCheckboxClick()
@@ -239,15 +296,20 @@ fun TableItemCheckboxMlc_FromJson() {
         inputCode = "inputCode",
         mandatory = true,
         items = listOf(
-            TextLabelAtm(
-                componentId = "someId",
-                mode = TextLabelAtm.Mode.PRIMARY,
-                label = "label",
-                value = "value"
+            TableItemCheckboxMlc.Item(
+                TextLabelAtm(
+                    componentId = "someId",
+                    mode = TextLabelAtm.Mode.PRIMARY,
+                    label = "label",
+                    value = "value"
+                )
             )
         ),
         isSelected = true,
-        isEnabled = true
+        isEnabled = true,
+        isNotFullSelected = false,
+        dataJson = null,
+        paddingMode = null,
     )
     var state by remember { mutableStateOf(data.toUIModel()) }
     Box(
@@ -256,9 +318,10 @@ fun TableItemCheckboxMlc_FromJson() {
             .background(color = Color.Gray)
     ) {
         state?.let {
-            TableItemCheckboxMlc(modifier = Modifier
-                .padding(24.dp)
-                .background(Color.White),
+            TableItemCheckboxMlc(
+                modifier = Modifier
+                    .padding(24.dp)
+                    .background(Color.White),
                 data = it,
                 onUIAction = { action ->
                     state = it.onCheckboxClick()
@@ -268,9 +331,31 @@ fun TableItemCheckboxMlc_FromJson() {
     }
 }
 
+@Preview
+@Composable
+fun TableItemCheckboxMlc_EnabledPadding() {
+    val data =
+        generateTableItemCheckboxMlcMockData(TableItemCheckboxMlcMockType.enabled_padding)
+    var state by remember { mutableStateOf(data) }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color = Color.Gray)
+    ) {
+        TableItemCheckboxMlc(
+            modifier = Modifier
+                .padding(24.dp)
+                .background(Color.White),
+            data = state,
+            onUIAction = { action ->
+                state = state.onCheckboxClick()
+            }
+        )
+    }
+}
 
 enum class TableItemCheckboxMlcMockType {
-    enabled, disabled_selected, disabled_unselected
+    enabled, disabled_selected, disabled_unselected, partially_selected, disabled_partially_selected, enabled_padding
 }
 
 fun generateTableItemCheckboxMlcMockData(mockType: TableItemCheckboxMlcMockType): TableItemCheckboxMlcData {
@@ -325,6 +410,50 @@ fun generateTableItemCheckboxMlcMockData(mockType: TableItemCheckboxMlcMockType)
             interactionState = UIState.Interaction.Disabled,
             selectionState = UIState.Selection.Unselected,
             mandatory = true
+        )
+
+        TableItemCheckboxMlcMockType.partially_selected -> TableItemCheckboxMlcData(
+            rows = listOf(
+                TextLabelAtmData(
+                    componentId = null,
+                    mode = TextLabelAtmMode.PRIMARY,
+                    label = "Львів".toDynamicString(),
+                    value = null,
+                    isEnabled = true
+                )
+            ),
+            interactionState = UIState.Interaction.Enabled,
+            selectionState = UIState.Selection.Selected,
+            mandatory = false,
+            isNotFullSelected = true
+        )
+
+        TableItemCheckboxMlcMockType.disabled_partially_selected -> TableItemCheckboxMlcData(
+            rows = listOf(
+                TextLabelAtmData(
+                    componentId = null,
+                    mode = TextLabelAtmMode.PRIMARY,
+                    label = "Київ".toDynamicString(),
+                    value = null,
+                    isEnabled = true
+                )
+            ),
+            interactionState = UIState.Interaction.Disabled,
+            selectionState = UIState.Selection.Selected,
+            mandatory = false,
+            isNotFullSelected = true
+        )
+
+        TableItemCheckboxMlcMockType.enabled_padding -> TableItemCheckboxMlcData(
+            componentId = "1".toDynamicString(),
+            rows = listOf(
+                row1, row2, row3
+            ),
+            interactionState = UIState.Interaction.Enabled,
+            selectionState = UIState.Selection.Selected,
+            mandatory = true,
+            topPaddingMode = TopPaddingMode.MEDIUM,
+            sidePaddingMode = SidePaddingMode.LARGE
         )
     }
 }

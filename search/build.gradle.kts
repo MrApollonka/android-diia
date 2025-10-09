@@ -2,7 +2,6 @@ plugins {
     alias(libs.plugins.diia.android.feature)
     alias(libs.plugins.diia.android.library.jacoco)
     alias(libs.plugins.diia.android.library.compose)
-    alias(libs.plugins.kotlin.kapt) // need kapt for @BindingAdapter
 }
 
 android {
@@ -10,6 +9,10 @@ android {
 
     buildFeatures {
         dataBinding = true
+    }
+
+    defaultConfig {
+        consumerProguardFiles("consumer-rules.pro")
     }
 }
 

@@ -15,13 +15,12 @@ import ua.gov.diia.core.CoreConstants
 import ua.gov.diia.core.ExcludeFromJacocoGeneratedReport
 import ua.gov.diia.core.di.actions.GlobalActionNotificationReceived
 import ua.gov.diia.core.models.notification.push.PushNotification
-import ua.gov.diia.core.util.CommonConst.BUILD_TYPE_RELEASE
 import ua.gov.diia.core.util.deeplink.DeepLinkActionFactory
 import ua.gov.diia.core.util.event.UiEvent
 import ua.gov.diia.core.util.extensions.context.isDiiaAppRunning
 import ua.gov.diia.core.util.extensions.getPendingFlags
+import ua.gov.diia.core.util.isDevMode
 import ua.gov.diia.diia_storage.DiiaStorage
-import ua.gov.diia.notifications.BuildConfig
 import ua.gov.diia.notifications.NotificationsConst.PUSH_NOTIFICATION_RECEIVED
 import ua.gov.diia.notifications.R
 import ua.gov.diia.notifications.action.ActionConstants.NOTIFICATION_TYPE_DOCUMENTS_SHARING
@@ -57,7 +56,7 @@ class PushService(
     }
 
     fun processNotification(notificationJson: String) {
-        if (BuildConfig.BUILD_TYPE != BUILD_TYPE_RELEASE) {
+        if (isDevMode()) {
             notificationHelper.log(notificationJson)
         }
         onNotificationReceived()
@@ -92,11 +91,19 @@ class PushService(
                         }
 
                         NOTIFICATION_SUB_TYPE_UPDATE_TO_ENGAGED -> {
-                            DocWork.enqueue(workManager, NOTIFICATION_SUB_TYPE_UPDATE_TO_ENGAGED, it.action.resourceId ?: "")
+                            DocWork.enqueue(
+                                workManager,
+                                NOTIFICATION_SUB_TYPE_UPDATE_TO_ENGAGED,
+                                it.action.resourceId ?: ""
+                            )
                         }
 
                         NOTIFICATION_SYB_TYPE_DELETE_DOCUMENT -> {
-                            DocWork.enqueue(workManager, NOTIFICATION_SYB_TYPE_DELETE_DOCUMENT, it.action.resourceId ?: "")
+                            DocWork.enqueue(
+                                workManager,
+                                NOTIFICATION_SYB_TYPE_DELETE_DOCUMENT,
+                                it.action.resourceId ?: ""
+                            )
                         }
 
                         else -> {}

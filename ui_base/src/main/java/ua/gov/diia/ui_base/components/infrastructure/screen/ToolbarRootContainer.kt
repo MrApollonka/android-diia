@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
@@ -24,6 +25,8 @@ import ua.gov.diia.ui_base.components.infrastructure.utils.resource.toDynamicStr
 import ua.gov.diia.ui_base.components.molecule.chip.ChipMlcData
 import ua.gov.diia.ui_base.components.molecule.header.NavigationPanelMlc
 import ua.gov.diia.ui_base.components.molecule.header.NavigationPanelMlcData
+import ua.gov.diia.ui_base.components.molecule.header.NavigationPanelMlcV2
+import ua.gov.diia.ui_base.components.molecule.header.NavigationPanelMlcV2Data
 import ua.gov.diia.ui_base.components.molecule.header.SheetNavigationBarMolecule
 import ua.gov.diia.ui_base.components.molecule.header.SheetNavigationBarMoleculeData
 import ua.gov.diia.ui_base.components.molecule.header.chiptabbar.ChipTabBarMolecule
@@ -31,6 +34,8 @@ import ua.gov.diia.ui_base.components.molecule.header.chiptabbar.ChipTabBarMolec
 import ua.gov.diia.ui_base.components.molecule.header.chiptabbar.ChipTabMoleculeData
 import ua.gov.diia.ui_base.components.molecule.input.SearchInputMlc
 import ua.gov.diia.ui_base.components.molecule.input.SearchInputMlcData
+import ua.gov.diia.ui_base.components.molecule.input.SearchInputV2
+import ua.gov.diia.ui_base.components.molecule.input.SearchInputV2Data
 import ua.gov.diia.ui_base.components.organism.chip.ChipTabsOrgData
 import ua.gov.diia.ui_base.components.organism.chip.MapChipTabsOrganism
 import ua.gov.diia.ui_base.components.organism.chip.MapChipTabsOrganismData
@@ -44,6 +49,7 @@ import ua.gov.diia.ui_base.components.theme.Primary
 fun ToolbarRootContainer(
     modifier: Modifier = Modifier,
     toolbarViews: SnapshotStateList<UIElementData>,
+    contentLoaded: Pair<String, Boolean> = Pair("", false),
     onUIAction: (UIAction) -> Unit
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
@@ -91,6 +97,7 @@ fun ToolbarRootContainer(
                 is TopGroupOrgData -> {
                     TopGroupOrg(
                         data = item,
+                        contentLoaded = contentLoaded,
                         onUIAction = onUIAction
                     )
                 }
@@ -102,8 +109,25 @@ fun ToolbarRootContainer(
                     )
                 }
 
+                is NavigationPanelMlcV2Data -> {
+                    NavigationPanelMlcV2(
+                        modifier = Modifier.fillMaxWidth(),
+                        data = item,
+                        lazyListState = rememberLazyListState(),
+                        alphaCallback = {},
+                        onUIAction = onUIAction
+                    )
+                }
+
                 is SearchBarOrgData -> {
                     SearchBarOrg(
+                        data = item,
+                        onUIAction = onUIAction
+                    )
+                }
+
+                is SearchInputV2Data -> {
+                    SearchInputV2(
                         data = item,
                         onUIAction = onUIAction
                     )
@@ -159,7 +183,8 @@ fun ToolbarRootContainerPreview_2() {
     )
     ToolbarRootContainer(
         modifier = Modifier.background(color = Primary),
-        toolbarViews = toolbarData) {}
+        toolbarViews = toolbarData
+    ) {}
 }
 
 @Preview
@@ -182,7 +207,8 @@ fun ToolbarRootContainerPreview_SearchTab() {
     )
     ToolbarRootContainer(
         modifier = Modifier.background(color = Primary),
-        toolbarViews = toolbarData) {}
+        toolbarViews = toolbarData
+    ) {}
 }
 
 @Preview
@@ -213,7 +239,8 @@ fun ToolbarRootContainerPreview_SearchBar() {
     )
     ToolbarRootContainer(
         modifier = Modifier.background(color = Primary),
-        toolbarViews = toolbarData) {}
+        toolbarViews = toolbarData
+    ) {}
 }
 
 @Preview
@@ -273,5 +300,6 @@ fun ToolbarRootContainerPreview_SearchBar_Chips() {
     )
     ToolbarRootContainer(
         modifier = Modifier.background(color = Primary),
-        toolbarViews = toolbarData) {}
+        toolbarViews = toolbarData
+    ) {}
 }

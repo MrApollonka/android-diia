@@ -22,9 +22,6 @@ dependencies {
     implementation(libs.androidx.browser)
     implementation(libs.androidx.viewpager2)
 
-    implementation(libs.glide)
-    ksp(libs.glide.ksp)
-
     implementation(libs.lottie)
     implementation(libs.androidx.paging.ktx)
 

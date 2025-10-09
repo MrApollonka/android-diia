@@ -4,7 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
@@ -16,6 +16,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ua.gov.diia.core.models.common_compose.atm.button.BtnPrimaryLargeAtm
@@ -33,7 +34,6 @@ import ua.gov.diia.ui_base.components.theme.DiiaTextStyle
 import ua.gov.diia.ui_base.components.theme.White
 import ua.gov.diia.ui_base.util.toDataActionWrapper
 
-
 @Composable
 fun BtnPrimaryLargeAtm(
     modifier: Modifier = Modifier,
@@ -41,25 +41,30 @@ fun BtnPrimaryLargeAtm(
     progressIndicator: Pair<String, Boolean> = Pair("", false),
     onUIAction: (UIAction) -> Unit
 ) {
-
     val isLoading = remember {
         mutableStateOf(data.id == progressIndicator.first && progressIndicator.second)
     }
 
-    LaunchedEffect(key1 = data.id == progressIndicator.first, key2 = progressIndicator.second) {
+    LaunchedEffect(
+        key1 = data.id == progressIndicator.first,
+        key2 = progressIndicator.second
+    ) {
         isLoading.value = data.id == progressIndicator.first && progressIndicator.second
     }
 
     Button(
         modifier = modifier
             .padding(top = 16.dp)
-            .defaultMinSize(minWidth = 160.dp)
-            .testTag(data.componentId?.asString() ?: ""),
+            .height(56.dp)
+            .testTag(data.componentId?.asString().orEmpty()),
         colors = ButtonDefaults.buttonColors(
             containerColor = Black,
             disabledContainerColor = BlackAlpha10
         ),
-        contentPadding = PaddingValues(horizontal = 40.dp, vertical = 16.dp),
+        contentPadding = PaddingValues(
+            vertical = 16.dp,
+            horizontal = 24.dp
+        ),
         enabled = data.interactionState == UIState.Interaction.Enabled,
         onClick = {
             if (!isLoading.value) {
@@ -74,23 +79,22 @@ fun BtnPrimaryLargeAtm(
         }
     ) {
         AnimatedVisibility(
-            visible = data.id == progressIndicator.first && progressIndicator.second,
+            visible = isLoading.value,
             enter = fadeIn(),
             exit = fadeOut(),
         ) {
             LoaderCircularEclipse23Subatomic(
                 modifier = Modifier
-                    .padding(vertical = 11.dp)
-                    .size(18.dp)
+                    .size(16.dp)
             )
-
         }
         if (!isLoading.value) {
             Text(
-                modifier = Modifier.padding(vertical = 8.dp),
                 text = data.title.asString(),
                 color = White,
-                style = DiiaTextStyle.h4ExtraSmallHeading
+                style = DiiaTextStyle.h4ExtraSmallHeading,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }
@@ -125,33 +129,41 @@ fun BtnPrimaryLargeAtm.toUIModel(
     )
 }
 
-@Composable
 @Preview
-fun BtnPrimaryLargeAtmPreview_EnabledState() {
+@Composable
+fun BtnPrimaryLargeAtmEnabledPreview() {
     val buttonStateEnabled = BtnPrimaryLargeAtmData(
         title = "Label".toDynamicString(),
         id = "",
         interactionState = UIState.Interaction.Enabled
     )
-    BtnPrimaryLargeAtm(data = buttonStateEnabled) {
-    }
+    BtnPrimaryLargeAtm(
+        data = buttonStateEnabled,
+        onUIAction = {
+            /* no-op */
+        }
+    )
 }
 
-@Composable
 @Preview
-fun BtnPrimaryLargeAtmPreview_DisabledState() {
+@Composable
+fun BtnPrimaryLargeAtmDisabledPreview() {
     val buttonStateDisabled = BtnPrimaryLargeAtmData(
         title = "Label".toDynamicString(),
         id = "",
         interactionState = UIState.Interaction.Disabled
     )
-    BtnPrimaryLargeAtm(data = buttonStateDisabled) {
-    }
+    BtnPrimaryLargeAtm(
+        data = buttonStateDisabled,
+        onUIAction = {
+            /* no-op */
+        }
+    )
 }
 
-@Composable
 @Preview
-fun BtnPrimaryLargeAtmPreview_LoadingState() {
+@Composable
+fun BtnPrimaryLargeAtmLoadingPreview() {
     val buttonStateLoading = BtnPrimaryLargeAtmData(
         title = "Label".toDynamicString(),
         id = "id",
@@ -159,7 +171,9 @@ fun BtnPrimaryLargeAtmPreview_LoadingState() {
     )
     BtnPrimaryLargeAtm(
         data = buttonStateLoading,
-        progressIndicator = Pair("id", true)
-    ) {
-    }
+        progressIndicator = Pair("id", true),
+        onUIAction = {
+            /* no-op */
+        }
+    )
 }

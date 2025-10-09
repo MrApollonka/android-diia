@@ -21,15 +21,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import ua.gov.diia.core.models.common.message.AttentionIconMessageMlc
 import ua.gov.diia.core.models.common_compose.table.Item
 import ua.gov.diia.core.models.common_compose.table.TableItemHorizontalMlc
 import ua.gov.diia.core.models.common_compose.table.TableItemPrimaryMlc
 import ua.gov.diia.core.models.common_compose.table.TableItemVerticalMlc
 import ua.gov.diia.core.models.common_compose.table.tableBlockAccordionOrg.TableBlockAccordionOrg
+import ua.gov.diia.ui_base.components.DiiaResourceIcon
+import ua.gov.diia.ui_base.components.atom.icon.SmallIconAtmData
 import ua.gov.diia.ui_base.components.infrastructure.UIElementData
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
 import ua.gov.diia.ui_base.components.infrastructure.state.UIState
+import ua.gov.diia.ui_base.components.infrastructure.utils.SidePaddingMode
+import ua.gov.diia.ui_base.components.infrastructure.utils.TopPaddingMode
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
 import ua.gov.diia.ui_base.components.molecule.list.table.items.tableblock.TableBlockItem
 import ua.gov.diia.ui_base.components.molecule.list.table.items.tableblock.TableItemHorizontalMlc
@@ -39,6 +44,9 @@ import ua.gov.diia.ui_base.components.molecule.list.table.items.tableblock.Table
 import ua.gov.diia.ui_base.components.molecule.list.table.items.tableblock.TableItemVerticalMlc
 import ua.gov.diia.ui_base.components.molecule.list.table.items.tableblock.TableItemVerticalMlcData
 import ua.gov.diia.ui_base.components.molecule.list.table.items.tableblock.toUIModel
+import ua.gov.diia.ui_base.components.molecule.message.AttentionIconMessageMlcData
+import ua.gov.diia.ui_base.components.molecule.message.BackgroundMode
+import ua.gov.diia.ui_base.components.molecule.message.toUiModel
 import ua.gov.diia.ui_base.components.molecule.tile.SmallEmojiPanelMlc
 import ua.gov.diia.ui_base.components.molecule.tile.SmallEmojiPanelMlcData
 import ua.gov.diia.ui_base.components.noRippleClickable
@@ -135,6 +143,20 @@ fun TableBlockAccordionOrg(
                             )
                         }
 
+                        is AttentionIconMessageMlcData -> {
+                            val paddingTop = item.paddingTop ?: TopPaddingMode.NONE
+                            val paddingHorizontal = item.paddingHorizontal ?: SidePaddingMode.NONE
+
+                            ua.gov.diia.ui_base.components.molecule.message.AttentionIconMessageMlc(
+                                modifier = Modifier,
+                                data = item.copy(
+                                    paddingTop = paddingTop,
+                                    paddingHorizontal = paddingHorizontal
+                                ),
+                                onUIAction = onUIAction
+                            )
+                        }
+
                         else -> {
                             //nothing
                         }
@@ -197,6 +219,10 @@ fun TableBlockAccordionOrg?.toUIModel(): TableBlockAccordionOrgData? {
                     add(it)
                 }
             }
+
+            if (listMlcl.attentionIconMessageMlc is AttentionIconMessageMlc) {
+                listMlcl.attentionIconMessageMlc?.toUiModel()?.let { add(it) }
+            }
         }
     }
     return TableBlockAccordionOrgData(
@@ -212,6 +238,14 @@ fun TableBlockAccordionOrg?.toUIModel(): TableBlockAccordionOrgData? {
 @Preview
 fun TableBlockAccordionOrgPreview() {
     val items = listOf(
+        AttentionIconMessageMlcData(
+            icon = SmallIconAtmData(code = DiiaResourceIcon.ELLIPSE_INFO.code),
+            text = UiText.DynamicString("Try not to write more than 10 lines of message in this component. Even if we have enough space, users have difficulty perceiving large amounts of information."),
+            backgroundMode = BackgroundMode.INFO,
+            isExpanded = true,
+            expandedText = UiText.DynamicString("Show more"),
+            collapsedText = UiText.DynamicString("Show less")
+        ),
         TableItemHorizontalMlcData(
             id = "1",
             title = UiText.DynamicString("Item title"),
@@ -241,14 +275,13 @@ fun TableBlockAccordionOrgPreview() {
 
     val startState = TableBlockAccordionOrgData(
         heading = "Heading",
-        expandState = UIState.Expand.Collapsed,
+        expandState = UIState.Expand.Expanded,
         items = items
     )
 
     TableBlockAccordionOrg(
         modifier = Modifier.padding(16.dp),
         data = startState,
-        onUIAction = {
-        }
+        onUIAction = {}
     )
 }

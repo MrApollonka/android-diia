@@ -5,7 +5,7 @@ import ua.gov.diia.ui_base.components.infrastructure.navigation.NavigationPath
 
 sealed class BaseNavigation : NavigationPath {
 
-    object Back : BaseNavigation()
+    data object Back : BaseNavigation()
 
     data class ContextMenu(val contextMenuArray: Array<ContextMenuField>?) : BaseNavigation()
 

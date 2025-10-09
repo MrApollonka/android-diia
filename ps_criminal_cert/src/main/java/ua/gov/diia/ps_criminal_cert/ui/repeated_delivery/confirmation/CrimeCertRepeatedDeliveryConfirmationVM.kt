@@ -1,0 +1,257 @@
+package ua.gov.diia.ps_criminal_cert.ui.repeated_delivery.confirmation
+
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.combine
+import ua.gov.diia.core.di.data_source.http.AuthorizedClient
+import ua.gov.diia.core.models.ContextMenuField
+import ua.gov.diia.core.models.common_compose.general.DiiaResponse
+import ua.gov.diia.core.models.rating_service.RatingRequest
+import ua.gov.diia.core.util.delegation.WithContextMenu
+import ua.gov.diia.core.util.delegation.WithErrorHandlingOnFlow
+import ua.gov.diia.core.util.delegation.WithRatingDialogOnFlow
+import ua.gov.diia.core.util.delegation.WithRetryLastAction
+import ua.gov.diia.core.util.extensions.vm.executeActionOnFlow
+import ua.gov.diia.ps_criminal_cert.models.request.RepeatedDeliveryConfirmationRequest
+import ua.gov.diia.ps_criminal_cert.network.ApiCriminalCert
+import ua.gov.diia.ps_criminal_cert.ui.CriminalCertConst
+import ua.gov.diia.ps_criminal_cert.ui.CriminalCertConst.SCREEN_CONFIRMATION_ACTION_CONFIRM
+import ua.gov.diia.ps_criminal_cert.ui.CriminalCertConst.SCREEN_CONFIRMATION_ACTION_LINK
+import ua.gov.diia.ps_criminal_cert.ui.CriminalCertConst.SCREEN_RD_CONFIRMATION_CANCEL_ACTION
+import ua.gov.diia.ps_criminal_cert.ui.CriminalCertConst.SCREEN_RD_CONFIRMATION_CONFIRM_ACTION
+import ua.gov.diia.ps_criminal_cert.ui.steps.confirm.CriminalCertStepConfirmVM.ConfirmationNavigation
+import ua.gov.diia.publicservice.helper.PSNavigationHelper
+import ua.gov.diia.ui_base.components.infrastructure.UIElementData
+import ua.gov.diia.ui_base.components.infrastructure.addAllIfNotNull
+import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
+import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
+import ua.gov.diia.ui_base.components.infrastructure.findAndChangeFirstByInstance
+import ua.gov.diia.ui_base.components.infrastructure.navigation.NavigationPath
+import ua.gov.diia.ui_base.components.molecule.checkbox.CheckboxBtnOrgData
+import ua.gov.diia.ui_base.components.molecule.checkbox.CheckboxBtnWhiteOrgData
+import ua.gov.diia.ui_base.mappers.getEllipseMenu
+import ua.gov.diia.ui_base.mappers.mapToComposeBodyData
+import ua.gov.diia.ui_base.mappers.mapToComposeBottomData
+import ua.gov.diia.ui_base.mappers.mapToComposeTopData
+import ua.gov.diia.ui_base.navigation.BaseNavigation
+import javax.inject.Inject
+
+@HiltViewModel
+class CrimeCertRepeatedDeliveryConfirmationVM @Inject constructor(
+    @AuthorizedClient private val api: ApiCriminalCert,
+    private val withContextMenu: WithContextMenu<ContextMenuField>,
+    private val errorHandling: WithErrorHandlingOnFlow,
+    private val retryLastAction: WithRetryLastAction,
+    private val navigationHelper: PSNavigationHelper,
+    private val withRatingDialog: WithRatingDialogOnFlow
+) : ViewModel(),
+    WithRetryLastAction by retryLastAction,
+    WithErrorHandlingOnFlow by errorHandling,
+    PSNavigationHelper by navigationHelper,
+    WithContextMenu<ContextMenuField> by withContextMenu,
+    WithRatingDialogOnFlow by withRatingDialog {
+
+    private val _contentLoadedKey =
+        MutableStateFlow(UIActionKeysCompose.PAGE_LOADING_LINEAR_WITH_LABEL)
+    private val _contentLoaded = MutableStateFlow(false)
+    val contentLoaded: Flow<Pair<String, Boolean>> =
+        _contentLoaded.combine(_contentLoadedKey) { value, key ->
+            key to value
+        }
+
+    private val _progressIndicatorKey = MutableStateFlow("")
+    private val _progressIndicator = MutableStateFlow(false)
+    val progressIndicator: Flow<Pair<String, Boolean>> =
+        _progressIndicator.combine(_progressIndicatorKey) { value, key ->
+            key to value
+        }
+
+    private val _topGroupData = mutableStateListOf<UIElementData>()
+    val topGroupData: SnapshotStateList<UIElementData> = _topGroupData
+
+    private val _bodyData = mutableStateListOf<UIElementData>()
+    val bodyData: SnapshotStateList<UIElementData> = _bodyData
+
+    private val _bottomData = mutableStateListOf<UIElementData>()
+    val bottomData: SnapshotStateList<UIElementData> = _bottomData
+
+    private val _navigation =
+        MutableSharedFlow<NavigationPath>(
+            replay = 0,
+            extraBufferCapacity = 1,
+            onBufferOverflow = BufferOverflow.DROP_OLDEST
+        )
+    val navigation = _navigation.asSharedFlow()
+
+
+    private var navBarTitle: String? = null
+    var applicationId: String? = null
+    var phone: String? = null
+    var email: String? = null
+    var addressId: String? = null
+    var deliveryType: String? = null
+
+    fun doInit(
+        navBarTitle: String?,
+        applicationId: String?,
+        phone: String?,
+        email: String?,
+        addressId: String?,
+        deliveryType: String?
+    ) {
+        this.navBarTitle = navBarTitle
+        this.applicationId = applicationId
+        this.phone = phone
+        this.email = email
+        this.addressId = addressId
+        this.deliveryType = deliveryType
+    }
+
+    fun onUIAction(event: UIAction) {
+        when (event.actionKey) {
+            UIActionKeysCompose.TOOLBAR_NAVIGATION_BACK -> {
+                _navigation.tryEmit(BaseNavigation.Back)
+            }
+
+            UIActionKeysCompose.TOOLBAR_CONTEXT_MENU -> {
+                _navigation.tryEmit(BaseNavigation.ContextMenu(withContextMenu.getMenu()))
+            }
+
+            UIActionKeysCompose.CHECKBOX_REGULAR -> {
+                event.data?.let {
+                    updateBottomState(it)
+                }
+            }
+        }
+
+        val action = event.action
+        when (action?.type) {
+            SCREEN_RD_CONFIRMATION_CONFIRM_ACTION -> {
+                applicationId = action.resource
+                confirmRepeatedDeliveryApplication()
+            }
+
+            SCREEN_RD_CONFIRMATION_CANCEL_ACTION -> {
+                cancelRepeatedDeliveryApplication(false)
+            }
+
+            SCREEN_CONFIRMATION_ACTION_LINK -> {
+                _navigation.tryEmit(ConfirmationNavigation.ToWebView(action.resource))
+
+            }
+        }
+    }
+
+    fun getScreenContent() {
+        executeActionOnFlow(
+            contentLoadedIndicator = _contentLoaded.also {
+                _contentLoadedKey.value =
+                    UIActionKeysCompose.PAGE_LOADING_TRIDENT_WITH_BACK_NAVIGATION
+            })
+        {
+            val request = RepeatedDeliveryConfirmationRequest(
+                addressId = addressId,
+                applicationId = applicationId,
+                emailAddress = email,
+                phoneNumber = phone,
+                typeDelivery = deliveryType
+
+            )
+            api.getCrimeCertRepeatedDeliveryConfirmation(request).let { response ->
+                response.template?.let { showTemplateDialog(it) }
+                if (response.template == null) {
+                    response.topGroup?.let { setContextMenu(it.getEllipseMenu()?.toTypedArray()) }
+                    showScreenContent(response)
+                }
+            }
+        }
+    }
+
+    private fun showScreenContent(content: DiiaResponse) {
+        content.topGroup?.forEach { item ->
+            item.mapToComposeTopData(!withContextMenu.getMenu().isNullOrEmpty())?.let {
+                _topGroupData.addAllIfNotNull(it)
+            }
+        }
+
+        content.body?.forEach { item ->
+            item.mapToComposeBodyData()?.let {
+                _bodyData.addAllIfNotNull(it)
+            }
+        }
+        content.bottomGroup?.forEach { item ->
+            item.mapToComposeBottomData()?.let {
+                _bottomData.addAllIfNotNull(it)
+            }
+        }
+    }
+
+    private fun confirmRepeatedDeliveryApplication() {
+        executeActionOnFlow(
+            progressIndicator = _progressIndicator.also {
+                _progressIndicatorKey.value = CriminalCertConst.CONFIRM_REPEATED_DELIVERY_BUTTON_ID
+            }) {
+            val request = RepeatedDeliveryConfirmationRequest(
+                addressId = addressId,
+                applicationId = applicationId,
+                emailAddress = email,
+                phoneNumber = phone,
+                typeDelivery = deliveryType
+            )
+            api.createCrimeCertRepeatedDeliveryApplication(request).let { response ->
+                response.template?.let { showTemplateDialog(it) }
+            }
+        }
+    }
+
+    private fun updateBottomState(optionId: String) {
+        _bodyData.findAndChangeFirstByInstance<CheckboxBtnOrgData> {
+            it.onOptionsCheckChanged(optionId)
+        }
+    }
+
+    fun cancelRepeatedDeliveryApplication(force: Boolean) {
+        executeActionOnFlow(
+            progressIndicator = _progressIndicator.also {
+                _progressIndicatorKey.value = CriminalCertConst.CANCEL_REPEATED_DELIVERY_BUTTON_ID
+            }
+        ) {
+            if (!applicationId.isNullOrEmpty()) {
+                api.cancelCriminalCertRepeatedDelivery(
+                    id = applicationId ?: return@executeActionOnFlow,
+                    force = force,
+                ).let {
+                    it.template?.let {
+                        showTemplateDialog(it)
+                    }
+                }
+            }
+        }
+    }
+
+    fun getRatingForm() {
+        getRating(
+            category = CriminalCertConst.RATING_SERVICE_CATEGORY,
+            serviceCode = CriminalCertConst.RATING_SERVICE_CODE
+        )
+    }
+
+    fun sendRatingRequest(ratingRequest: RatingRequest) {
+        sendRating(
+            ratingRequest = ratingRequest,
+            category = CriminalCertConst.RATING_SERVICE_CATEGORY,
+            serviceCode = CriminalCertConst.RATING_SERVICE_CODE
+        )
+    }
+
+    sealed class ConfirmationNavigation : NavigationPath {
+        data class ToWebView(val url: String?) : ConfirmationNavigation()
+    }
+}

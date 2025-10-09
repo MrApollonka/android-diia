@@ -26,6 +26,8 @@ import ua.gov.diia.ui_base.components.molecule.input.SearchInputV2
 import ua.gov.diia.ui_base.components.molecule.input.SearchInputV2Data
 import ua.gov.diia.ui_base.components.molecule.tile.ServiceCardTileOrgData
 import ua.gov.diia.ui_base.components.molecule.tile.loadItems
+import ua.gov.diia.ui_base.components.organism.carousel.HalvedCardCarouselOrg
+import ua.gov.diia.ui_base.components.organism.carousel.HalvedCardCarouselOrgData
 import ua.gov.diia.ui_base.components.organism.list.MessageListOrganismData
 
 //TODO migrate Feed and Menu tabs from TabBodyRootContainer to TabBodyRootLazyContainer
@@ -76,7 +78,7 @@ fun ColumnScope.TabBodyRootLazyContainer(
 
                     is ServiceCardTileOrgData -> {
                         loadItems(
-                            item = element,
+                            serviceCardTileOrgData = element,
                             onUIAction = onUIAction
                         )
                     }
@@ -84,6 +86,16 @@ fun ColumnScope.TabBodyRootLazyContainer(
                     is ChipTabsOrgData -> {
                         loadItem(ChipTabsOrgData::class) {
                             ChipTabsOrg(
+                                modifier = Modifier,
+                                data = element,
+                                onUIAction = onUIAction
+                            )
+                        }
+                    }
+
+                    is HalvedCardCarouselOrgData -> {
+                        loadItem(HalvedCardCarouselOrgData::class) {
+                            HalvedCardCarouselOrg(
                                 modifier = Modifier,
                                 data = element,
                                 onUIAction = onUIAction

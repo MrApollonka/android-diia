@@ -44,8 +44,10 @@ import ua.gov.diia.documents.di.DocTypesAvailableToUsers
 import ua.gov.diia.documents.helper.DocumentsHelper
 import ua.gov.diia.documents.util.datasource.ExpirationStrategy
 import ua.gov.diia.documents.verificationdata.DocumentVerificationDataFactory
+import ua.gov.diia.faq.helper.FaqHelper
 import ua.gov.diia.opensource.data.data_source.network.api.ApiDocs
 import ua.gov.diia.opensource.helper.DocumentsHelperImpl
+import ua.gov.diia.opensource.helper.FaqHelperImpl
 import ua.gov.diia.opensource.util.store.docs.api.ApiDocumentsWrapper
 import ua.gov.diia.ui_base.mappers.document.BaseDocumentActionProvider
 import ua.gov.diia.ui_base.mappers.document.BaseFullInfoComposeMapper
@@ -224,4 +226,8 @@ object DocumentsModule {
     @Provides
     fun provideDocumentVerificationDataFactory(): DocumentVerificationDataFactory =
         DocumentVerificationDataFactory()
+
+    @Provides
+    fun provideFaqHelper(): FaqHelper = FaqHelperImpl()
+
 }

@@ -1,9 +1,7 @@
 package ua.gov.diia.ui_base.components.molecule.card
 
-
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -17,13 +15,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
+import coil.compose.AsyncImage
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
 import ua.gov.diia.ui_base.components.molecule.list.table.items.tableblock.TableBlockItem
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalGlideComposeApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun GalleryImageMolecule(
     modifier: Modifier = Modifier,
@@ -32,23 +29,23 @@ fun GalleryImageMolecule(
 ) {
     val pagerState = rememberPagerState { data.images.size }
     HorizontalPager(
-            state = pagerState,
-            modifier = modifier
-                .wrapContentWidth()
-                .wrapContentHeight(),
-            pageSize = PageSize.Fixed(93.dp),
-            pageSpacing = 8.dp,
-        ) { page ->
-            val url = data.images.getOrNull(page)
-            GlideImage(
-                modifier = Modifier
-                    .size(93.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .clickable { onUIAction.invoke(UIAction(data.actionKey, data = page.toString())) },
-                model = url,
-                contentDescription = "",
-                contentScale = ContentScale.Crop,
-            )
+        state = pagerState,
+        modifier = modifier
+            .wrapContentWidth()
+            .wrapContentHeight(),
+        pageSize = PageSize.Fixed(93.dp),
+        pageSpacing = 8.dp,
+    ) { page ->
+        val url = data.images.getOrNull(page)
+        AsyncImage(
+            modifier = Modifier
+                .size(93.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .clickable { onUIAction.invoke(UIAction(data.actionKey, data = page.toString())) },
+            model = url,
+            contentDescription = "",
+            contentScale = ContentScale.Crop
+        )
     }
 }
 

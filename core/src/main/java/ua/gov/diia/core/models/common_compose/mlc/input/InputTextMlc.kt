@@ -4,6 +4,7 @@ import android.os.Parcelable
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import kotlinx.parcelize.Parcelize
+import ua.gov.diia.core.models.common_compose.atm.icon.IconAtm
 
 @Parcelize
 @JsonClass(generateAdapter = true)
@@ -24,8 +25,12 @@ data class InputTextMlc(
     val value: String?,
     @Json(name = "mandatory")
     val mandatory: Boolean?,
+    @Json(name = "maskCode")
+    val maskCode: String?,
     @Json(name = "validation")
     val validation: List<ValidationTextItem>?,
+    @Json(name = "iconRight")
+    val iconRight: IconAtm?,
     @Json(name = "type")
     val type: String?,
     @Json(name = "inputCode")

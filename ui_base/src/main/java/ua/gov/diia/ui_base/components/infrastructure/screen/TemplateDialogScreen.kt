@@ -3,10 +3,12 @@ package ua.gov.diia.ui_base.components.infrastructure.screen
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -14,12 +16,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.hideFromAccessibility
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -30,8 +32,8 @@ import ua.gov.diia.ui_base.components.atom.button.BtnPlainAtm
 import ua.gov.diia.ui_base.components.atom.button.BtnPlainAtmData
 import ua.gov.diia.ui_base.components.atom.button.BtnPrimaryDefaultAtm
 import ua.gov.diia.ui_base.components.atom.button.BtnPrimaryDefaultAtmData
-import ua.gov.diia.ui_base.components.atom.button.ButtonStrokeLargeAtom
-import ua.gov.diia.ui_base.components.atom.button.ButtonStrokeLargeAtomData
+import ua.gov.diia.ui_base.components.atom.button.BtnStrokeLargeAtm
+import ua.gov.diia.ui_base.components.atom.button.BtnStrokeLargeAtmData
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
 import ua.gov.diia.ui_base.components.infrastructure.state.UIState
@@ -40,14 +42,12 @@ import ua.gov.diia.ui_base.components.theme.DiiaTextStyle
 import ua.gov.diia.ui_base.components.theme.Primary
 import ua.gov.diia.ui_base.components.theme.White
 
-
 @Composable
 fun TemplateDialogScreen(
     modifier: Modifier = Modifier,
-    dataState: State<TemplateDialogScreenData>,
+    data: TemplateDialogScreenData,
     onUIAction: (UIAction) -> Unit
 ) {
-    val data = dataState.value
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -70,7 +70,11 @@ fun TemplateDialogScreen(
                     TextAlign.Center
                 if (data.icon != null) {
                     Text(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .semantics {
+                                hideFromAccessibility()
+                            },
                         text = data.icon.asString(),
                         textAlign = alignment,
                         style = TextStyle(
@@ -101,7 +105,10 @@ fun TemplateDialogScreen(
                 }
 
                 if (data.strokeButton != null) {
-                    ButtonStrokeLargeAtom(
+                    BtnStrokeLargeAtm(
+                        modifier = Modifier
+                            .padding(top = 32.dp)
+                            .defaultMinSize(minWidth = 160.dp),
                         data = data.strokeButton,
                         onUIAction = onUIAction
                     )
@@ -135,7 +142,7 @@ fun TemplateDialogScreen(
                     Icon(
                         modifier = modifier.size(16.dp),
                         painter = painterResource(id = R.drawable.ic_close_modal),
-                        contentDescription = "",
+                        contentDescription = stringResource(id = R.string.close),
                         tint = Primary
                     )
                 }
@@ -151,7 +158,7 @@ data class TemplateDialogScreenData(
     val descriptionText: UiText? = null,
     val primaryButton: BtnPrimaryDefaultAtmData? = null,
     val secondaryButton: BtnPlainAtmData? = null,
-    val strokeButton: ButtonStrokeLargeAtomData? = null,
+    val strokeButton: BtnStrokeLargeAtmData? = null,
     val isCloseable: Boolean = true,
 ) {
     enum class Alignment {
@@ -167,14 +174,18 @@ fun TemplateDialogScreenPreview_stroke() {
         icon = UiText.DynamicString("\uD83D\uDC4D"),
         titleText = UiText.DynamicString("Heading"),
         descriptionText = UiText.DynamicString("Here is the text that shortly describes the issue or statement."),
-        strokeButton = ButtonStrokeLargeAtomData(
+        strokeButton = BtnStrokeLargeAtmData(
             id = "",
             title = UiText.DynamicString("Label"),
             interactionState = UIState.Interaction.Enabled
         )
     )
-    val state = remember { mutableStateOf(data) }
-    TemplateDialogScreen(dataState = state, onUIAction = {})
+    TemplateDialogScreen(
+        data = data,
+        onUIAction = {
+            /* no-op */
+        }
+    )
 }
 
 @Composable
@@ -195,10 +206,13 @@ fun TemplateDialogScreenPreview_two_buttons() {
             interactionState = UIState.Interaction.Enabled
         )
     )
-    val state = remember { mutableStateOf(data) }
-    TemplateDialogScreen(dataState = state, onUIAction = {})
+    TemplateDialogScreen(
+        data = data,
+        onUIAction = {
+            /* no-op */
+        }
+    )
 }
-
 
 @Composable
 @Preview
@@ -219,6 +233,10 @@ fun TemplateDialogScreenPreview_two_buttons_left() {
             interactionState = UIState.Interaction.Enabled
         )
     )
-    val state = remember { mutableStateOf(data) }
-    TemplateDialogScreen(dataState = state, onUIAction = {})
+    TemplateDialogScreen(
+        data = data,
+        onUIAction = {
+            /* no-op */
+        }
+    )
 }

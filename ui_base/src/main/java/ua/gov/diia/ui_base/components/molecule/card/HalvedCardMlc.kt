@@ -17,18 +17,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil.compose.SubcomposeAsyncImage
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideSubcomposition
-import com.bumptech.glide.integration.compose.RequestState
 import ua.gov.diia.ui_base.R
 import ua.gov.diia.ui_base.components.conditional
 import ua.gov.diia.ui_base.components.infrastructure.DataActionWrapper
@@ -40,13 +39,10 @@ import ua.gov.diia.ui_base.components.organism.carousel.SimpleCarouselCard
 import ua.gov.diia.ui_base.components.organism.list.pagination.SimplePagination
 import ua.gov.diia.ui_base.components.theme.Alabaster
 import ua.gov.diia.ui_base.components.theme.Black
-import ua.gov.diia.ui_base.components.theme.BlackAlpha30
+import ua.gov.diia.ui_base.components.theme.BlackAlpha54
 import ua.gov.diia.ui_base.components.theme.DiiaTextStyle
-import ua.gov.diia.ui_base.components.theme.Transparent
 import ua.gov.diia.ui_base.components.theme.White
 
-
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun HalvedCardMlc(
     modifier: Modifier = Modifier,
@@ -69,32 +65,33 @@ fun HalvedCardMlc(
                     )
                 }
             }
+            .semantics {
+                onClick(label = null, action = null)
+            }
     ) {
-        data.imageURL?.let {
-            GlideSubcomposition(
+        data.imageURL?.let { lImageUrl ->
+            SubcomposeAsyncImage(
                 modifier = Modifier
                     .height(112.dp)
                     .fillMaxWidth()
                     .clip(shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
                     .background(Alabaster),
-                model = data.imageURL
-            ) {
-                when (state) {
-                    RequestState.Failure -> {
-                        HalvedCardPlaceholder()
-                    }
-
-                    RequestState.Loading -> {
-                        HalvedCardPlaceholder()
-                    }
-
-                    is RequestState.Success -> Image(
-                        painter,
+                model = lImageUrl,
+                contentDescription = null,
+                loading = {
+                    HalvedCardPlaceholder()
+                },
+                success = {
+                    Image(
+                        painter = painter,
                         contentDescription = null,
                         contentScale = ContentScale.Crop
                     )
+                },
+                error = {
+                    HalvedCardPlaceholder()
                 }
-            }
+            )
         }
         Column(
             modifier = Modifier
@@ -111,7 +108,7 @@ fun HalvedCardMlc(
                 maxLines = 1,
                 minLines = 1,
                 style = DiiaTextStyle.t4TextSmallDescription,
-                color = BlackAlpha30
+                color = BlackAlpha54
             )
             Text(
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
@@ -121,7 +118,6 @@ fun HalvedCardMlc(
                 style = DiiaTextStyle.t1BigText,
                 color = Black
             )
-
         }
     }
 }

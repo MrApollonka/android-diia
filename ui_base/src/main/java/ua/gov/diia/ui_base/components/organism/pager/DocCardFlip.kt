@@ -5,7 +5,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.tooling.preview.Preview
+import ua.gov.diia.ui_base.R
 import ua.gov.diia.ui_base.components.DiiaResourceIcon
 import ua.gov.diia.ui_base.components.atom.text.TickerAtomData
 import ua.gov.diia.ui_base.components.atom.text.TickerType
@@ -15,6 +18,7 @@ import ua.gov.diia.ui_base.components.infrastructure.UIElementData
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
 import ua.gov.diia.ui_base.components.infrastructure.state.UIState
+import ua.gov.diia.ui_base.components.infrastructure.utils.isTalkBackEnabled
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiIcon
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.toDynamicString
@@ -32,6 +36,7 @@ import ua.gov.diia.ui_base.components.organism.document.Localization
 import ua.gov.diia.ui_base.components.organism.document.TableBlockTwoColumnsPlainOrgData
 import ua.gov.diia.ui_base.components.organism.group.ToggleButtonGroupData
 import ua.gov.diia.ui_base.components.subatomic.preview.PreviewBase64Images
+import ua.gov.diia.ui_base.models.orientation.Orientation
 
 @Composable
 fun DocCardFlip(
@@ -39,8 +44,12 @@ fun DocCardFlip(
     data: DocCardFlipData,
     progressIndicator: Pair<String, Boolean> = Pair("", false),
     cardFocus: CardFocus = CardFocus.UNDEFINED,
+    orientation: Orientation = Orientation.Portrait,
     onUIAction: (UIAction) -> Unit
 ) {
+    val context = LocalContext.current
+    val view = LocalView.current
+
     Flipper(modifier = modifier,
         data = FlipCardData(
             front = {
@@ -48,6 +57,7 @@ fun DocCardFlip(
                     modifier = Modifier,
                     data = data.front,
                     cardFocus = cardFocus,
+                    orientation = orientation,
                     onUIAction = {
                         onUIAction(
                             UIAction(
@@ -64,7 +74,9 @@ fun DocCardFlip(
             back = {
                 data.back?.let {
                     DocCodeOrg(
-                        modifier = Modifier, data = it,
+                        modifier = Modifier,
+                        data = it,
+                        orientation = orientation,
                         onUIAction = {
                             onUIAction(
                                 it.copy(
@@ -74,7 +86,8 @@ fun DocCardFlip(
                                 )
                             )
                         },
-                        progressIndicator = progressIndicator
+                        progressIndicator = progressIndicator,
+                        docType = data.docType
                     )
                 }
             },
@@ -89,6 +102,11 @@ fun DocCardFlip(
                     optionalId = data.position.toString()
                 )
             )
+
+            if (context.isTalkBackEnabled() && data.enableFlip && data.isFlipped) {
+                val message = context.getString(R.string.accessibility_document_card_displayed)
+                view.announceForAccessibility(message)
+            }
         }
     )
 }
@@ -138,6 +156,10 @@ data class DocCardFlipData(
 
         return updatedData.copy(back = back?.onToggleClick(toggleId))
     }
+}
+
+object DocType {
+    const val E_DOCUMENT = "u-id"
 }
 
 @Preview

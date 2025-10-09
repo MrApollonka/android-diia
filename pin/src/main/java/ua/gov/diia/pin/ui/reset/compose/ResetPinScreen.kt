@@ -1,15 +1,21 @@
 package ua.gov.diia.pin.ui.reset.compose
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -28,11 +34,94 @@ import ua.gov.diia.ui_base.components.organism.tile.NumButtonTileOrganism
 import ua.gov.diia.ui_base.components.organism.tile.NumButtonTileOrganismData
 import ua.gov.diia.ui_base.components.provideTestTagsAsResourceId
 import ua.gov.diia.ui_base.components.subatomic.loader.TridentLoaderWithUIBlocking
+import ua.gov.diia.ui_base.mappers.loader.mapToLoader
+import ua.gov.diia.ui_base.models.orientation.Orientation
 
 
 @Composable
 fun ResetPinScreen(
     modifier: Modifier = Modifier,
+    data: SnapshotStateList<UIElementData>,
+    contentLoaded: Pair<String, Boolean>,
+    onUIAction: (UIAction) -> Unit
+) {
+    val configuration = LocalConfiguration.current
+    val orientation = if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+        Orientation.Landscape
+    } else {
+        Orientation.Portrait
+    }
+
+    when (orientation) {
+        Orientation.Portrait -> ResetPinScreenPortrait(modifier, data, contentLoaded, onUIAction)
+        Orientation.Landscape -> ResetPinScreenLandscape(modifier, data, contentLoaded, onUIAction)
+    }
+}
+
+@Composable
+fun ResetPinScreenLandscape(
+    modifier: Modifier,
+    data: SnapshotStateList<UIElementData>,
+    contentLoaded: Pair<String, Boolean>,
+    onUIAction: (UIAction) -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .paint(
+                painterResource(id = R.drawable.bg_blue_yellow_gradient),
+                contentScale = ContentScale.FillBounds
+            )
+            .safeDrawingPadding()
+            .provideTestTagsAsResourceId()
+    ) {
+        Row {
+            Column(modifier = modifier.weight(1f)) {
+                data.forEach { item ->
+                    if (item is TopGroupOrgData) {
+                        TopGroupOrg(
+                            modifier = modifier,
+                            data = item,
+                            onUIAction = onUIAction
+                        )
+                    }
+
+                    if (item is TextLabelMlcData) {
+                        TextLabelMlc(
+                            modifier = modifier,
+                            data = item,
+                            onUIAction = onUIAction
+                        )
+                    }
+                }
+            }
+
+            Box(
+                modifier = modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+                contentAlignment = Alignment.Center
+            ) {
+                data.forEach { item ->
+                    if (item is NumButtonTileOrganismData) {
+                        NumButtonTileOrganism(
+                            modifier = Modifier,
+                            data = item,
+                            orientation = Orientation.Landscape,
+                            onUIAction = onUIAction
+                        )
+                    }
+                }
+            }
+
+        }
+        TridentLoaderWithUIBlocking(loader = mapToLoader(content = contentLoaded))
+    }
+}
+
+@Composable
+fun ResetPinScreenPortrait(
+    modifier: Modifier,
     data: SnapshotStateList<UIElementData>,
     contentLoaded: Pair<String, Boolean>,
     onUIAction: (UIAction) -> Unit
@@ -86,12 +175,13 @@ fun ResetPinScreen(
                                 )
                             },
                         data = item,
+                        orientation = Orientation.Portrait,
                         onUIAction = onUIAction
                     )
                 }
             }
         }
-        TridentLoaderWithUIBlocking(contentLoaded = contentLoaded)
+        TridentLoaderWithUIBlocking(loader = mapToLoader(content = contentLoaded))
     }
 }
 
@@ -157,4 +247,41 @@ fun ResetPinScreenPreview_small_screen() {
         NumButtonTileOrganismData()
     )
     ResetPinScreen(data = uiData, contentLoaded = "" to true, onUIAction = { })
+}
+
+@Composable
+@Preview(heightDp = 360, widthDp = 800)
+fun ResetPinScreenLandscapePreview() {
+    val _uiData = remember { mutableStateListOf<UIElementData>() }
+    val uiData: SnapshotStateList<UIElementData> = _uiData
+    _uiData.add(
+        TopGroupOrgData(
+            titleGroupMlcData = TitleGroupMlcData(
+                heroText = UiText.DynamicString("Повторіть код з 4 цифр"),
+                leftNavIcon = TitleGroupMlcData.LeftNavIcon(
+                    code = DiiaResourceIcon.BACK.code,
+                    accessibilityDescription = UiText.StringResource(R.string.accessibility_back_button),
+                    action = DataActionWrapper(
+                        type = "back",
+                        subtype = null,
+                        resource = null
+                    )
+                )
+            )
+        )
+    )
+    _uiData.add(
+        TextLabelMlcData(
+            text = UiText.DynamicString("Щоб впевнитися, що це ви змінюєте код для входу.")
+        )
+    )
+    _uiData.add(
+        NumButtonTileOrganismData()
+    )
+    ResetPinScreenLandscape(
+        data = uiData,
+        contentLoaded = "" to true,
+        onUIAction = { },
+        modifier = Modifier
+    )
 }

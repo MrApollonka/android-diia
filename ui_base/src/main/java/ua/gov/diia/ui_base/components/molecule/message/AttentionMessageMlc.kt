@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -54,6 +55,7 @@ fun AttentionMessageMlc(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
+                .semantics(mergeDescendants = true) { }
         ) {
             Column(modifier = Modifier.wrapContentWidth()) {
                 Text(

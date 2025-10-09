@@ -4,6 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
+
+<import type="android.view.View" />
         <variable
             name="message"
             type="ua.gov.diia.core.models.notification.pull.message.NotificationMessagesBody" />
@@ -25,18 +27,17 @@
 
         <ImageView
             android:id="@+id/iv_action_img"
-            isGone="@{message.data.statementLoading}"
+            android:visibility="@{(message.data.statementLoading) ? View.GONE : View.VISIBLE}"
             android:layout_width="24dp"
             android:layout_height="24dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@+id/tv_action_title"
             app:layout_constraintBottom_toBottomOf="@+id/tv_action_title"
-            app:imgBase64="@{message.data.image}"
             tools:srcCompat="@drawable/ic_download" />
 
         <ProgressBar
             android:id="@+id/progress_doc_download"
-            isGone="@{!message.data.statementLoading}"
+            android:visibility="@{(!message.data.statementLoading) ? View.GONE : View.VISIBLE}"
             android:layout_width="18dp"
             android:layout_height="18dp"
             android:indeterminateDrawable="@drawable/diia_circular_progress"

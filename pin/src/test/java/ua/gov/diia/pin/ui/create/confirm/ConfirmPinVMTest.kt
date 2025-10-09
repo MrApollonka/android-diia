@@ -18,11 +18,11 @@ import ua.gov.diia.core.models.dialogs.TemplateDialogButton
 import ua.gov.diia.core.models.dialogs.TemplateDialogData
 import ua.gov.diia.core.models.dialogs.TemplateDialogModel
 import ua.gov.diia.core.ui.dynamicdialog.ActionsConst
-import ua.gov.diia.core.util.alert.ClientAlertDialogsFactory
 import ua.gov.diia.core.util.delegation.WithRetryLastAction
 import ua.gov.diia.pin.helper.PinHelper
 import ua.gov.diia.pin.model.CreatePinFlowType
 import ua.gov.diia.pin.rules.MainDispatcherRule
+import ua.gov.diia.pin.util.AndroidClientAlertDialogsFactory
 import ua.gov.diia.pin.util.AndroidClientAlertDialogsFactory.Companion.CONFIRM_PIN
 import ua.gov.diia.pin.utils.StubErrorHandlerOnFlow
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
@@ -43,7 +43,7 @@ class ConfirmPinVMTest(
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 
     @Mock
-    private lateinit var alertDialogsFactory: ClientAlertDialogsFactory
+    private lateinit var alertDialogsFactory: AndroidClientAlertDialogsFactory
 
     @Mock
     private lateinit var retryLastAction: WithRetryLastAction

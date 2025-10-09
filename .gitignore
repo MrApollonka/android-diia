@@ -34,3 +34,5 @@ app/signing.properties
 .ruby-version
 !buildSrc
 buildSrc/build/
+bankid/build/
+build-logic/convention/build/

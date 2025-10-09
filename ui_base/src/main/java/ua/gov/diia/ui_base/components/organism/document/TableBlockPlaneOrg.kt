@@ -1,6 +1,7 @@
 package ua.gov.diia.ui_base.components.organism.document
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,17 +14,24 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import ua.gov.diia.core.models.common_compose.atm.button.BtnLinkAtm
 import ua.gov.diia.core.models.common_compose.table.Item
 import ua.gov.diia.core.models.common_compose.table.TableItemHorizontalMlc
 import ua.gov.diia.core.models.common_compose.table.TableItemPrimaryMlc
 import ua.gov.diia.core.models.common_compose.table.TableItemVerticalMlc
 import ua.gov.diia.core.models.common_compose.table.tableBlockPlaneOrg.TableBlockPlaneOrg
 import ua.gov.diia.ui_base.R
+import ua.gov.diia.ui_base.components.atom.button.BtnLinkAtm
+import ua.gov.diia.ui_base.components.atom.button.BtnLinkAtmData
+import ua.gov.diia.ui_base.components.atom.button.toUIModel
+import ua.gov.diia.ui_base.components.atom.text.textwithparameter.TextParameter
+import ua.gov.diia.ui_base.components.atom.text.textwithparameter.TextWithParametersData
 import ua.gov.diia.ui_base.components.infrastructure.UIElementData
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.toDynamicString
+import ua.gov.diia.ui_base.components.infrastructure.utils.resource.toDynamicStringOrNull
 import ua.gov.diia.ui_base.components.molecule.list.table.items.tableblock.DocTableItemHorizontalLongerMlc
 import ua.gov.diia.ui_base.components.molecule.list.table.items.tableblock.DocTableItemHorizontalLongerMlcData
 import ua.gov.diia.ui_base.components.molecule.list.table.items.tableblock.DocTableItemHorizontalMlc
@@ -52,27 +60,30 @@ fun TableBlockPlaneOrg(
     Column(
         modifier
             .padding(
-                top = 24.dp, start = if (existForBody) 24.dp else 16.dp,
+                start = if (existForBody) 24.dp else 16.dp,
+                top = 24.dp,
                 end = if (existForBody) 24.dp else 24.dp,
             )
             .fillMaxWidth()
-            .background(color = Color.Transparent, shape = RoundedCornerShape(16.dp))
+            .background(
+                color = Color.Transparent,
+                shape = RoundedCornerShape(16.dp)
+            )
             .testTag(data.componentId?.asString() ?: "")
     ) {
         data.headerMain?.let {
             TableMainHeadingMlc(
-                modifier = Modifier.padding(
-                    bottom = 16.dp
-                ),
+                modifier = Modifier
+                    .padding(bottom = 16.dp),
                 data = data.headerMain,
                 onUIAction = onUIAction
             )
         }
         data.headerSecondary?.let {
             TableSecondaryHeadingMlc(
-                modifier = Modifier.padding(
-                    bottom = 16.dp
-                ),
+                modifier = Modifier
+                    .padding(bottom = 16.dp)
+                    .focusable(),
                 data = data.headerSecondary,
                 onUIAction = onUIAction
             )
@@ -92,6 +103,7 @@ fun TableBlockPlaneOrg(
 
                     is TableItemVerticalMlcData -> {
                         TableItemVerticalMlc(
+                            modifier = Modifier.focusable(),
                             data = item,
                             onUIAction = onUIAction
                         )
@@ -99,7 +111,7 @@ fun TableBlockPlaneOrg(
 
                     is DocTableItemHorizontalLongerMlcData -> {
                         DocTableItemHorizontalLongerMlc(
-                            modifier = Modifier,
+                            modifier = Modifier.focusable(),
                             data = item,
                             onUIAction = onUIAction
                         )
@@ -107,6 +119,7 @@ fun TableBlockPlaneOrg(
 
                     is DocTableItemHorizontalMlcData -> {
                         DocTableItemHorizontalMlc(
+                            modifier = Modifier.focusable(),
                             data = item,
                             onUIAction = onUIAction
                         )
@@ -119,12 +132,22 @@ fun TableBlockPlaneOrg(
                         )
                     }
 
+                    is BtnLinkAtmData -> {
+                        BtnLinkAtm(
+                            data = item,
+                            onUIAction = onUIAction
+                        )
+                    }
+
                     else -> {
                         //nothing
                     }
                 }
                 if (index != data.items.size - 1) {
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(
+                        modifier = Modifier
+                            .height(12.dp)
+                    )
                 }
             }
         }
@@ -157,7 +180,27 @@ fun TableBlockPlaneOrg?.toUIModel(): TableBlockPlaneOrgData? {
                         value = listMlcl.tableItemHorizontalMlc?.value,
                         secondaryValue = listMlcl.tableItemHorizontalMlc?.secondaryValue,
                         supportText = listMlcl.tableItemHorizontalMlc?.supportingValue,
-                        valueAsBase64String = listMlcl.tableItemHorizontalMlc?.valueImage
+                        valueAsBase64String = listMlcl.tableItemHorizontalMlc?.valueImage,
+                        iconRight = listMlcl.tableItemHorizontalMlc?.icon?.code?.let {
+                            UiText.DynamicString(it)
+                        },
+                        valueWithParams = if (listMlcl.tableItemHorizontalMlc?.value != null && !listMlcl.tableItemHorizontalMlc?.valueParameters.isNullOrEmpty()) {
+                            TextWithParametersData(
+                                text = UiText.DynamicString(listMlcl.tableItemHorizontalMlc?.value.orEmpty()),
+                                parameters = listMlcl.tableItemHorizontalMlc?.valueParameters?.map {
+                                    TextParameter(
+                                        data = TextParameter.Data(
+                                            name = it.data?.name.toDynamicStringOrNull(),
+                                            resource = it.data?.resource.toDynamicStringOrNull(),
+                                            alt = it.data?.alt.toDynamicStringOrNull()
+                                        ),
+                                        type = it.type
+                                    )
+                                }
+                            )
+                        } else {
+                            null
+                        },
                     )
                 )
             }
@@ -175,7 +218,24 @@ fun TableBlockPlaneOrg?.toUIModel(): TableBlockPlaneOrgData? {
                             UiText.DynamicString(it)
                         },
                         supportText = listMlcl.tableItemVerticalMlc?.supportingValue,
-                        valueAsBase64String = listMlcl.tableItemVerticalMlc?.valueImage
+                        valueAsBase64String = listMlcl.tableItemVerticalMlc?.valueImage,
+                        valueWithParams = if (listMlcl.tableItemVerticalMlc?.value != null && !listMlcl.tableItemVerticalMlc?.valueParameters.isNullOrEmpty()) {
+                            TextWithParametersData(
+                                text = UiText.DynamicString(listMlcl.tableItemVerticalMlc?.value.orEmpty()),
+                                parameters = listMlcl.tableItemVerticalMlc?.valueParameters?.map {
+                                    TextParameter(
+                                        data = TextParameter.Data(
+                                            name = it.data?.name.toDynamicStringOrNull(),
+                                            resource = it.data?.resource.toDynamicStringOrNull(),
+                                            alt = it.data?.alt.toDynamicStringOrNull()
+                                        ),
+                                        type = it.type
+                                    )
+                                }
+                            )
+                        } else {
+                            null
+                        },
                     )
                 )
             }
@@ -185,6 +245,11 @@ fun TableBlockPlaneOrg?.toUIModel(): TableBlockPlaneOrgData? {
                 item?.let {
                     add(it)
                 }
+            }
+
+            if (listMlcl.btnLinkAtm is BtnLinkAtm) {
+                val item = (listMlcl.btnLinkAtm as BtnLinkAtm).toUIModel()
+                add(item)
             }
         }
     }

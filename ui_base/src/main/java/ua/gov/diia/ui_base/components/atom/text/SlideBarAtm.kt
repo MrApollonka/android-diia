@@ -18,8 +18,8 @@ import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.toDynamicString
 import ua.gov.diia.ui_base.components.theme.DiiaTextStyle
-import ua.gov.diia.ui_base.components.theme.Green
-import ua.gov.diia.ui_base.components.theme.Yellow
+import ua.gov.diia.ui_base.components.theme.PositiveGreen
+import ua.gov.diia.ui_base.components.theme.WarningYellow
 
 @Composable
 fun SlideBarAtm(
@@ -31,8 +31,8 @@ fun SlideBarAtm(
             .fillMaxWidth()
             .background(
                 color = when (data.type) {
-                    SlideBarAtmType.Attention -> Yellow
-                    SlideBarAtmType.Success -> Green
+                    SlideBarAtmType.Attention -> WarningYellow
+                    SlideBarAtmType.Success -> PositiveGreen
                 }
             ),
     ) {

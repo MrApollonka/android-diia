@@ -13,6 +13,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -34,8 +40,14 @@ fun BtnIconRoundedMlc(
     data: BtnIconRoundedMlcData,
     onUIAction: (UIAction) -> Unit
 ) {
+    val btnIconContentDescription = data.label?.asString() ?: ""
     Column(
         modifier = modifier
+            .clearAndSetSemantics {
+                role = Role.Button
+                contentDescription = btnIconContentDescription
+                onClick(label = null, action = null)
+            }
             .conditional(data.label != null) {
                 padding(horizontal = 8.dp)
                     .padding(top = 24.dp, bottom = 16.dp)
@@ -61,7 +73,8 @@ fun BtnIconRoundedMlc(
         ) {
             UiIconWrapperSubatomic(
                 modifier = Modifier.size(24.dp),
-                icon = data.icon
+                icon = data.icon,
+                contentDescription = null
             )
         }
 

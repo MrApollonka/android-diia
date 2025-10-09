@@ -2,6 +2,7 @@ package ua.gov.diia.ui_base.components.molecule.text
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -14,9 +15,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import ua.gov.diia.core.models.common_compose.mlc.text.ScalingTitleMlc
 import ua.gov.diia.ui_base.components.infrastructure.UIElementData
@@ -28,6 +31,7 @@ fun ScalingTitleMlc(
     modifier: Modifier = Modifier,
     data: ScalingTitleMlcData,
     lazyListState: LazyListState,
+    paddingEnd: Dp = 24.dp,
     alphaCallback: (Float) -> Unit = {}
 ) {
     val density = LocalDensity.current
@@ -90,7 +94,12 @@ fun ScalingTitleMlc(
 
     Box(
         modifier = modifier
-            .padding(start = 24.dp)
+            .padding(
+                start = 24.dp,
+                top = 32.dp,
+                end = paddingEnd,
+                bottom = 16.dp
+            )
             .testTag(data.componentId.orEmpty()),
         contentAlignment = Alignment.Center
     ) {

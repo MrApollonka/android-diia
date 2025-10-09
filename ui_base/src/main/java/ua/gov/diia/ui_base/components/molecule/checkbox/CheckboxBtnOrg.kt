@@ -1,8 +1,10 @@
 package ua.gov.diia.ui_base.components.molecule.checkbox
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -17,12 +19,22 @@ import ua.gov.diia.ui_base.components.atom.button.BtnPrimaryDefaultAtm
 import ua.gov.diia.ui_base.components.atom.button.BtnPrimaryDefaultAtmData
 import ua.gov.diia.ui_base.components.atom.button.BtnPrimaryWideAtm
 import ua.gov.diia.ui_base.components.atom.button.BtnPrimaryWideAtmData
+import ua.gov.diia.ui_base.components.atom.button.BtnStrokeWideAtm
+import ua.gov.diia.ui_base.components.atom.button.BtnStrokeWideAtmData
+import ua.gov.diia.ui_base.components.atom.button.toUIModel
 import ua.gov.diia.ui_base.components.infrastructure.UIElementData
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
 import ua.gov.diia.ui_base.components.infrastructure.state.UIState
+import ua.gov.diia.ui_base.components.infrastructure.utils.SidePaddingMode
+import ua.gov.diia.ui_base.components.infrastructure.utils.TopPaddingMode
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
-import ua.gov.diia.ui_base.components.subatomic.border.diiaGreyBorder
+import ua.gov.diia.ui_base.components.infrastructure.utils.resource.toDynamicString
+import ua.gov.diia.ui_base.components.infrastructure.utils.toDp
+import ua.gov.diia.ui_base.components.infrastructure.utils.toSidePaddingMode
+import ua.gov.diia.ui_base.components.infrastructure.utils.toTopPaddingMode
+import ua.gov.diia.ui_base.components.theme.Primary
+import ua.gov.diia.ui_base.mappers.loader.mapToLoader
 import ua.gov.diia.ui_base.util.toDataActionWrapper
 
 @Composable
@@ -34,15 +46,21 @@ fun CheckboxBtnOrg(
 ) {
     Column(
         modifier = modifier
-            .padding(top = 24.dp, bottom = 16.dp, start = 24.dp, end = 24.dp)
+            .padding(
+                start = data.paddingHorizontal.toDp(defaultPadding = 24.dp),
+                top = data.paddingTop.toDp(defaultPadding = 24.dp),
+                end = data.paddingHorizontal.toDp(defaultPadding = 24.dp)
+            )
             .fillMaxWidth()
-            .diiaGreyBorder()
+            .border(width = 1.dp, color = Primary, shape = RoundedCornerShape(16.dp))
             .padding(16.dp)
             .testTag(data.componentId?.asString() ?: "")
     ) {
-        val buttonInProgress = progressIndicator.second && (progressIndicator.first == data.buttonData?.id || progressIndicator.first == data.buttonWideData?.id)
+        val buttonInProgress =
+            progressIndicator.second && (progressIndicator.first == data.buttonData?.id || progressIndicator.first == data.buttonWideData?.id)
         data.options?.forEach { option ->
-            val checkBoxData = if (buttonInProgress) option.copy(interactionState = UIState.Interaction.Disabled) else option
+            val checkBoxData =
+                if (buttonInProgress) option.copy(interactionState = UIState.Interaction.Disabled) else option
             CheckboxSquareMlc(
                 modifier = if (data.options.last() == option) Modifier else Modifier.padding(bottom = 16.dp),
                 data = checkBoxData,
@@ -54,7 +72,7 @@ fun CheckboxBtnOrg(
             BtnPrimaryDefaultAtm(
                 modifier = Modifier.fillMaxWidth(),
                 data = data.buttonData,
-                progressIndicator = progressIndicator,
+                loader = mapToLoader(progress = progressIndicator),
                 onUIAction = onUIAction
             )
         }
@@ -67,21 +85,36 @@ fun CheckboxBtnOrg(
                 onUIAction = onUIAction
             )
         }
+
+        data.btnStrokeWideAtmData?.let {
+            BtnStrokeWideAtm(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                data = data.btnStrokeWideAtmData,
+                progressIndicator = progressIndicator,
+                onUIAction = onUIAction
+            )
+        }
     }
 }
 
 data class CheckboxBtnOrgData(
     val actionKey: String = UIActionKeysCompose.CHECKBOX_BTN_ORG,
+    val componentId: UiText? = null,
     val id: String = "",
+    val paddingTop: TopPaddingMode? = null,
+    val paddingHorizontal: SidePaddingMode? = null,
     val options: List<CheckboxSquareMlcData>?,
     val buttonData: BtnPrimaryDefaultAtmData? = null,
     val buttonWideData: BtnPrimaryWideAtmData? = null,
-    val componentId: UiText? = null,
+    val btnStrokeWideAtmData: BtnStrokeWideAtmData? = null
 ) : UIElementData {
 
     fun onOptionsCheckChanged(optionId: String?): CheckboxBtnOrgData {
         if (optionId == null) return this
+
         val current = this
+
         val options = SnapshotStateList<CheckboxSquareMlcData>().apply {
             current.options?.forEach {
                 if (optionId == it.id) {
@@ -91,6 +124,7 @@ data class CheckboxBtnOrgData(
                 }
             }
         } as List<CheckboxSquareMlcData>
+
         val button = current.buttonData?.copy(
             interactionState = if (options.indexOfFirst { it.selectionState == UIState.Selection.Unselected } == -1) {
                 UIState.Interaction.Enabled
@@ -105,13 +139,28 @@ data class CheckboxBtnOrgData(
                 UIState.Interaction.Disabled
             }
         )
-        return this.copy(options = options, buttonData = button, buttonWideData = buttonWide)
+        val btnStrokeWideAtmData = current.btnStrokeWideAtmData?.copy(
+            interactionState = if (options.indexOfFirst { it.selectionState == UIState.Selection.Unselected } == -1) {
+                UIState.Interaction.Enabled
+            } else {
+                UIState.Interaction.Disabled
+            }
+        )
+
+        return this.copy(
+            options = options,
+            buttonData = button,
+            buttonWideData = buttonWide,
+            btnStrokeWideAtmData = btnStrokeWideAtmData
+        )
     }
 
     //Use if button should be blocked while externalCondition == false
     fun onOptionsCheckChanged(optionId: String?, externalCondition: Boolean): CheckboxBtnOrgData {
         if (optionId == null) return this
+
         val current = this
+
         val options = SnapshotStateList<CheckboxSquareMlcData>().apply {
             current.options?.forEach {
                 if (optionId == it.id) {
@@ -121,6 +170,7 @@ data class CheckboxBtnOrgData(
                 }
             }
         } as List<CheckboxSquareMlcData>
+
         val button = current.buttonData?.copy(
             interactionState = if (externalCondition) {
                 if (options.indexOfFirst { it.selectionState == UIState.Selection.Unselected } == -1) {
@@ -143,7 +193,24 @@ data class CheckboxBtnOrgData(
                 UIState.Interaction.Disabled
             }
         )
-        return this.copy(options = options, buttonData = button, buttonWideData = buttonWide)
+        val btnStrokeWideAtmData = current.btnStrokeWideAtmData?.copy(
+            interactionState = if (externalCondition) {
+                if (options.indexOfFirst { it.selectionState == UIState.Selection.Unselected } == -1) {
+                    UIState.Interaction.Enabled
+                } else {
+                    UIState.Interaction.Disabled
+                }
+            } else {
+                UIState.Interaction.Disabled
+            }
+        )
+
+        return this.copy(
+            options = options,
+            buttonData = button,
+            buttonWideData = buttonWide,
+            btnStrokeWideAtmData = btnStrokeWideAtmData
+        )
     }
 
     fun updateButtonStateByCondition(condition: Boolean): CheckboxBtnOrgData {
@@ -170,6 +237,17 @@ data class CheckboxBtnOrgData(
                     UIState.Interaction.Disabled
                 }
             ),
+            btnStrokeWideAtmData = this.btnStrokeWideAtmData?.copy(
+                interactionState = if (condition
+                    && (this.options?.indexOfFirst { it.selectionState == UIState.Selection.Unselected } == -1
+                            ||
+                            this.options == null)
+                ) {
+                    UIState.Interaction.Enabled
+                } else {
+                    UIState.Interaction.Disabled
+                }
+            )
         )
     }
 }
@@ -207,6 +285,9 @@ fun CheckboxBtnOrg?.toUIModel(): CheckboxBtnOrgData {
     else null
 
     val checkboxBtnOrgData = CheckboxBtnOrgData(
+        componentId = this?.componentId?.let { UiText.DynamicString(it) },
+        paddingTop = this?.paddingMode?.top.toTopPaddingMode(),
+        paddingHorizontal = this?.paddingMode?.side.toSidePaddingMode(),
         options = SnapshotStateList<CheckboxSquareMlcData>().apply {
             checkboxBtnOrg?.items?.forEachIndexed() { index, item ->
                 add(
@@ -230,7 +311,7 @@ fun CheckboxBtnOrg?.toUIModel(): CheckboxBtnOrgData {
         },
         buttonData = button,
         buttonWideData = buttonWide,
-        componentId = this?.componentId?.let { UiText.DynamicString(it) },
+        btnStrokeWideAtmData = this?.btnStrokeWideAtm?.toUIModel()
     )
 
     return checkboxBtnOrgData.updateButtonStateByCondition(true)
@@ -241,6 +322,8 @@ fun CheckboxBtnOrg?.toUIModel(): CheckboxBtnOrgData {
 fun CheckboxBtnOrgPreview() {
     val data = CheckboxBtnOrgData(
         id = "",
+        paddingTop = TopPaddingMode.NONE,
+        paddingHorizontal = SidePaddingMode.NONE,
         options = SnapshotStateList<CheckboxSquareMlcData>().apply {
             add(
                 CheckboxSquareMlcData(
@@ -294,6 +377,8 @@ fun CheckboxBtnOrgPreview() {
 fun CheckboxBtnOrgPreview_wide() {
     val data = CheckboxBtnOrgData(
         id = "",
+        paddingTop = TopPaddingMode.NONE,
+        paddingHorizontal = SidePaddingMode.NONE,
         options = SnapshotStateList<CheckboxSquareMlcData>().apply {
             add(
                 CheckboxSquareMlcData(
@@ -347,6 +432,8 @@ fun CheckboxBtnOrgPreview_wide() {
 fun CheckboxBtnOrgPreview_loading() {
     val data = CheckboxBtnOrgData(
         id = "",
+        paddingTop = TopPaddingMode.NONE,
+        paddingHorizontal = SidePaddingMode.NONE,
         options = SnapshotStateList<CheckboxSquareMlcData>().apply {
             add(
                 CheckboxSquareMlcData(
@@ -377,6 +464,11 @@ fun CheckboxBtnOrgPreview_loading() {
             title = UiText.DynamicString("Далі"),
             id = "button_id",
             interactionState = UIState.Interaction.Disabled
+        ),
+        btnStrokeWideAtmData = BtnStrokeWideAtmData(
+            componentId = null,
+            title = "Label".toDynamicString(),
+            action = null
         )
     )
 

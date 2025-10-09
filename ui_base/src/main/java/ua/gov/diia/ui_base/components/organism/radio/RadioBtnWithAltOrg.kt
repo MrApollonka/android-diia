@@ -25,7 +25,6 @@ import ua.gov.diia.ui_base.components.molecule.checkbox.RadioBtnMlcData
 import ua.gov.diia.ui_base.components.molecule.list.radio.RadioBtnGroupOrg
 import ua.gov.diia.ui_base.components.molecule.list.radio.RadioBtnGroupOrgData
 import ua.gov.diia.ui_base.components.molecule.list.radio.toUIModel
-import ua.gov.diia.ui_base.components.subatomic.preview.PreviewBase64Icons
 
 @Composable
 fun RadioBtnWithAltOrg(

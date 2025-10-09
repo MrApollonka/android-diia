@@ -7,6 +7,7 @@ import ua.gov.diia.core.models.common_compose.table.tableBlockOrg.TableBlockOrg
 import ua.gov.diia.core.models.common_compose.table.tableBlockPlaneOrg.TableBlockPlaneOrg
 import ua.gov.diia.core.models.common_compose.table.tableBlockTwoColumnsPlaneOrg.TableBlockTwoColumnsPlaneOrg
 import ua.gov.diia.core.models.common_compose.atm.text.TickerAtm
+import ua.gov.diia.core.models.common_compose.mlc.text.SubtitleLabelMlc
 import ua.gov.diia.core.models.common_compose.table.tableBlockAccordionOrg.TableBlockAccordionOrg
 import ua.gov.diia.ui_base.components.atom.text.TickerAtomData
 import ua.gov.diia.ui_base.components.molecule.text.SubtitleLabelMlcData
@@ -28,7 +29,6 @@ import ua.gov.diia.core.models.common_compose.org.doc.DocButtonHeadingOrg
 import ua.gov.diia.core.models.document.docgroups.v2.DocCover
 import ua.gov.diia.core.models.common_compose.org.doc.DocHeadingOrg
 import ua.gov.diia.core.models.document.docgroups.v2.QrCheckStatus
-import ua.gov.diia.core.models.document.docgroups.v2.SubtitleLabelMlc
 
 interface DocumentComposeMapper {
 

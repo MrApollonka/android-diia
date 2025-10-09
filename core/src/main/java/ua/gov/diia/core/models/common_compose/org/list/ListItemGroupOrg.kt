@@ -5,6 +5,7 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import kotlinx.parcelize.Parcelize
 import ua.gov.diia.core.models.common_compose.atm.button.BtnPlainIconAtm
+import ua.gov.diia.core.models.common_compose.general.PaddingMode
 import ua.gov.diia.core.models.common_compose.mlc.list.ListItemMlc
 
 @Parcelize
@@ -17,5 +18,7 @@ data class ListItemGroupOrg(
     @Json(name = "items")
     val items: List<ListItemMlc>,
     @Json(name = "btnPlainIconAtm")
-    val btnPlainIconAtm: BtnPlainIconAtm? = null
+    val btnPlainIconAtm: BtnPlainIconAtm? = null,
+    @Json(name = "paddingMode")
+    val paddingMode: PaddingMode?,
 ) : Parcelable

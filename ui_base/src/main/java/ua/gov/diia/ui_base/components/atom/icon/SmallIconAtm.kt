@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ua.gov.diia.core.models.common_compose.atm.icon.SmallIconAtm
@@ -28,19 +29,14 @@ fun SmallIconAtm(
         modifier = modifier
             .size(24.dp)
             .noRippleClickable {
-                onUIAction(
-                    UIAction(
-                        actionKey = data.actionKey,
-                        data = data.id,
-                        action = data.action
-                    )
-                )
+                onUIAction(data.action())
             }
             .testTag(data.componentId?.asString() ?: ""),
         painter = painterResource(
             id = DiiaResourceIcon.getResourceId(data.code)
         ),
         contentDescription = data.accessibilityDescription
+            ?: stringResource(id = DiiaResourceIcon.getContentDescription(data.code))
     )
 }
 
@@ -51,7 +47,17 @@ data class SmallIconAtmData(
     val code: String,
     val accessibilityDescription: String? = null,
     val action: DataActionWrapper? = null
-)
+) {
+
+    fun action(): UIAction {
+        return UIAction(
+            actionKey = actionKey,
+            data = id,
+            action = action
+        )
+    }
+
+}
 
 fun SmallIconAtm.toUiModel(id: String? = null): SmallIconAtmData {
     return SmallIconAtmData(
@@ -73,4 +79,3 @@ fun SmallIconAtmPreview() {
     )
     SmallIconAtm(data = data)
 }
-

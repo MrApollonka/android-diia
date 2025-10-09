@@ -41,7 +41,8 @@ fun ChipTabMoleculeV2(
                     White
                 } else {
                     WhiteAlpha30
-                }, shape = RoundedCornerShape(40.dp)
+                },
+                shape = RoundedCornerShape(40.dp)
             )
             .noRippleClickable {
                 onUIAction(
@@ -52,14 +53,15 @@ fun ChipTabMoleculeV2(
                     )
                 )
             }
-            .testTag(data.componentId?.asString() ?: ""),
+            .testTag(data.componentId?.asString().orEmpty()),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             modifier = Modifier
                 .padding(vertical = 11.dp)
                 .padding(
-                    start = 18.dp, end = if (data.selectionState == UIState.Selection.Selected) {
+                    start = 18.dp,
+                    end = if (data.showCheckIcon && data.selectionState == UIState.Selection.Selected) {
                         6.dp
                     } else {
                         18.dp
@@ -68,17 +70,18 @@ fun ChipTabMoleculeV2(
             text = data.title,
             style = DiiaTextStyle.t2TextDescription
         )
-        if (data.selectionState == UIState.Selection.Selected) {
+        if (data.showCheckIcon && data.selectionState == UIState.Selection.Selected) {
             Image(
                 modifier = Modifier,
                 painter = painterResource(id = R.drawable.ic_chip_check),
                 contentDescription = "badgeIcon"
             )
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(
+                modifier = Modifier
+                    .width(12.dp)
+            )
         }
-
     }
-
 }
 
 data class ChipTabMoleculeDataV2(
@@ -86,27 +89,46 @@ data class ChipTabMoleculeDataV2(
     val id: String = "",
     val title: String,
     val selectionState: UIState.Selection = UIState.Selection.Unselected,
-    val componentId: UiText? = null
+    val componentId: UiText? = null,
+    val showCheckIcon: Boolean = true
 ) : UIElementData
 
-@Composable
 @Preview
-fun ChipTabMoleculeV2Preview_Selected() {
-    val data = ChipTabMoleculeDataV2(title = "Label", selectionState = UIState.Selection.Selected)
-    Box(modifier = Modifier.background(GrannySmithApple)) {
+@Composable
+fun ChipTabMoleculeV2SelectedPreview() {
+    val data = ChipTabMoleculeDataV2(
+        title = "Label",
+        selectionState = UIState.Selection.Selected
+    )
+    Box(
+        modifier = Modifier
+            .background(GrannySmithApple)
+    ) {
         ChipTabMoleculeV2(
-            data = data
-        ) {}
+            data = data,
+            onUIAction = {
+                /* no-op */
+            }
+        )
     }
 }
 
-@Composable
 @Preview
-fun ChipTabMoleculeV2Preview_Unselected() {
-    val data = ChipTabMoleculeDataV2(title = "Label", selectionState = UIState.Selection.Unselected)
-    Box(modifier = Modifier.background(GrannySmithApple)) {
+@Composable
+fun ChipTabMoleculeV2UnselectedPreview() {
+    val data = ChipTabMoleculeDataV2(
+        title = "Label",
+        selectionState = UIState.Selection.Unselected
+    )
+    Box(
+        modifier = Modifier
+            .background(GrannySmithApple)
+    ) {
         ChipTabMoleculeV2(
-            data = data
-        ) {}
+            data = data,
+            onUIAction = {
+                /* no-op */
+            }
+        )
     }
 }

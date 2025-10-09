@@ -24,7 +24,11 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
+import androidx.paging.map
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.update
 import ua.gov.diia.ui_base.components.atom.button.ButtonStrokeAdditionalAtomData
 import ua.gov.diia.ui_base.components.atom.media.ArticlePicAtm
 import ua.gov.diia.ui_base.components.atom.media.ArticlePicAtmData
@@ -47,6 +51,8 @@ import ua.gov.diia.ui_base.components.molecule.list.ListItemMlc
 import ua.gov.diia.ui_base.components.molecule.list.ListItemMlcData
 import ua.gov.diia.ui_base.components.molecule.list.ListWidgetItemMlc
 import ua.gov.diia.ui_base.components.molecule.list.ListWidgetItemMlcData
+import ua.gov.diia.ui_base.components.molecule.message.AttentionIconMessageMlc
+import ua.gov.diia.ui_base.components.molecule.message.AttentionIconMessageMlcData
 import ua.gov.diia.ui_base.components.molecule.message.StubMessageMlc
 import ua.gov.diia.ui_base.components.molecule.message.StubMessageMlcData
 import ua.gov.diia.ui_base.components.subatomic.loader.LoaderSpinnerLoaderAtm
@@ -64,8 +70,7 @@ fun PaginationListOrg(
     lazyListState: LazyListState = rememberLazyListState(),
     onUIAction: (UIAction) -> Unit
 ) {
-
-    val items = data.items.collectAsLazyPagingItems()
+    val items = data.pagedItems.collectAsLazyPagingItems()
     LazyColumn(
         modifier = modifier,
         state = lazyListState,
@@ -104,8 +109,43 @@ fun ErrorMsgMlc(doAction: () -> Unit) {
 }
 
 data class PaginationListOrgData(
-    val items: Flow<PagingData<SimplePagination>>
-) : UIElementData
+    private val items: Flow<PagingData<SimplePagination>>
+) : UIElementData {
+
+    private val updatedItems = MutableStateFlow<Map<String, String>>(emptyMap())
+
+    val pagedItems: Flow<PagingData<SimplePagination>> = combine(
+        items,
+        updatedItems
+    ) { items, updatedItems ->
+        val consumedIds = mutableSetOf<String>()
+
+        val updated = items.map { item ->
+            when (item) {
+                is CardMlcV2Data -> {
+                    updatedItems[item.id]?.let { newState ->
+                        consumedIds.add(item.id)
+                        item.updateSmallIconCurrentState(newState)
+                    } ?: item
+                }
+
+                else -> item
+            }
+        }
+
+        if (consumedIds.isNotEmpty()) {
+            this.updatedItems.update { map -> map - consumedIds }
+        }
+
+        updated
+    }
+
+    fun updateItemState(itemId: String, newState: String): PaginationListOrgData {
+        updatedItems.update { map -> map + (itemId to newState) }
+        return this
+    }
+
+}
 
 fun LazyListScope.loadPaginationListOrg(
     modifier: Modifier = Modifier,
@@ -122,42 +162,50 @@ fun LazyListScope.loadPaginationListOrg(
             when (it) {
                 is ArticlePicAtmData -> {
                     ArticlePicAtm(
-                        modifier = modifier.padding(horizontal = 24.dp).padding(top = 24.dp),
+                        modifier = modifier
+                            .padding(horizontal = 24.dp)
+                            .padding(top = 24.dp),
                         data = it,
                         inCarousel = true,
                         onUIAction = onUIAction
                     )
                 }
+
                 is CardMlcData -> {
                     CardMlc(
                         data = it,
                         onUIAction = onUIAction
                     )
                 }
+
                 is CardMlcV2Data -> {
                     CardMlcV2(
                         data = it,
                         onUIAction = onUIAction
                     )
                 }
+
                 is ImageCardMlcData -> {
                     ImageCardMlc(
                         data = it,
                         onUIAction = onUIAction
                     )
                 }
+
                 is ListWidgetItemMlcData -> {
                     ListWidgetItemMlc(
                         data = it,
                         onUIAction = onUIAction
                     )
                 }
+
                 is GreyTitleAtmData -> {
                     GreyTitleAtm(
                         modifier = Modifier.padding(horizontal = 8.dp),
                         data = it,
                     )
                 }
+
                 is ListItemMlcData -> {
                     ListItemMlc(
                         modifier = Modifier.padding(horizontal = 8.dp),
@@ -170,15 +218,27 @@ fun LazyListScope.loadPaginationListOrg(
                         color = PeriwinkleGray
                     )
                 }
+
                 is HalvedCardMlcData -> {
                     HalvedCardMlc(
-                        modifier = modifier.padding(horizontal = 24.dp).padding(top = if(index > 0)16.dp else 0.dp),
+                        modifier = modifier
+                            .padding(horizontal = 24.dp)
+                            .padding(top = if (index > 0) 16.dp else 0.dp),
                         data = it,
                         onUIAction = onUIAction
                     )
                 }
+
                 is StubMessageMlcData -> {
                     StubMessageMlc(
+                        data = it,
+                        onUIAction = onUIAction
+                    )
+                }
+
+                is AttentionIconMessageMlcData -> {
+                    AttentionIconMessageMlc(
+                        modifier = Modifier,
                         data = it,
                         onUIAction = onUIAction
                     )
@@ -236,7 +296,6 @@ fun LazyListScope.loadPaginationListOrg(
         }
     }
 }
-
 
 interface SimplePagination : UIElementData {
     val id: String

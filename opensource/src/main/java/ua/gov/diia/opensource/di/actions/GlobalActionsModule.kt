@@ -7,15 +7,18 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import ua.gov.diia.core.di.actions.GlobalActionAllowAuthorizedLinks
+import ua.gov.diia.core.di.actions.GlobalActionAppStartEvent
 import ua.gov.diia.core.di.actions.GlobalActionConfirmDocumentRemoval
 import ua.gov.diia.core.di.actions.GlobalActionDeeplink
 import ua.gov.diia.core.di.actions.GlobalActionDeleteDocument
 import ua.gov.diia.core.di.actions.GlobalActionDocLoadingIndicator
 import ua.gov.diia.core.di.actions.GlobalActionDocumentBackground
 import ua.gov.diia.core.di.actions.GlobalActionFocusOnDocument
+import ua.gov.diia.core.di.actions.GlobalActionFocusOnDocumentWithRating
 import ua.gov.diia.core.di.actions.GlobalActionLogout
 import ua.gov.diia.core.di.actions.GlobalActionNetworkState
 import ua.gov.diia.core.di.actions.GlobalActionNotificationRead
@@ -129,4 +132,18 @@ object GlobalActionsModule {
     @Singleton
     fun provideActionSelectedMenuItem() =
         MutableStateFlow<UiDataEvent<HomeMenuItemConstructor>?>(null)
+
+    @Provides
+    @Singleton
+    @GlobalActionAppStartEvent
+    fun provideActionAppStartEvent() = MutableSharedFlow<UiEvent>(
+        replay = 1,
+        onBufferOverflow = BufferOverflow.DROP_LATEST
+    )
+
+    @Provides
+    @GlobalActionFocusOnDocumentWithRating
+    @Singleton
+    fun provideActionFocusOnDocWithRating() = MutableStateFlow<UiDataEvent<String>?>(null)
+
 }

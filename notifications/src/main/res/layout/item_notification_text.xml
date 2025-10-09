@@ -4,6 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
+
+<import type="android.view.View" />
         <variable
             name="adapter"
             type="ua.gov.diia.notifications.ui.fragments.notifications.NotificationFullAdapter.NotificationTextVH" />
@@ -22,7 +24,7 @@
         <TextView
             android:id="@+id/tv_message_text"
             style="@style/LineText"
-            isGone="@{!message.data.textVisibility}"
+            android:visibility="@{(!message.data.textVisibility) ? View.GONE : View.VISIBLE}"
             text="@{message.data.text}"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -36,10 +38,7 @@
         <TextView
             android:id="@+id/tv_message_text_param"
             style="@style/LineText"
-            htmlMetadata="@{message.data.parameters}"
-            isGone="@{!message.data.parametersVisibility}"
-            linkActionListener="@{adapter.onLinkClicked}"
-            text="@{message.data.text}"
+            android:visibility="@{(!message.data.parametersVisibility) ? View.GONE : View.VISIBLE}"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             app:layout_constraintTop_toTopOf="parent"

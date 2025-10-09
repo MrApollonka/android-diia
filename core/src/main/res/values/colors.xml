@@ -28,6 +28,8 @@
     <color name="black_alpha_30">#4D000000</color>
     <color name="black_alpha_40">#66000000</color>
     <color name="black_alpha_50">#80000000</color>
+    <color name="black_alpha_54">#8A000000</color>
+    <color name="black_alpha_60">#99000000</color>
     <color name="black_alpha_80">#CC000000</color>
     <color name="black_alpha_70">#B3000000</color>
     <color name="back_check">#282828</color>
@@ -102,20 +104,16 @@
     <!-- debts colors   -->
     <color name="debt_green">#65C680</color>
     <color name="debt_orange">#FF9975</color>
-    <!-- Petition colors -->
-    <color name="color_petition_phone_placeholder_background">#EFF7FE</color>
+
+    <color name="color_phone_placeholder_background">#EFF7FE</color>
     <!-- App session label colors -->
     <color name="color_session_status_done">#65C680</color>
     <!-- assist colors   -->
     <color name="nfc_progress_not_complete_color">#4DD4D4D4</color>
     <color name="nfc_progress_complete_color">#2F7BF5</color>
-    <!-- Petitions -->
-    <color name="petition_state_moderation">#DADADA</color>
+    <color name="state_moderation">#DADADA</color>
     <!--covid certificate-->
     <color name="covid_certificate_full_info_background">#E5F6E1</color>
-    <!--    IT FORCES   -->
-    <color name="it_forces_certificate_color">#FFFEF6</color>
-    <color name="it_forces_divider_color">#EDEAD6</color>
     <!--    MILITARY BONDS-->
     <color name="document_military_card_color">#80C5D9E9</color>
     <color name="document_military_bond_divider_color">#33E2ECF4</color>

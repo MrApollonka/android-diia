@@ -15,7 +15,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import ua.gov.diia.ui_base.R
 import ua.gov.diia.ui_base.UiBaseConst
@@ -44,52 +48,71 @@ fun ColumnScope.ContextIconMenuOrg(
         modifier = modifier
             .background(color = White, shape = RoundedCornerShape(24.dp))
             .conditional(data.displayItems == null) {
-                padding(start = 16.dp, end = 16.dp, top = 8.dp)
+                padding(top = 8.dp)
             }
             .verticalScroll(rememberScrollState())
             .weight(weight = 1f, fill = false)
     ) {
         data.displayItems?.forEachIndexed { index, item ->
             ListItemMlc(
-                modifier = Modifier.padding(horizontal = 16.dp),
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .semantics {
+                        role = Role.Button
+                    },
                 data = item,
                 onUIAction = onUIAction,
             )
 
             if (index != data.displayItems.size - 1) {
-                DividerSlimAtom(color = BlackAlpha7, modifier = Modifier.padding(horizontal = 16.dp))
+                MenuDivider()
             }
         }
         data.docActions?.forEachIndexed { index, item ->
             ListItemMlc(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .semantics {
+                        role = Role.Button
+                    },
                 data = item,
                 onUIAction = onUIAction,
             )
 
             if (index == data.docActions.size - 1) {
-                DividerSlimAtom(color = BlackAlpha7)
+                MenuDivider()
             }
         }
         data.manualActions?.forEachIndexed { index, item ->
             ListItemMlc(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .semantics {
+                        role = Role.Button
+                    },
                 data = item,
                 onUIAction = onUIAction,
             )
             if (data.showDividerForManualActions && index < data.manualActions.size - 1) {
-                DividerSlimAtom(color = BlackAlpha7)
+                MenuDivider()
             }
             if (index == data.manualActions.size - 1) {
-                DividerSlimAtom(color = BlackAlpha7)
+                MenuDivider()
             }
         }
 
         data.generalActions?.forEachIndexed { index, item ->
             ListItemMlc(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .semantics {
+                        role = Role.Button
+                    },
                 data = item,
                 onUIAction = onUIAction,
             )
             if (index == data.generalActions.size - 1) {
-                DividerSlimAtom(color = BlackAlpha7)
+                MenuDivider(paddingHorizontal = 0.dp)
             }
         }
         if (data.showButtons) {
@@ -117,6 +140,14 @@ fun ColumnScope.ContextIconMenuOrg(
             }
         }
     }
+}
+
+@Composable
+fun MenuDivider(paddingHorizontal: Dp = 16.dp) {
+    DividerSlimAtom(
+        color = BlackAlpha7,
+        modifier = Modifier.padding(horizontal = paddingHorizontal)
+    )
 }
 
 data class ContextIconMenuOrgData(

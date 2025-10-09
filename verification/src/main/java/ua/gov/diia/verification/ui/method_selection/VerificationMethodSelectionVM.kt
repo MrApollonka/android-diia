@@ -1,43 +1,84 @@
 package ua.gov.diia.verification.ui.method_selection
 
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import ua.gov.diia.core.util.event.UiDataEvent
-import ua.gov.diia.core.util.extensions.lifecycle.asLiveData
-import ua.gov.diia.verification.R
-import ua.gov.diia.verification.model.VerificationMethodView
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import ua.gov.diia.core.ui.dynamicdialog.ActionsConst
+import ua.gov.diia.core.util.extensions.mutableSharedFlowOf
+import ua.gov.diia.ui_base.components.infrastructure.DataActionWrapper
+import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
+import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose.LIST_ITEM_MLC
+import ua.gov.diia.ui_base.components.infrastructure.navigation.NavigationPath
+import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiIcon
+import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
+import ua.gov.diia.ui_base.components.infrastructure.utils.resource.toDynamicString
+import ua.gov.diia.ui_base.components.molecule.list.ListItemMlcData
+import ua.gov.diia.ui_base.components.organism.ContextMenuOrgData
+import ua.gov.diia.ui_base.navigation.BaseNavigation
 import ua.gov.diia.verification.model.VerificationMethodsView
-import ua.gov.diia.verification.ui.VerificationSchema
 import javax.inject.Inject
 
 @HiltViewModel
-internal class VerificationMethodSelectionVM @Inject constructor() : ViewModel() {
+internal class VerificationMethodSelectionVM @Inject constructor(
+    savedStateHandle: SavedStateHandle
+) : ViewModel() {
 
-    private val _header = MutableLiveData<String?>()
-    val header = _header.asLiveData()
+    private val verificationMethods = savedStateHandle.get<VerificationMethodsView>("data")
 
-    private val _themeColor = MutableLiveData<Int>()
-    val themeColor = _themeColor.asLiveData()
+    private val _contextMenuOrgData = MutableStateFlow<ContextMenuOrgData?>(null)
+    val contextMenuOrgData = _contextMenuOrgData.asStateFlow()
 
-    private val _methods = MutableLiveData<UiDataEvent<List<VerificationMethodView>>>()
-    val methods = _methods.asLiveData()
+    private val _navigation = mutableSharedFlowOf<NavigationPath>()
+    val navigation = _navigation.asSharedFlow()
 
-    private val _sendResult = MutableLiveData<UiDataEvent<String>>()
-    val sendResult = _sendResult.asLiveData()
-
-    val doOnMethodSelected = { code: String -> _sendResult.value = UiDataEvent(code) }
-
-    fun doInit(data: VerificationMethodsView) {
-        _header.value = data.title
-        adjustThemeColor(data.schema)
-        _methods.value = UiDataEvent(data.methods.reversed())
-    }
-
-    private fun adjustThemeColor(schema: String) {
-        _themeColor.value = when (schema) {
-            VerificationSchema.AUTHORIZATION -> R.color.green_light
-            else -> R.color.colorPrimary
+    init {
+        _contextMenuOrgData.update {
+            val items = mutableListOf<ListItemMlcData>()
+            items.add(
+                ListItemMlcData(
+                    label = verificationMethods?.title.toDynamicString()
+                )
+            )
+            items.addAll(
+                elements = verificationMethods?.methods
+                    ?.map { item ->
+                        ListItemMlcData(
+                            label = UiText.StringResource(item.titleRes),
+                            logoLeft = UiIcon.DrawableResInt(item.iconRes),
+                            action = DataActionWrapper(
+                                type = item.code
+                            )
+                        )
+                    }
+                    .orEmpty()
+            )
+            ContextMenuOrgData(
+                items = items
+            )
         }
     }
+
+    fun onUIAction(action: UIAction) {
+        when (action.actionKey) {
+            LIST_ITEM_MLC -> {
+                val verificationMethodCode = action.action?.type ?: return
+                _navigation.tryEmit(Navigation.SelectedVerificationMethod(verificationMethodCode))
+            }
+        }
+
+        when (action.action?.type) {
+            ActionsConst.CONTEXT_MENU_CLOSE -> {
+                _navigation.tryEmit(BaseNavigation.Back)
+            }
+        }
+    }
+
+    sealed interface Navigation : NavigationPath {
+        data class SelectedVerificationMethod(val code: String) : Navigation
+    }
+
 }

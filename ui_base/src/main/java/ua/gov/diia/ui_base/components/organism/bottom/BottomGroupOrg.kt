@@ -2,6 +2,7 @@ package ua.gov.diia.ui_base.components.organism.bottom
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -50,6 +51,7 @@ import ua.gov.diia.ui_base.components.molecule.checkbox.CheckboxBtnOrgData
 import ua.gov.diia.ui_base.components.molecule.checkbox.CheckboxBtnWhiteOrgData
 import ua.gov.diia.ui_base.components.molecule.checkbox.CheckboxSquareMlcData
 import ua.gov.diia.ui_base.components.molecule.checkbox.toUIModel
+import ua.gov.diia.ui_base.mappers.loader.mapToLoader
 import ua.gov.diia.ui_base.util.toDataActionsWrapper
 import ua.gov.diia.ui_base.util.toUiModel
 
@@ -98,7 +100,7 @@ fun BottomGroupOrg(
         data.btnIconPlainGroupMlc?.let {
             BtnIconPlainGroupMlc(
                 data = data.btnIconPlainGroupMlc,
-                progressIndicator = progressIndicator,
+                loader = mapToLoader(progressIndicator),
                 onUIAction = onUIAction
             )
         }
@@ -108,7 +110,7 @@ fun BottomGroupOrg(
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally),
                 data = data.primaryButton,
-                progressIndicator = progressIndicator,
+                loader = mapToLoader(progressIndicator),
                 onUIAction = onUIAction
             )
         }
@@ -124,7 +126,9 @@ fun BottomGroupOrg(
         }
         data.btnPrimaryLargeAtm?.let {
             BtnPrimaryLargeAtm(
-                modifier = Modifier.align(Alignment.CenterHorizontally),
+                modifier = Modifier
+                    .defaultMinSize(minWidth = 160.dp)
+                    .align(Alignment.CenterHorizontally),
                 progressIndicator = progressIndicator,
                 data = data.btnPrimaryLargeAtm,
                 onUIAction = onUIAction
@@ -254,7 +258,7 @@ fun BottomGroup?.toComposeBottomGroupOrg(
             actionKey = this.btnPrimaryDefaultAtm?.action?.type ?: actionKey,
             id = buttonId,
             actions = this.btnPrimaryDefaultAtm?.actions?.toDataActionsWrapper(),
-            interactionState = when(this.btnPrimaryDefaultAtm?.state) {
+            interactionState = when (this.btnPrimaryDefaultAtm?.state) {
                 ButtonStates.enabled -> UIState.Interaction.Enabled
                 ButtonStates.disabled -> UIState.Interaction.Disabled
                 ButtonStates.invisible -> UIState.Interaction.Disabled //todo add Invisible state

@@ -7,15 +7,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ua.gov.diia.core.models.common_compose.mlc.chip.ChipBlackMlc
+import ua.gov.diia.ui_base.components.infrastructure.DataActionWrapper
 import ua.gov.diia.ui_base.components.infrastructure.UIElementData
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose.CHIP_BLACK_MLC
-import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose.CHIP_MLC
 import ua.gov.diia.ui_base.components.infrastructure.state.UIState
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.toDynamicString
@@ -26,6 +30,7 @@ import ua.gov.diia.ui_base.components.theme.BlackAlpha30
 import ua.gov.diia.ui_base.components.theme.DiiaTextStyle
 import ua.gov.diia.ui_base.components.theme.Primary
 import ua.gov.diia.ui_base.components.theme.White
+import ua.gov.diia.ui_base.util.toDataActionWrapper
 
 @Composable
 fun ChipBlackMlc(
@@ -53,25 +58,30 @@ fun ChipBlackMlc(
         modifier = modifier
             .then(backgroundModifier)
             .noRippleClickable {
-                if(data.active){
+                if (data.active) {
                     onUIAction(
                         UIAction(
                             actionKey = data.actionKey ?: CHIP_BLACK_MLC,
-                            data = data.id ?: data.componentId,
-                            states = listOf(UIState.Selection.Selected)
+                            data = data.id,
+                            action = data.action
                         )
                     )
                 }
             }
             .testTag(data.componentId ?: "")
+            .semantics(mergeDescendants = true) {
+                selected = isSelected
+            },
+        contentAlignment = Alignment.Center
     ) {
         Text(
             modifier = Modifier
                 .padding(vertical = 11.dp)
                 .padding(horizontal = 18.dp),
             text = data.label.asString(),
+            textAlign = TextAlign.Center,
             color = if (isSelected && isActive) White
-                else if (!isSelected && isActive) Black else BlackAlpha20,
+            else if (!isSelected && isActive) Black else BlackAlpha20,
             style = DiiaTextStyle.t2TextDescription
         )
     }
@@ -85,7 +95,14 @@ data class ChipBlackMlcData(
     val code: String,
     val active: Boolean = true,
     val selectionState: UIState.Selection = UIState.Selection.Unselected,
-) : UIElementData
+    val action: DataActionWrapper? = null
+) : UIElementData {
+
+    fun onChipClick(): ChipBlackMlcData {
+        return this.copy(selectionState = this.selectionState.reverse())
+    }
+
+}
 
 fun ChipBlackMlc.toUiModel(): ChipBlackMlcData {
     return ChipBlackMlcData(
@@ -99,6 +116,7 @@ fun ChipBlackMlc.toUiModel(): ChipBlackMlcData {
 //        } else {
 //            UIState.Selection.Unselected
 //        }
+        action = action?.toDataActionWrapper()
     )
 }
 
@@ -109,7 +127,8 @@ fun ChipBlackMlcPreview_Active_Selected() {
         label = UiText.DynamicString("label"),
         code = "inProgress",
         active = true,
-        selectionState = UIState.Selection.Selected)
+        selectionState = UIState.Selection.Selected
+    )
     Box(modifier = Modifier.background(Primary)) {
         ChipBlackMlc(
             data = data
@@ -124,7 +143,8 @@ fun ChipBlackMlcPreview_Active_Unselected() {
         label = UiText.DynamicString("label"),
         code = "inProgress",
         active = true,
-        selectionState = UIState.Selection.Unselected)
+        selectionState = UIState.Selection.Unselected
+    )
     Box(modifier = Modifier.background(Primary)) {
         ChipBlackMlc(
             data = data
@@ -136,10 +156,11 @@ fun ChipBlackMlcPreview_Active_Unselected() {
 @Preview
 fun ChipBlackMlcPreview_NotActive_Selected() {
     val data = ChipBlackMlcData(
-        label = UiText.DynamicString("label"),
+        label = UiText.DynamicString("long label"),
         code = "inProgress",
         active = false,
-        selectionState = UIState.Selection.Unselected)
+        selectionState = UIState.Selection.Unselected
+    )
     Box(modifier = Modifier.background(Primary)) {
         ChipBlackMlc(
             data = data

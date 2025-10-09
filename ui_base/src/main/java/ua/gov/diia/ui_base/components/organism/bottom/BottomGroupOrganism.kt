@@ -20,6 +20,7 @@ import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
 import ua.gov.diia.ui_base.components.infrastructure.state.UIState
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
 import ua.gov.diia.ui_base.components.molecule.checkbox.CheckboxSquareMlcData
+import ua.gov.diia.ui_base.mappers.loader.mapToLoader
 
 @Composable
 fun BottomGroupOrganism(
@@ -34,7 +35,7 @@ fun BottomGroupOrganism(
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally),
                 data = data.primaryButton,
-                progressIndicator = progressIndicator,
+                loader = mapToLoader(progress = progressIndicator),
                 onUIAction = onUIAction
             )
         }

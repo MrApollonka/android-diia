@@ -9,6 +9,10 @@ android {
     buildFeatures {
         dataBinding = true
     }
+
+    defaultConfig {
+        consumerProguardFiles("consumer-rules.pro")
+    }
 }
 
 dependencies {
@@ -18,12 +22,10 @@ dependencies {
     implementation(libs.androidx.viewpager2)
     implementation(libs.retrofit.core)
     implementation(libs.bundles.moshi)
-    implementation(libs.glide)
     implementation(libs.kotlin.stdlib)
     implementation(libs.kotlinx.serialization.json)
 
     ksp(libs.moshi.codegen)
-    ksp(libs.glide.ksp)
 
     testImplementation(libs.androidx.arch.core.testing)
     testImplementation(libs.kotlinx.coroutines.test)

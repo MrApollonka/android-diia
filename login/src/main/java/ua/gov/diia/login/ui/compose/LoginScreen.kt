@@ -26,6 +26,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import ua.gov.diia.core.util.state.Loader
+import ua.gov.diia.core.util.state.toFullScreenIndicator
 import ua.gov.diia.login.R
 import ua.gov.diia.ui_base.components.atom.text.textwithparameter.TextParameter
 import ua.gov.diia.ui_base.components.molecule.checkbox.CheckboxSquareMlcData
@@ -60,7 +62,9 @@ fun LoginScreen(
     isLoading: Pair<String, Boolean>,
     onEvent: (UIAction) -> Unit
 ) {
-    Box(modifier = Modifier.fillMaxSize().provideTestTagsAsResourceId()) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .provideTestTagsAsResourceId()) {
         Column(
             modifier = modifier
                 .paint(
@@ -144,7 +148,12 @@ fun LoginScreen(
         if (isLoading.first == UIActionKeysCompose.PAGE_LOADING_TRIDENT && isLoading.second) {
             TridentLoaderMolecule()
         }
-        TridentLoaderWithUIBlocking(contentLoaded = isLoading.first to !isLoading.second)
+        TridentLoaderWithUIBlocking(
+            loader = Loader.createFullScreen(
+                indicator = isLoading.first.toFullScreenIndicator(),
+                isLoading = isLoading.second
+            )
+        )
     }
 }
 

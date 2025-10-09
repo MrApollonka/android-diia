@@ -21,7 +21,6 @@ import org.junit.runner.RunWith
 import org.mockito.junit.MockitoJUnitRunner
 import ua.gov.diia.core.models.notification.pull.PullNotificationItemSelection
 import ua.gov.diia.core.models.notification.push.PushAction
-import ua.gov.diia.ui_base.navigation.BaseNavigation
 import ua.gov.diia.core.util.DispatcherProvider
 import ua.gov.diia.core.util.delegation.WithErrorHandlingOnFlow
 import ua.gov.diia.core.util.delegation.WithRetryLastAction
@@ -39,6 +38,7 @@ import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
 import ua.gov.diia.ui_base.components.organism.header.TopGroupOrgData
+import ua.gov.diia.ui_base.navigation.BaseNavigation
 
 @ExperimentalCoroutinesApi
 @RunWith(MockitoJUnitRunner::class)
@@ -76,14 +76,11 @@ class NotificationComposeVMTest {
 
         notificationComposeVM = NotificationComposeVM(
             notificationsDataSource,
-            apiNotifications,
             dispatcherProvider,
             composeMapper,
             retryLastAction,
             errorHandling,
-            actionNotificationReceived,
-            actionNotificationRead,
-            notificationHelper
+            notificationHelper,
         )
     }
 

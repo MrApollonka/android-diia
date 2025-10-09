@@ -1,13 +1,12 @@
 package ua.gov.diia.ui_base.components.atom.text
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.Text
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -27,7 +26,11 @@ fun TextLabelAtm(
     modifier: Modifier = Modifier,
     data: TextLabelAtmData
 ) {
-    Row(modifier = modifier.fillMaxWidth()) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
         Text(
             modifier = Modifier.weight(1f),
             text = data.label.asString(),
@@ -38,17 +41,18 @@ fun TextLabelAtm(
             },
             style = DiiaTextStyle.t3TextBody
         )
-        Spacer(modifier = Modifier.width(12.dp))
-        Text(
-            modifier = Modifier.weight(1f),
-            text = data.value?.asString() ?: "",
-            color = if (data.mode == TextLabelAtmMode.SECONDARY || (data.isEnabled != null && data.isEnabled == false)) {
-                BlackAlpha30
-            } else {
-                Black
-            },
-            style = DiiaTextStyle.t3TextBody
-        )
+        data.value?.let {
+            Text(
+                modifier = Modifier.weight(1f),
+                text = data.value.asString(),
+                color = if (data.mode == TextLabelAtmMode.SECONDARY || (data.isEnabled != null && data.isEnabled == false)) {
+                    BlackAlpha30
+                } else {
+                    Black
+                },
+                style = DiiaTextStyle.t3TextBody
+            )
+        }
     }
 }
 
@@ -81,7 +85,7 @@ fun TextLabelAtm.toUIModel(
     )
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun TextLabelAtmPreview_Enabled() {
     val data = generateTextLabelAtmMockData(TextLabelAtmMockType.enabled)
@@ -95,7 +99,7 @@ fun TextLabelAtmPreview_Enabled() {
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun TextLabelAtmPreview_Disabled() {
     val data = generateTextLabelAtmMockData(TextLabelAtmMockType.disabled)
@@ -109,7 +113,7 @@ fun TextLabelAtmPreview_Disabled() {
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun TextLabelAtmPreview_LongLabel() {
     val data = generateTextLabelAtmMockData(TextLabelAtmMockType.long_label)
@@ -123,7 +127,7 @@ fun TextLabelAtmPreview_LongLabel() {
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun TextLabelAtmPreview_LongValue() {
     val data = generateTextLabelAtmMockData(TextLabelAtmMockType.long_value)
@@ -137,7 +141,7 @@ fun TextLabelAtmPreview_LongValue() {
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun TextLabelAtmPreview_ValueIsNull() {
     val data = generateTextLabelAtmMockData(TextLabelAtmMockType.value_is_null)
@@ -151,7 +155,7 @@ fun TextLabelAtmPreview_ValueIsNull() {
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun TextLabelAtmPreview_FromJsonModel() {
     val jsonModel = TextLabelAtm(

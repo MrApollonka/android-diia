@@ -38,7 +38,6 @@ class CreatePinVM @Inject constructor() : ViewModel() {
     val navigation = _navigation.asSharedFlow()
 
     fun doInit(flowType: CreatePinFlowType) {
-
         var title = R.string.create_screen_title_text
         var descText = R.string.create_screen_description_text
         var codeSize = 4
@@ -57,6 +56,7 @@ class CreatePinVM @Inject constructor() : ViewModel() {
             else -> {
             }
         }
+        _uiData.clear()
         _uiData.add(
             TopGroupOrgData(
                 titleGroupMlcData = TitleGroupMlcData(

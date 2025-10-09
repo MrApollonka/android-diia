@@ -8,6 +8,7 @@ import ua.gov.diia.core.util.extensions.fragment.navigate
 import ua.gov.diia.opensource.NavMainDirections
 
 class ContextMenuNavigationHelperImpl : ContextMenuNavigationHelper {
+
     override fun navigateToContextMenu(
         fragment: Fragment,
         menu: Array<ContextMenuField>
@@ -29,20 +30,11 @@ class ContextMenuNavigationHelperImpl : ContextMenuNavigationHelper {
         ratingType: String?,
         formCode: String?
     ) {
-        /*fragment.navigate(
-            NavMainDirections.actionGlobalToRatingDialog(
-                dialog = ratingFormModel,
-                applicationId = id,
-                resultDestinationId = destinationId,
-                resultKey = resultKey,
-                screenCode = screenCode,
-                ratingType = ratingType,
-                formCode = formCode
-            )
-        )*/
+        /* no-op */
     }
 
     override fun navigateToSupport(fragment: Fragment) {
         //fragment.navigate(NavMainDirections.actionGlobalDestinationSupport())
     }
+
 }

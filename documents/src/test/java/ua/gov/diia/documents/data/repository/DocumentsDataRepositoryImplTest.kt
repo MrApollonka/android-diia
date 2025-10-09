@@ -18,12 +18,13 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
+import ua.gov.diia.core.models.document.DiiaDocument
+import ua.gov.diia.core.models.document.DiiaDocumentWithMetadata
 import ua.gov.diia.core.util.delegation.WithCrashlytics
 import ua.gov.diia.diia_storage.store.datasource.DataSourceDataResult
 import ua.gov.diia.documents.data.datasource.local.KeyValueDocumentsDataSource
 import ua.gov.diia.documents.data.datasource.remote.NetworkDocumentsDataSource
-import ua.gov.diia.core.models.document.DiiaDocument
-import ua.gov.diia.core.models.document.DiiaDocumentWithMetadata
+import ua.gov.diia.documents.helper.DocumentsHelper
 import ua.gov.diia.documents.models.DocOrder
 import ua.gov.diia.documents.models.FetchDocumentsResult
 import ua.gov.diia.documents.models.TypeDefinedDocOrder
@@ -49,11 +50,14 @@ class DocumentsDataRepositoryImplTest {
     @Mock
     private lateinit var mockDocument: DiiaDocument
 
+    @Mock
+    private lateinit var documentsHelper: DocumentsHelper
+
     private lateinit var scope: CoroutineScope
 
     private lateinit var repository: DocumentsDataRepositoryImpl
 
-    private val baseDocumentList = listOf(DiiaDocumentWithMetadata.DOC_MANUAL_OPTIONS)
+    private val baseDocumentList = listOf("")
 
     @Before
     fun setUp() {
@@ -65,7 +69,8 @@ class DocumentsDataRepositoryImplTest {
             networkDocumentsDataSource = networkDocumentsDataSource,
             beforePublishActions = listOf(beforePublishAction),
             docTypesAvailableToUsers = docTypesAvailableToUsers,
-            withCrashlytics = withCrashlytics
+            withCrashlytics = withCrashlytics,
+            documentsHelper = documentsHelper
         )
     }
 

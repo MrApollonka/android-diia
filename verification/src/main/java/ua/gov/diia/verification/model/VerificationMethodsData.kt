@@ -3,7 +3,6 @@ package ua.gov.diia.verification.model
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import ua.gov.diia.core.models.dialogs.TemplateDialogModel
-import ua.gov.diia.verification.model.ActivityViewActionButton
 
 @JsonClass(generateAdapter = true)
 data class VerificationMethodsData(
@@ -18,5 +17,15 @@ data class VerificationMethodsData(
     @Json(name = "skipAuthMethods")
     val skipAuthMethods: Boolean?,
     @Json(name = "template")
-    val template: TemplateDialogModel?
-)
+    val template: TemplateDialogModel?,
+    @Json(name = "disabledMethods")
+    val disabledMethods: List<DisabledMethod>?,
+) {
+    @JsonClass(generateAdapter = true)
+    data class DisabledMethod(
+        @Json(name = "description")
+        val description: String?,
+        @Json(name = "code")
+        val code: String
+    )
+}

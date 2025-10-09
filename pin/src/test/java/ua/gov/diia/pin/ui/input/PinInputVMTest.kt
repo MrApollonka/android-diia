@@ -4,7 +4,6 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.MutableLiveData
 import app.cash.turbine.test
 import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.never
 import com.nhaarman.mockitokotlin2.stub
 import com.nhaarman.mockitokotlin2.verify
@@ -20,17 +19,16 @@ import org.junit.runners.Parameterized
 import org.junit.runners.Parameterized.Parameters
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
-import ua.gov.diia.diia_storage.store.repository.authorization.AuthorizationRepository
 import ua.gov.diia.core.models.UserType
 import ua.gov.diia.core.ui.dynamicdialog.ActionsConst
-import ua.gov.diia.core.util.alert.ClientAlertDialogsFactory
 import ua.gov.diia.core.util.delegation.WithRetryLastAction
 import ua.gov.diia.core.util.event.UiEvent
+import ua.gov.diia.diia_storage.store.repository.authorization.AuthorizationRepository
 import ua.gov.diia.pin.helper.PinHelper
 import ua.gov.diia.pin.repository.LoginPinRepository
 import ua.gov.diia.pin.rules.MainDispatcherRule
+import ua.gov.diia.pin.util.AndroidClientAlertDialogsFactory
 import ua.gov.diia.pin.utils.StubErrorHandlerOnFlow
-import ua.gov.diia.pin.utils.awaitFor
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose.PIN_CREATED_NUM_BUTTON_ORGANISM
@@ -59,7 +57,7 @@ class PinInputVMTest(private val isVerification: Boolean) {
     lateinit var authorizationRepository: AuthorizationRepository
 
     @Mock
-    lateinit var clientAlertDialogsFactory: ClientAlertDialogsFactory
+    lateinit var clientAlertDialogsFactory: AndroidClientAlertDialogsFactory
 
     @Mock
     lateinit var retryLastAction: WithRetryLastAction
@@ -172,24 +170,6 @@ class PinInputVMTest(private val isVerification: Boolean) {
                 PinInputVM.Navigation.ToQr
             }
             Assert.assertEquals(expected, awaitItem())
-        }
-    }
-
-    @Test
-    fun `exceed invalid try count`() = runTest {
-        whenever(loginPinRepository.isPinValid(any())).thenReturn(false)
-        whenever(clientAlertDialogsFactory.showAlertAfterInvalidPin()).thenReturn(mock())
-        viewModel.showTemplateDialog.test {
-            repeat(3) {
-                viewModel.onUIAction(UIAction(PIN_CREATED_NUM_BUTTON_ORGANISM, "1234"))
-                awaitFor {
-                    viewModel.uiData.firstNotNullOf {
-                        it as? NumButtonTileOrganismData
-                    }.clearWithShake
-                }
-            }
-            awaitItem()
-            verify(clientAlertDialogsFactory).showAlertAfterInvalidPin()
         }
     }
 

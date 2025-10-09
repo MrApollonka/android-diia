@@ -18,6 +18,9 @@ import androidx.compose.ui.unit.dp
 import ua.gov.diia.core.models.common_compose.atm.icon.BadgeCounterAtm
 import ua.gov.diia.core.models.common_compose.mlc.chip.ChipMlc
 import ua.gov.diia.ui_base.components.DiiaResourceIcon
+import ua.gov.diia.ui_base.components.atom.icon.SmallIconAtm
+import ua.gov.diia.ui_base.components.atom.icon.SmallIconAtmData
+import ua.gov.diia.ui_base.components.atom.icon.toUiModel
 import ua.gov.diia.ui_base.components.infrastructure.DataActionWrapper
 import ua.gov.diia.ui_base.components.infrastructure.UIElementData
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
@@ -44,11 +47,12 @@ fun ChipMlc(
     Row(
         modifier = modifier
             .background(
-                color = if (data.selectionState == UIState.Selection.Selected) {
+                color = if (data.isSelectable && data.selectionState == UIState.Selection.Selected) {
                     White
                 } else {
                     WhiteAlpha30
-                }, shape = RoundedCornerShape(40.dp)
+                },
+                shape = RoundedCornerShape(40.dp)
             )
             .noRippleClickable {
                 onUIAction(
@@ -60,14 +64,32 @@ fun ChipMlc(
                     )
                 )
             }
-            .testTag(data.componentId ?: ""),
+            .testTag(data.componentId.orEmpty()),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        data.iconLeft?.let { iconLeft ->
+            SmallIconAtm(
+                data = iconLeft,
+                modifier = modifier
+                    .padding(start = 18.dp)
+                    .size(18.dp)
+            ) {
+                UIAction(
+                    actionKey = iconLeft.actionKey,
+                    action = iconLeft.action
+                )
+            }
+        }
         Text(
             modifier = Modifier
                 .padding(vertical = 11.dp)
                 .padding(
-                    start = 18.dp, end = if (
+                    start = if (data.iconLeft != null) {
+                        6.dp
+                    } else {
+                        18.dp
+                    },
+                    end = if (
                         data.selectionState == UIState.Selection.Selected &&
                         (data.selectedIcon != null || data.badgeCounterAtm != null)
                     ) {
@@ -102,13 +124,15 @@ data class ChipMlcData(
     val componentId: String? = null,
     val actionKey: String? = CHIP_MLC,
     val id: String = "",
+    val iconLeft: SmallIconAtmData? = null,
     val label: UiText,
     val code: String,
     val badgeCounterAtm: BadgeCounterAtm? = null,
     val active: Boolean? = null,
     val selectedIcon: UiIcon? = null,
     val selectionState: UIState.Selection = UIState.Selection.Unselected,
-    val action: DataActionWrapper? = null
+    val action: DataActionWrapper? = null,
+    val isSelectable: Boolean = true
 ) : UIElementData
 
 fun ChipMlc.toUIModel(selectionState: UIState.Selection = UIState.Selection.Unselected): ChipMlcData {
@@ -116,6 +140,7 @@ fun ChipMlc.toUIModel(selectionState: UIState.Selection = UIState.Selection.Unse
         componentId = componentId.orEmpty(),
         id = code,
         label = label.toDynamicString(),
+        iconLeft = iconLeft?.toUiModel(),
         code = code,
         badgeCounterAtm = badgeCounterAtm,
         active = active,
@@ -123,7 +148,8 @@ fun ChipMlc.toUIModel(selectionState: UIState.Selection = UIState.Selection.Unse
             UiIcon.DrawableResource(code = icon)
         },
         action = action?.toDataActionWrapper(),
-        selectionState = selectionState
+        selectionState = selectionState,
+        isSelectable = isSelectable ?: true
     )
 }
 
@@ -134,7 +160,7 @@ fun ChipMlcPreview_Selected_Without_Icon() {
         label = UiText.DynamicString("label"),
         code = "inProgress",
         selectedIcon = null,
-        selectionState = UIState.Selection.Selected
+        selectionState = UIState.Selection.Selected,
     )
     Box(modifier = Modifier.background(Primary)) {
         ChipMlc(
@@ -217,6 +243,47 @@ fun ChipMlcPreview_Unselected() {
         code = "pending",
         badgeCounterAtm = BadgeCounterAtm(count = 11),
         selectionState = UIState.Selection.Unselected
+    )
+    Box(modifier = Modifier.background(Primary)) {
+        ChipMlc(
+            data = data
+        ) {}
+    }
+}
+
+
+@Composable
+@Preview
+fun ChipMlcPreview_IconLeftOnly() {
+    val data = ChipMlcData(
+        label = UiText.DynamicString("label"),
+        iconLeft = SmallIconAtmData(
+            code = DiiaResourceIcon.FILTER.code,
+            accessibilityDescription = "Button"
+        ),
+        code = "pending",
+        selectionState = UIState.Selection.Unselected
+    )
+    Box(modifier = Modifier.background(Primary)) {
+        ChipMlc(
+            data = data
+        ) {}
+    }
+}
+
+@Composable
+@Preview
+fun ChipMlcPreview_IconWithCounterAndLeftIcon() {
+    val data = ChipMlcData(
+        label = UiText.DynamicString("label"),
+        iconLeft = SmallIconAtmData(
+            code = DiiaResourceIcon.HEART.code,
+            accessibilityDescription = "Button"
+        ),
+        code = "pending",
+        selectedIcon = UiIcon.DrawableResource(DiiaResourceIcon.FILTER.code),
+        badgeCounterAtm = BadgeCounterAtm(count = 1),
+        selectionState = UIState.Selection.Selected
     )
     Box(modifier = Modifier.background(Primary)) {
         ChipMlc(

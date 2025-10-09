@@ -64,7 +64,9 @@ fun CheckboxRoundSeeAllOrg(
             expanded = expanded,
             selectedCount = selectedCount
         )
-        DividerSlimAtom(color = BlackSqueeze)
+        if (data.divider) {
+            DividerSlimAtom(color = BlackSqueeze)
+        }
 
         val grid = localData.value.options.chunked(3)
         grid.forEach { IconRow(it, onUIAction) }
@@ -100,6 +102,8 @@ data class CheckboxRoundSeeAllOrgData(
     val id: String = "",
     val title: UiText,
     val expanded: Boolean = true,
+    //Kept for invincibility local mapping
+    val divider: Boolean = true,
     val options: List<CheckIconMlcData>
 ) : UIElementData
 

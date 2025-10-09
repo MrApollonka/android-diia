@@ -22,6 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ua.gov.diia.core.models.common_compose.atm.button.BtnPrimaryDefaultAtm
 import ua.gov.diia.core.models.common_compose.general.ButtonStates
+import ua.gov.diia.core.util.state.Loader
 import ua.gov.diia.ui_base.components.infrastructure.DataActionWrapper
 import ua.gov.diia.ui_base.components.infrastructure.UIElementData
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
@@ -41,15 +42,16 @@ import ua.gov.diia.ui_base.util.toDataActionsWrapper
 fun BtnPrimaryDefaultAtm(
     modifier: Modifier = Modifier,
     data: BtnPrimaryDefaultAtmData,
-    progressIndicator: Pair<String, Boolean> = Pair("", false),
+    loader: Loader = Loader.create(),
     onUIAction: (UIAction) -> Unit
 ) {
+
     val isLoading = remember {
-        mutableStateOf(data.id == progressIndicator.first && progressIndicator.second)
+        mutableStateOf(loader.isLoadingByComponent(data.id))
     }
 
-    LaunchedEffect(key1 = data.id == progressIndicator.first, key2 = progressIndicator.second) {
-        isLoading.value = data.id == progressIndicator.first && progressIndicator.second
+    LaunchedEffect(key1 = loader) {
+        isLoading.value = loader.isLoadingByComponent(data.id)
     }
     Button(
         modifier = modifier
@@ -189,7 +191,7 @@ fun BtnPrimaryDefaultAtmPreview_LoadingState() {
         )
     BtnPrimaryDefaultAtm(
         data = buttonStateLoading,
-        progressIndicator = Pair("id", true)
+        loader = Loader.createComponent("id", true)
     ) {
     }
 }

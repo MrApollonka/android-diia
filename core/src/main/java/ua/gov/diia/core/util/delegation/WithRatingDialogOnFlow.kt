@@ -23,12 +23,15 @@ interface WithRatingDialogOnFlow {
     fun <T> T.sendRating(
         ratingRequest: RatingRequest,
         category: String,
-        serviceCode: String
+        serviceCode: String,
+        resourceId: String? = null
     ) where T : ViewModel, T : WithErrorHandlingOnFlow, T : WithRetryLastAction
 
     fun <T> T.getRating(
         category: String,
-        serviceCode: String
+        serviceCode: String,
+        resourceId: String? = null,
+        screenCode: String? = null
     ) where T : ViewModel, T : WithErrorHandlingOnFlow, T : WithRetryLastAction
 
 }

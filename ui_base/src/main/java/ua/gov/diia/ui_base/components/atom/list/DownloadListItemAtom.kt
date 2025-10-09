@@ -1,5 +1,6 @@
 package ua.gov.diia.ui_base.components.atom.list
 
+import android.content.Context
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,8 +10,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.hideFromAccessibility
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ua.gov.diia.ui_base.R
@@ -24,10 +29,15 @@ import ua.gov.diia.ui_base.components.subatomic.icon.IconWithBadge
 import ua.gov.diia.ui_base.components.subatomic.loader.LoaderCircularEclipse23Subatomic
 import ua.gov.diia.ui_base.components.theme.Black
 import ua.gov.diia.ui_base.components.theme.BlackAlpha10
-import ua.gov.diia.ui_base.components.theme.BlackAlpha30
+import ua.gov.diia.ui_base.components.theme.BlackAlpha54
 import ua.gov.diia.ui_base.components.theme.DiiaTextStyle
 import ua.gov.diia.ui_base.components.theme.Red
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun DownloadListItemAtom(
     modifier: Modifier = Modifier,
@@ -36,6 +46,12 @@ fun DownloadListItemAtom(
 ) {
     Row(modifier = modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
         val title = data.title?.asString()
+        val context = LocalContext.current
+        val descriptions = getIconDescriptions(context, data.progressState, title ?: "")
+
+        val leftSmallIconDescription = descriptions.leftIconDescription
+        val rightIconDescription = descriptions.rightIconDescription
+
         Box(modifier = modifier.size(24.dp)) {
             if (data.progressState == UIState.Progress.NotDownloaded
                 || data.progressState == UIState.Progress.Downloaded
@@ -70,9 +86,19 @@ fun DownloadListItemAtom(
                                     optionalId = data.id,
                                 )
                             )
-                        },
+                        }
+                        .then(
+                            if (data.progressState == UIState.Progress.NotAvailable) {
+                                Modifier.clearAndSetSemantics {
+                                    hideFromAccessibility()
+                                }
+                            } else {
+                                Modifier
+                            }
+                        ),
                     image = UiText.StringResource(icon),
-                    imageColor = color
+                    imageColor = color,
+                    contentDescription = leftSmallIconDescription
                 )
             }
 
@@ -122,7 +148,7 @@ fun DownloadListItemAtom(
                     modifier = Modifier.padding(top = 4.dp),
                     text = text,
                     style = DiiaTextStyle.t2TextDescription,
-                    color = if (data.progressState == UIState.Progress.Failed) Red else BlackAlpha30
+                    color = if (data.progressState == UIState.Progress.Failed) Red else BlackAlpha54
                 )
             }
         }
@@ -135,13 +161,19 @@ fun DownloadListItemAtom(
                         onUIAction(UIAction(actionKey = data.actionKey, data = data.id))
                     },
                 image = UiText.StringResource(R.drawable.ic_forward),
-                imageColor = Black
+                imageColor = Black,
+                contentDescription = rightIconDescription
             )
         }
 
         if (data.progressState == UIState.Progress.InProgress) {
             Text(
-                modifier = Modifier.padding(top = 4.dp),
+                modifier = Modifier
+                    .padding(top = 4.dp)
+                    .semantics {
+                        contentDescription = "${data.progressValue ?: 0}%"
+                        liveRegion = LiveRegionMode.Assertive
+                    },
                 text = "${data.progressValue ?: 0}%",
                 style = DiiaTextStyle.t1BigText,
                 color = Black
@@ -150,6 +182,37 @@ fun DownloadListItemAtom(
     }
 }
 
+fun getIconDescriptions(context: Context, progressState: UIState.Progress, title: String): IconDescriptions {
+    val res = context.resources
+
+    return when (progressState) {
+        UIState.Progress.Downloaded -> IconDescriptions(
+            leftIconDescription = res.getString(R.string.invincibility_accessibility_delete_map_button),
+            rightIconDescription = res.getString(R.string.invincibility_accessibility_open_map_button, title)
+        )
+
+        UIState.Progress.Failed -> IconDescriptions(
+            leftIconDescription = res.getString(R.string.invincibility_accessibility_try_again_button),
+            rightIconDescription = null
+        )
+
+        UIState.Progress.NotAvailable -> IconDescriptions(
+            leftIconDescription = null,
+            rightIconDescription = null
+        )
+
+        UIState.Progress.InProgress,
+        UIState.Progress.NotDownloaded -> IconDescriptions(
+            leftIconDescription = res.getString(R.string.invincibility_accessibility_map_download_button, title),
+            rightIconDescription = null
+        )
+
+        UIState.Progress.UpdateAvailable -> IconDescriptions(
+            leftIconDescription = res.getString(R.string.invincibility_accessibility_update_map_button),
+            rightIconDescription = res.getString(R.string.invincibility_accessibility_open_map_button, title)
+        )
+    }
+}
 
 data class DownloadListItemAtomData(
     val actionKey: String = UIActionKeysCompose.LIST_ITEM_CLICK,

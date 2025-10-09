@@ -2,6 +2,7 @@
 <resources>
     <string name="expand_collapse">Розгорнути/згорнути</string>
     <string name="arrow_back">Повернутись</string>
+    <string name="back">Назад</string>
     <string name="context_menu">Контекстне меню</string>
     <string name="details">Деталі</string>
     <string name="decrease_value">Зменшити значення</string>
@@ -21,6 +22,7 @@
     <string name="close">Закрити</string>
     <string name="close_rectangle">Очистити</string>
     <string name="qr_code">QR код</string>
+    <string name="barcode">Штрихкод</string>
     <string name="copy_to_clipboard">Скопіювати</string>
     <string name="not_handled_icon">Відсутній опис іконки</string>
     <string name="empty_string" />
@@ -42,7 +44,6 @@
     <string name="mrz_instructions_icon_test_tag">icon_reading</string>
     <string name="mrz_scanner_body_test_tag">body_scan</string>
     <string name="mrz_scanner_tooltip_test_tag">tool_tip_scan</string>
-    <string name="mrz_scanner_faceid_nav_panel_test_tag">navigation_panel_faceid</string>
 
     <string name="btn_num_1_test_tag">btn_num_1</string>
     <string name="btn_num_2_test_tag">btn_num_2</string>
@@ -112,8 +113,6 @@
     <string name="home_services_list_test_tag">services_list</string>
     <string name="home_subcategories_list_test_tag">subcategories_list</string>
     <string name="home_chip_tabs_services_test_tag">chip_tabs_services</string>
-    <string name="home_chip_tab_citizens_test_tag">citizens</string>
-    <string name="home_chip_tab_civil_servants_test_tag">civil_servants</string>
     <string name="home_navigation_panel_services_test_tag">navigation_panel_services</string>
     <string name="home_navigation_panel_subcategories_test_tag">navigation_panel_subcategories</string>
     <string name="home_stub_message_services_test_tag">stub_message_services</string>
@@ -163,5 +162,64 @@
     <string name="settings_share_with_friends">Розповісти друзям</string>
 
     <string name="update_document">Оновити документ</string>
+
+    <string name="invincibility_accessibility_map_download_button">%1$s, завантажити мапу на пристрій</string>
+    <string name="invincibility_accessibility_try_again_button">Спробувати ще</string>
+    <string name="invincibility_accessibility_delete_map_button">Видалити мапу з пристрою</string>
+    <string name="invincibility_accessibility_open_map_button">%1$s, перейти до мапи</string>
+    <string name="invincibility_accessibility_update_map_button">Оновити</string>
+
+    <string name="filter_icon_description">Фільтр</string>
+    <string name="ellipse_menu_icon_description">Контекстне меню</string>
+    <string name="copy_icon_description">Скопіювати номер</string>
+    <string name="stack_icon_description">Переглянути наявні документи цього типу</string>
+    <string name="ellipseInfo_icon_description">Інформація</string>
+    <string name="logo_diia_icon_description">Чорний логотип Дія</string>
+    <string name="logo_diia_stroke_icon_description">Прозорий логотип Дія</string>
+    <string name="medium_plus_icon_description">Квадрат зі знаком плюс</string>
+    <string name="sense_bank_logo_icon_description">Логотип Сенс Банк</string>
+    <string name="privat_bank_logo_icon_description">Логотип ПриватБанк</string>
+    <string name="mono_bank_logo_icon_description">Логотип Монобанк</string>
+    <string name="raif_bank_logo_icon_description">Логотип Райффайзен Банк</string>
+    <string name="abank_logo_icon_description">Логотип А-Банк</string>
+    <string name="ukrgaz_bank_logo_icon_description">Логотип Укргазбанк</string>
+    <string name="credit_dnipro_bank_logo_icon_description">Логотип Банк Кредит Дніпро</string>
+    <string name="globus_bank_logo_icon_description">Логотип Глобус Банк</string>
+    <string name="mtb_bank_logo_icon_description">Логотип МТБ Банк</string>
+    <string name="pumb_bank_logo_icon_description">Логотип ПУМБ</string>
+    <string name="ukrexim_bank_logo_icon_description">Логотип Укрексімбанк</string>
+    <string name="ukrsib_bank_logo_icon_description">Логотип УкрСиббанк</string>
+    <string name="oschad_bank_logo_icon_description">Логотип Ощадбанк</string>
+    <string name="universal_bank_logo_icon_description">Логотип Універсал Банк</string>
+    <string name="otp_bank_logo_icon_description">Логотип ОТП Банк</string>
+    <string name="vostok_bank_logo_icon_description">Логотип Банк Восток</string>
+    <string name="taskom_bank_logo_icon_description">Логотип Таскомбанк</string>
+    <string name="izi_bank_logo_icon_description">Логотип IZI Банк</string>
+    <string name="pivdennyi_bank_logo_icon_description">Логотип Банк Південний</string>
+    <string name="kredo_bank_logo_icon_description">Логотип Кредобанк</string>
+    <string name="creditagricole_bank_logo_icon_description">Логотип Креді Агріколь Банк</string>
+    <string name="idea_bank_logo_icon_description">Логотип Ідея Банк</string>
+    <string name="accord_bank_logo_icon_description">Логотип Аккордбанк</string>
+    <string name="unex_bank_logo_icon_description">Логотип Юнекс Банк</string>
+    <string name="poltava_bank_logo_icon_description">Логотип Полтава-Банк</string>
+    <string name="clearinghouse_bank_logo_icon_description">Логотип Клірінгхаус Банк</string>
+    <string name="lviv_bank_logo_icon_description">Логотип Банк Львів</string>
+    <string name="pravex_bank_logo_icon_description">Логотип Правекс Банк</string>
+    <string name="piraeus_bank_logo_icon_description">Логотип Піреус Банк</string>
+    <string name="industrial_bank_logo_icon_description">Логотип Індустріалбанк</string>
+    <string name="rada_bank_logo_icon_description">Логотип Радабанк</string>
+    <string name="comin_bank_logo_icon_description">Логотип КомІнБанк</string>
+    <string name="alliance_bank_logo_icon_description">Логотип Альянс Банк</string>
+    <string name="rws_bank_logo_icon_description">Логотип RwS Банк</string>
+    <string name="bis_bank_logo_icon_description">Логотип БІС Банк</string>
+    <string name="asvio_bank_logo_icon_description">Логотип АСВІО Банк</string>
+    <string name="motor_bank_logo_icon_description">Логотип Мотор-Банк</string>
+    <string name="krystal_bank_logo_icon_description">Логотип Кристалбанк</string>
+    <string name="grant_bank_logo_icon_description">Логотип Грант Банк</string>
+    <string name="alt_bank_logo_icon_description">Логотип Альт Банк</string>
+    <string name="bank34_bank_logo_icon_description">Логотип Банк 34</string>
+    <string name="sky_bank_logo_icon_description">Логотип Скай Банк</string>
+    <string name="logo_mc_icon_description">Мастеркард</string>
+    <string name="logo_visa_white_icon_description">Віза</string>
 
 </resources>

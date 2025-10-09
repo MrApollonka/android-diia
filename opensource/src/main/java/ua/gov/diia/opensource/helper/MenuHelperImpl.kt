@@ -5,15 +5,13 @@ import ua.gov.diia.core.models.SystemDialog
 import ua.gov.diia.core.util.extensions.fragment.findNavControllerById
 import ua.gov.diia.core.util.extensions.fragment.navigate
 import ua.gov.diia.menu.NavMenuActionsDirections
-import ua.gov.diia.menu.NavMenuActionsDirections.Companion.actionGlobalToNavFaq
 import ua.gov.diia.menu.NavMenuActionsDirections.Companion.actionHomeFToDiiaId
 import ua.gov.diia.menu.NavMenuActionsDirections.Companion.actionHomeFToNavAppSessions
-import ua.gov.diia.menu.NavMenuActionsDirections.Companion.actionHomeFToSignHistory
 import ua.gov.diia.menu.helper.MenuHelper
 import ua.gov.diia.opensource.NavMainDirections
 import ua.gov.diia.opensource.R
 import ua.gov.diia.ui_base.NavSystemDialogDirections
-import ua.gov.diia.web.util.extensions.fragment.navigateToWebView
+import ua.gov.diia.web.util.navigateToWebView
 
 class MenuHelperImpl : MenuHelper {
 
@@ -56,7 +54,7 @@ class MenuHelperImpl : MenuHelper {
     override fun navigateToFAQ(fragment: Fragment) {
         fragment.apply {
             navigate(
-                actionGlobalToNavFaq(),
+                NavMainDirections.actionGlobalToNavFaq(),
                 findNavControllerById(R.id.nav_host)
             )
         }
@@ -84,12 +82,8 @@ class MenuHelperImpl : MenuHelper {
     }
 
     override fun navigateToSignHistory(fragment: Fragment) {
-        fragment.navigate(
-            actionHomeFToSignHistory(),
-            fragment.findNavControllerById(ua.gov.diia.menu.R.id.nav_host),
-        )
+        /* no-op */
     }
-
 
     override fun navigateToAppSessions(fragment: Fragment) {
         fragment.navigate(

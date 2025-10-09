@@ -1,6 +1,7 @@
 package ua.gov.diia.ui_base.components.subatomic.barcode
 
 
+import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -21,12 +22,14 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import ua.gov.diia.ui_base.R
 import ua.gov.diia.ui_base.components.infrastructure.utils.image.BlurBitmap
 import ua.gov.diia.ui_base.components.subatomic.loader.TridentLoaderAtm
 
@@ -62,7 +65,7 @@ fun BarcodeAdapterView(
     barcodeBitmap.value?.let { barcode ->
         if (blur) {
             val originalBitmap =
-                barcode.asAndroidBitmap().copy(barcode.asAndroidBitmap().config, true)
+                barcode.asAndroidBitmap().copy(barcode.asAndroidBitmap().config ?: Bitmap.Config.ARGB_8888, true)
             BlurBitmap(
                 modifier = modifier,
                 originalBitmap,
@@ -70,10 +73,17 @@ fun BarcodeAdapterView(
                 height
             )
         } else {
+
+            val description = if(type == BarcodeType.QR_CODE) {
+                stringResource(id = R.string.qr_code)
+            } else {
+                stringResource(id = R.string.barcode)
+            }
+
             Image(
                 modifier = modifier,
                 painter = BitmapPainter(barcode),
-                contentDescription = value,
+                contentDescription = description,
                 contentScale = ContentScale.FillWidth
             )
         }

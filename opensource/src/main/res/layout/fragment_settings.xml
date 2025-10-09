@@ -4,6 +4,8 @@
 
     <data>
 
+<import type="android.view.View" />
+
         <variable
             name="vmSettingsFVM"
             type="ua.gov.diia.opensource.ui.fragments.settings.SettingsFVM" />
@@ -148,7 +150,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingVertical="@dimen/small"
-            app:isGone="@{!vmSettingsFVM.touchIdAvailable}"
+            android:visibility="@{(!vmSettingsFVM.touchIdAvailable) ? View.GONE : View.VISIBLE}"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/notifications_container">
 

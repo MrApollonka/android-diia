@@ -5,10 +5,8 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class SpacerAtm(
-    @Json(name = "type")
-    val type: SpacerAtmType?
+    @Json(name = "value")
+    val type: String?,
+    @Json(name = "componentId")
+    val componentId: String? = null,
 )
-
-enum class SpacerAtmType {
-    SPACER_8, SPACER_16, SPACER_24, SPACER_32, SPACER_64
-}

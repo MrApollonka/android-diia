@@ -63,7 +63,7 @@ fun SmallCheckIconOrg(
             }
         }
         if (data.items.isNotEmpty()) {
-            ChipVerticalGrid(spacing = 16.dp, modifier = Modifier.padding(8.dp)) {
+            ChipVerticalGrid(spacing = 16.dp, modifier = Modifier.padding(top = 8.dp, bottom = 8.dp, start = 16.dp, end = 16.dp)) {
                 data.items.forEach {
                     SmallCheckIconMlc(data = it, onUIAction = onUIAction)
                 }
@@ -146,7 +146,7 @@ fun SmallCheckIconOrg.toUIModel(): SmallCheckIconOrgData {
 @Preview
 fun SmallCheckIconOrgNoItemsPreview() {
     SmallCheckIconOrg(
-        data = generateSmallCheckIconOrgMockData(title = "Title", 0),
+        data = generateSmallCheckIconOrgMockData(title = "Title", 3),
         onUIAction = {}
     )
 }

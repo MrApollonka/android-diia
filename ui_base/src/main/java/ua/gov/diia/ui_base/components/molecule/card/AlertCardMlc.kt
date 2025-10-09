@@ -11,16 +11,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.hideFromAccessibility
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import ua.gov.diia.core.models.common_compose.atm.SpacerAtmType
 import ua.gov.diia.core.models.common_compose.mlc.card.AlertCardMlc
 import ua.gov.diia.ui_base.components.atom.button.BtnAlertAdditionalAtm
 import ua.gov.diia.ui_base.components.atom.button.BtnAlertAdditionalAtmData
 import ua.gov.diia.ui_base.components.atom.button.toUIModel
 import ua.gov.diia.ui_base.components.atom.space.SpacerAtm
 import ua.gov.diia.ui_base.components.atom.space.SpacerAtmData
+import ua.gov.diia.ui_base.components.atom.space.SpacerAtmType
 import ua.gov.diia.ui_base.components.infrastructure.UIElementData
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
@@ -43,12 +45,16 @@ fun AlertCardMlc(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            modifier = Modifier,
-            text = data.iconText.asString(),
-            color = Black,
-            style = DiiaTextStyle.h1Heading
-        )
+        data.iconText?.let {
+            Text(
+                modifier = Modifier.semantics {
+                    hideFromAccessibility()
+                },
+                text = it.asString(),
+                color = Black,
+                style = DiiaTextStyle.h1Heading
+            )
+        }
 
         Text(
             modifier = Modifier
@@ -78,14 +84,14 @@ fun AlertCardMlc(
             )
         }
         if (data.alertBtn == null) {
-            SpacerAtm(data = SpacerAtmData(type = SpacerAtmType.SPACER_8))
+            SpacerAtm(data = SpacerAtmData(type = SpacerAtmType.SMALL))
         }
     }
 }
 
 data class AlertCardMlcData(
     val componentId: UiText? = null,
-    val iconText: UiText,
+    val iconText: UiText? = null,
     val label: UiText,
     val text: UiText,
     val alertBtn: BtnAlertAdditionalAtmData?
@@ -94,7 +100,7 @@ data class AlertCardMlcData(
 fun AlertCardMlc.toUiModel(): AlertCardMlcData {
     return AlertCardMlcData(
         componentId = this.componentId?.let { UiText.DynamicString(it) },
-        iconText = this.icon.let { UiText.DynamicString(it) },
+        iconText = this.icon?.let { UiText.DynamicString(it) },
         label = this.label.let { UiText.DynamicString(it) },
         text = this.text.let { UiText.DynamicString(it) },
         alertBtn = this.btnAlertAdditionalAtm?.toUIModel()
@@ -120,7 +126,22 @@ fun generateAlertCardMlcMockData(mockType: AlertCardMlcMockType): AlertCardMlcDa
             text = UiText.DynamicString("Дайте нам знати. Передамо інформацію місцевій владі."),
             alertBtn = null
         )
+
+        AlertCardMlcMockType.button -> AlertCardMlcData(
+            iconText = UiText.DynamicString("⚠️"),
+            label = UiText.DynamicString("Пункт зачинено в робочі години?"),
+            text = UiText.DynamicString("Дайте нам знати. Передамо інформацію місцевій владі."),
+            alertBtn = BtnAlertAdditionalAtmData(title = UiText.DynamicString("Сповістити"))
+        )
     }
+}
+
+fun generateAlertCardMlcWithoutIconMockData(): AlertCardMlcData {
+    return AlertCardMlcData(
+    label = UiText.DynamicString("Пункт зачинено в робочі години?"),
+    text = UiText.DynamicString("Дайте нам знати. Передамо інформацію місцевій владі."),
+    alertBtn = BtnAlertAdditionalAtmData(title = UiText.DynamicString("Сповістити"))
+    )
 }
 
 @Composable
@@ -136,5 +157,13 @@ fun AlertCardMlcPreview() {
 fun AlertCardMlcPreview_WithoutBtn() {
     AlertCardMlc(
         data = generateAlertCardMlcMockData(AlertCardMlcMockType.withoutbutton)
+    ) {}
+}
+
+@Composable
+@Preview
+fun AlertCardMlcPreview_WithoutIcon() {
+    AlertCardMlc(
+        data = generateAlertCardMlcWithoutIconMockData()
     ) {}
 }

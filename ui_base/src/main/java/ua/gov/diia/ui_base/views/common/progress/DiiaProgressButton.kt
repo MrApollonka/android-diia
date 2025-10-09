@@ -13,7 +13,6 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
-import androidx.databinding.BindingAdapter
 import ua.gov.diia.core.util.extensions.validateResource
 import ua.gov.diia.ui_base.R
 import ua.gov.diia.ui_base.adapters.binding.setImageDrawableEndCompat
@@ -199,7 +198,7 @@ class DiiaProgressButton @JvmOverloads constructor(
         }
     }
 
-    fun setIsLoading(isLoading: Boolean) {
+    fun setProgressContainerVisibility(isLoading: Boolean) {
         progressButtonContainer.isVisible = isLoading
     }
 
@@ -232,9 +231,4 @@ class DiiaProgressButton @JvmOverloads constructor(
             matchConstraintDefaultWidth = LayoutParams.MATCH_CONSTRAINT_SPREAD
         }
     }
-}
-
-@BindingAdapter("template", "textTemplate", requireAll = true)
-fun DiiaProgressButton.setTitleFromTemplate(template: String?, value: Any?) {
-    if (template != null && value != null) setTitle(template.format(value))
 }

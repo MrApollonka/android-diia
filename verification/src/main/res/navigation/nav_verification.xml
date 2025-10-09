@@ -7,15 +7,19 @@
     <dialog
         android:id="@+id/destination_verificationMethodSelection"
         android:name="ua.gov.diia.verification.ui.method_selection.VerificationMethodSelectionDF">
-        <argument
-            android:name="resultKey"
-            app:argType="string" />
+
         <argument
             android:name="data"
             app:argType="ua.gov.diia.verification.model.VerificationMethodsView" />
+
+        <argument
+            android:name="resultKey"
+            app:argType="string" />
+
         <argument
             android:name="resultDestinationId"
             app:argType="integer" />
+
     </dialog>
 
 </navigation>

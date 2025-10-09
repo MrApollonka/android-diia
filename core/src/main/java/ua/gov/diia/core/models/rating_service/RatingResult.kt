@@ -5,6 +5,6 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class RatingResult(
-    val item: RatingRequest?,
+    val ratingRequest: RatingRequest?,
     val key: String
 ): Parcelable

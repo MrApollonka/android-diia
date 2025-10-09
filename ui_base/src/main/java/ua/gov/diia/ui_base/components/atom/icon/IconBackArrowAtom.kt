@@ -16,7 +16,7 @@ import ua.gov.diia.ui_base.components.theme.Black
 fun IconBackArrowAtom(
     modifier: Modifier = Modifier,
     tintColor: Color = Black,
-    contentDescription: UiText? = UiText.StringResource(R.string.arrow_back)
+    contentDescription: UiText? = UiText.StringResource(R.string.back)
 ) {
     Icon(
         modifier = modifier.size(28.dp, 28.dp),

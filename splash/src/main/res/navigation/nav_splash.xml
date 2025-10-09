@@ -91,15 +91,6 @@
             app:uri="diia://diia.app/message/public/{messageId}" />
 
         <deepLink
-            android:id="@+id/deepLinkPetition"
-            app:popUpTo="@id/splashF"
-            app:uri="https://diia.app/petition/{id}" />
-        <deepLink
-            android:id="@+id/deepLinkDiiaPetition"
-            app:popUpTo="@id/splashF"
-            app:uri="diia://diia.app/petition/{id}" />
-
-        <deepLink
             android:id="@+id/deepLinkChangeRegistrationApplication"
             app:popUpTo="@id/splashF"
             app:uri="https://diia.app/residence-registration/application/{id}/verify/{otp}" />
@@ -188,11 +179,6 @@
             android:defaultValue="@null"
             app:argType="string"
             app:nullable="true" />
-        <action
-            android:id="@+id/action_splashF_to_qrScanF"
-            app:destination="@id/qrScanF"
-            app:popUpTo="@id/splashF"
-            app:popUpToInclusive="true" />
         <action
             android:id="@+id/action_splashF_to_destination_pinInput"
             app:destination="@id/nav_pin_input"

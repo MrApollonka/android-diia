@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import ua.gov.diia.ui_base.components.DiiaResourceIcon
 import ua.gov.diia.ui_base.components.atom.icon.IconAtm
 import ua.gov.diia.ui_base.components.atom.icon.IconAtmData
+import ua.gov.diia.ui_base.components.atom.icon.SmallIconAtmData
 import ua.gov.diia.ui_base.components.infrastructure.UIElementData
 import ua.gov.diia.ui_base.components.infrastructure.event.UIAction
 import ua.gov.diia.ui_base.components.infrastructure.event.UIActionKeysCompose
@@ -46,7 +47,8 @@ fun DocButtonHeadingOrg(
         data.heading?.let {
             HeadingWithSubtitlesMlc(
                 modifier = Modifier.weight(1f),
-                data = it
+                data = it,
+                isFocusable = true
             )
         }
         data.headingWhite?.let {
@@ -134,7 +136,8 @@ fun DocButtonHeadingOrgPreviewDocCopy() {
                 code = DiiaResourceIcon.COPY.code
             )
         ),
-        isStack = false
+        isStack = false,
+        iconAtmData = IconAtmData(code = DiiaResourceIcon.ELLIPSE_KEBAB.code),
     )
     DocButtonHeadingOrg(modifier = Modifier, data = data) {}
 }
@@ -149,7 +152,14 @@ fun DocButtonHeadingOrgWithStackPreview() {
             subtitles = null
         ),
         isStack = true,
-        size = 2
+        size = 2,
+        stackMlcData = StackMlcData(
+            amount = 3, smallIconAtmData = SmallIconAtmData(
+                id = "1",
+                code = DiiaResourceIcon.STACK.code,
+                accessibilityDescription = "Button"
+            )
+        ),
     )
     DocButtonHeadingOrg(modifier = Modifier, data = data) {}
 }

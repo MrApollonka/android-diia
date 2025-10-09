@@ -19,6 +19,7 @@ import ua.gov.diia.opensource.R
 import ua.gov.diia.ui_base.components.infrastructure.state.UIState
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiIcon
 import ua.gov.diia.ui_base.components.infrastructure.utils.resource.UiText
+import ua.gov.diia.ui_base.components.infrastructure.utils.resource.toDrawableResourceOrNull
 import ua.gov.diia.ui_base.components.molecule.list.table.items.tableblock.DocTableItemHorizontalLongerMlcData
 import ua.gov.diia.ui_base.components.molecule.list.table.items.tableblock.DocTableItemHorizontalMlcData
 import ua.gov.diia.ui_base.components.molecule.list.table.items.tableblock.TableBlockItem
@@ -26,6 +27,7 @@ import ua.gov.diia.ui_base.components.molecule.list.table.items.tableblock.Table
 import ua.gov.diia.ui_base.components.molecule.list.table.items.tableblock.TableItemVerticalMlcData
 import ua.gov.diia.ui_base.components.molecule.list.table.items.tableblock.toUIModel
 import ua.gov.diia.ui_base.components.molecule.text.HeadingWithSubtitlesMlcData
+import ua.gov.diia.ui_base.components.molecule.text.toUiModel
 import ua.gov.diia.ui_base.components.molecule.tile.SmallEmojiPanelMlcData
 import ua.gov.diia.ui_base.components.organism.document.TableBlockOrgData
 import ua.gov.diia.ui_base.components.organism.document.TableBlockPlaneOrgData
@@ -36,9 +38,9 @@ import ua.gov.diia.ui_base.util.toUiModel
 
 private fun getIconByCode(code: String): Int {
     return when (code) {
-        "copy" -> R.drawable.ic_copy_settings
+        "copy" -> R.drawable.ic_copy
         else -> {
-            R.drawable.ic_copy_settings
+            R.drawable.ic_copy
         }
     }
 }
@@ -114,13 +116,7 @@ private fun TableItemVerticalMlc?.toComposeTableItemVertical(image: String?): Ta
             secondaryTitle = this.secondaryLabel?.let { it1 -> UiText.DynamicString(it1) },
             secondaryValue = this.secondaryValue?.let { v -> UiText.DynamicString(v) },
             valueAsBase64String = if (this.valueImage != null) image else null,
-            icon = if (this.icon?.code != null) {
-                this.icon?.code?.let {
-                    UiText.StringResource((getIconByCode(it)))
-                }
-            } else {
-                null
-            },
+            icon = this.icon?.toUiModel(),
             signBitmap = base64ToImageBitmap(if (this.valueImage != null) image else null)
         )
     }
