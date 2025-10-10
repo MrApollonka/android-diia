@@ -28,8 +28,33 @@ class AndroidClientAlertDialogsFactory @Inject constructor(
                     ),
                 ),
             )
+            UNKNOWN_ERR -> TemplateDialogModel(
+                type = "smallAlert",
+                key = ActionsConst.FRAGMENT_USER_ACTION_RESULT_KEY,
+                isClosable = isClosable,
+                data = TemplateDialogData(
+                    icon = "\uD83D\uDE1E",
+                    title = "На жаль, сталася помилка",
+                    mainButton = TemplateDialogButton(
+                        name = if (isClosable) "Спробувати ще" else "Зрозуміло",
+                        action = if (isClosable) ActionsConst.GENERAL_RETRY else ActionsConst.ERROR_DIALOG_DEAL_WITH_IT,
+                    ),
+                ),
+            )
 
-            else -> "Unhandled keyAlert".throwExceptionInDebugOrShowAlert(isClosable)
+            else -> TemplateDialogModel(
+                type = "smallAlert",
+                key = ActionsConst.FRAGMENT_USER_ACTION_RESULT_KEY,
+                isClosable = isClosable,
+                data = TemplateDialogData(
+                    icon = "\uD83D\uDE1E",
+                    title = "На жаль, сталася помилка",
+                    mainButton = TemplateDialogButton(
+                        name = if (isClosable) "Спробувати ще" else "Зрозуміло",
+                        action = if (isClosable) ActionsConst.GENERAL_RETRY else ActionsConst.ERROR_DIALOG_DEAL_WITH_IT,
+                    ),
+                ),
+            )
         }
     }
 

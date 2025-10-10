@@ -413,7 +413,7 @@ class CriminalCertStatusVM @Inject constructor(
             val paymentData = paymentRepository.getPaymentDataJson(
                 CriminalCertFlow,
                 resId,
-                "bank_id"
+                "ukrgasbank"
             )
             paymentData.template?.let { showTemplateDialog(it) }
             paymentData.dataJson?.let { _paymentDataJson.value = UiDataEvent(it) }

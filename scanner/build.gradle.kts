@@ -11,4 +11,7 @@ android {
 dependencies {
     api(libs.mlkit.barcode)
     api(libs.cameraview)
+
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.constraint.layout.compose)
 }

@@ -24,4 +24,10 @@ object ScannerModule {
         barcodeFormats = listOf(Barcode.FORMAT_CODE_128)
     )
 
+    @Provides
+    @BarcodeScannerQR
+    fun provideQRBarcodeScannerImpl(): DiiaBarcodeScanner = DefaultBarcodeScannerImpl(
+        barcodeFormats = listOf(Barcode.FORMAT_QR_CODE)
+    )
+
 }

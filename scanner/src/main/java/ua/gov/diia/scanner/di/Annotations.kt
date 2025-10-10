@@ -9,3 +9,7 @@ annotation class BarcodeScannerEAN13
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
 annotation class BarcodeScannerCODE128
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class BarcodeScannerQR

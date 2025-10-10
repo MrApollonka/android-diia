@@ -143,6 +143,7 @@ truth = "1.4.2"
 turbine = "1.1.0"
 hamcrest = "2.2"
 uaidvalidator = "1.0.3"
+ukrgas = "1.4.0"
 zxing = "3.5.2"
 
 [bundles]
@@ -370,6 +371,7 @@ ua-diia-facereco = { group = "ua.gov.diia", name = "facereco", version.ref = "fa
 ua-diia-crypto-client = { module = "ua.gov.diia:diia-crypto-client", version.ref = "diiaCryptoClientVersion" }
 ua-diia-uaidvalidator = { module = "ua.gov.diia:uaidvalidator", version.ref = "uaidvalidator" }
 ua-diia-nfcscan-client-lib = { module = "ua.gov.diia:diia-nfcscan-client-lib", version.ref = "diiaNfcscanClientLib" }
+ukrgas = { group = "com.ukrgasbank.ecom", name = "ugbpaymentkotlinsdk", version.ref = "ukrgas" }
 zxing = { group = "com.google.zxing", name = "core", version.ref = "zxing" }
 
 # Dependencies of the included build-logic
