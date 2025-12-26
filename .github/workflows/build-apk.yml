@@ -19,6 +19,9 @@ jobs:
           java-version: '17'
           cache: 'gradle'
 
+      - name: Set JAVA_HOME
+        run: echo "JAVA_HOME=$(dirname $(dirname $(which java)))" >> $GITHUB_ENV
+      
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
